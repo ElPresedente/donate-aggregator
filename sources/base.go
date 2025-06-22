@@ -1,0 +1,24 @@
+package sources
+
+import (
+	"context"
+	"time"
+)
+
+// DonationEvent представляет нормализованные данные о донате
+type DonationEvent struct {
+	SourceID   string    `json:"sourceId"`
+	User       string    `json:"user"`
+	Subscriber string    `json:"subscriber"`
+	Amount     float64   `json:"amount"`
+	Currency   string    `json:"currency"`
+	Message    string    `json:"message"`
+	Timestamp  time.Time `json:"timestamp"`
+	Date       time.Time `json:"date"`
+}
+
+// EventCollector интерфейс для всех источников событий
+type EventCollector interface {
+	Start(ctx context.Context, ch chan<- DonationEvent) error
+	Stop() error
+}
