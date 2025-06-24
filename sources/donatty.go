@@ -52,6 +52,37 @@ func NewDonattyCollector(token_str, ref string) *DonattyCollector {
 // Start запускает коллектор
 func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) error {
 	dc.getAccessToken()
+
+	//ping секция
+	go func() {
+		lastPing := time.Now()
+		for {
+			select {
+			case <-dc.stop:
+				return
+			default:
+				if time.Since(lastPing) > ping_interval {
+					req, err := http.NewRequest("POST", fmt.Sprintf("https://api.donatty.com/widgets/%s/ping", dc.ref), nil)
+					if err != nil {
+						log.Printf("❌ Ошибка создания PONG-запроса: %v", err)
+						continue
+					}
+					req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", dc.token.AccessToken))
+					resp, err := dc.client.Do(req)
+					if err != nil {
+						log.Printf("❌ Ошибка при отправке PONG: %v", err)
+					} else {
+						log.Println("📡 Отправлен PONG Donatty")
+						resp.Body.Close()
+					}
+					lastPing = time.Now()
+				} else {
+					time.Sleep(ping_interval)
+				}
+			}
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -65,34 +96,6 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 			sseClient := sse.NewClient(sseUrl)
 
 			log.Println("!!!!! SSE URL " + sseUrl)
-
-			//ping секция
-			lastPing := time.Now()
-			go func() {
-				for {
-					select {
-					case <-dc.stop:
-						return
-					default:
-						if time.Since(lastPing) > ping_interval {
-							req, err := http.NewRequest("POST", fmt.Sprintf("https://api.donatty.com/widgets/%s/ping", dc.ref), nil)
-							if err != nil {
-								log.Printf("❌ Ошибка создания PONG-запроса: %v", err)
-								continue
-							}
-							req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", dc.token.AccessToken))
-							resp, err := dc.client.Do(req)
-							if err != nil {
-								log.Printf("❌ Ошибка при отправке PONG: %v", err)
-							} else {
-								log.Println("📡 Отправлен PONG Donatty")
-								resp.Body.Close()
-							}
-							lastPing = time.Now()
-						}
-					}
-				}
-			}()
 
 			err := sseClient.SubscribeRaw(func(msg *sse.Event) {
 				var outer struct {
