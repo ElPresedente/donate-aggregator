@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import Window from './components/Window.vue'
+import { useRouter } from 'vue-router';
 </script>
 
 <template>
-  <Window/>
+  <router-view />
 </template>

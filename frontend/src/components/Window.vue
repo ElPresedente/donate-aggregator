@@ -1,7 +1,7 @@
 <template>
   <div id="body">
     <div v-if="!showSettingsPanel" class="dashboard" id="dashboard">
-      <HistoryList :history="history" />
+      <LogList :history="history" />
       <ControlPanel
         :donattyConnected="donattyConnected"
         :donatepayConnected="donatepayConnected"
@@ -21,15 +21,20 @@
 </template>
 
 <script>
-import LogList from './components/LogList.vue';
-import ControlPanel from './components/ControlPanel.vue';
-import SettingsPanel from './components/SettingsPanel.vue';
+import { useRouter } from 'vue-router';
+import LogList from './LogList.vue';
+import ControlPanel from './ControlPanel.vue';
+import SettingsPanel from './SettingsPanel.vue';
 
 export default {
   components: {
     LogList,
     ControlPanel,
     SettingsPanel
+  },
+  setup() {
+    const router = useRouter();
+    return { router };
   },
   data() {
     return {
@@ -50,8 +55,7 @@ export default {
         connection: 'Настройка подключения',
         roulette: 'Настройка рулетки'
       };
-      this.settingsTitle = titleMap[type];
-      this.showSettingsPanel = true;
+      this.router.push('/settings');
     },
     goBack() {
       this.showSettingsPanel = false;
@@ -71,3 +75,12 @@ export default {
   }
 };
 </script>
+
+<style>
+  #dashboard {
+    height: 90vh;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+  }
+</style>
