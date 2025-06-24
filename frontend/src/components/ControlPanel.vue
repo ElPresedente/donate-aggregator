@@ -18,10 +18,10 @@
       </div>
     </div>
     <div class="card-block settings-buttons">
-      <button class="btn gray" @click="$emit('show-settings', 'connection')">
+      <button class="btn gray" @click="$emit('show-settings')">
         Настройка подключения
       </button>
-      <button class="btn gray" @click="$emit('show-settings', 'roulette')">
+      <button class="btn gray" @click="$emit('show-roulette-settings')">
         Настройка рулетки
       </button>
     </div>

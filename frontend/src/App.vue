@@ -5,3 +5,9 @@ import { useRouter } from 'vue-router';
 <template>
   <router-view />
 </template>
+
+<style>
+#app{
+  height: auto;
+}
+</style>

@@ -10,13 +10,9 @@
         @restart="restart"
         @spin="spin"
         @show-settings="showSettings"
+        @show-roulette-settings="showRouletteSettings"
       />
     </div>
-    <SettingsPanel
-      v-else
-      :settingsTitle="settingsTitle"
-      @go-back="goBack"
-    />
   </div>
 </template>
 
@@ -24,13 +20,11 @@
 import { useRouter } from 'vue-router';
 import LogList from './LogList.vue';
 import ControlPanel from './ControlPanel.vue';
-import SettingsPanel from './SettingsPanel.vue';
 
 export default {
   components: {
     LogList,
-    ControlPanel,
-    SettingsPanel
+    ControlPanel
   },
   setup() {
     const router = useRouter();
@@ -50,12 +44,11 @@ export default {
     };
   },
   methods: {
-    showSettings(type) {
-      const titleMap = {
-        connection: 'Настройка подключения',
-        roulette: 'Настройка рулетки'
-      };
+    showSettings() {
       this.router.push('/settings');
+    },
+    showRouletteSettings() {
+      this.router.push('/roulette-settings');
     },
     goBack() {
       this.showSettingsPanel = false;

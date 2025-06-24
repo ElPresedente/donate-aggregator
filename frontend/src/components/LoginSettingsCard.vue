@@ -1,6 +1,6 @@
 <template>
   <div class="settings-card">
-    <h3>{{ title }}</h3>
+    <h2>{{ title }}</h2>
     <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
       <input
@@ -58,20 +58,30 @@ export default {
 <style scoped>
 .settings-card {
   border: 1px solid #ccc;
-  padding: 16px;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00000070;
+  padding: 0 10px 10px 10px;
   margin: 16px;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
 }
 .input-group {
   margin-bottom: 12px;
 }
+h2{
+  text-align: left;
+  margin: 10px 0 0 10px;
+}
 label {
+  left: 0px;
+  top: 0px;
   display: block;
   margin-bottom: 4px;
 }
 input {
-  width: 100%;
-  padding: 8px;
+  width: calc(100% - 30px - 20px);
+  padding: 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
 }

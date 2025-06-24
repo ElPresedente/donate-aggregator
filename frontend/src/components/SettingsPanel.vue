@@ -20,7 +20,7 @@
     />
   </div>
   <section class="card stretch" id="settings-panel">
-    <button class="btn" @click="handleSave">Сохранить все</button>
+    <button class="btn save" @click="handleSave">Сохранить все</button>
     <button class="btn back" @click="goBack">← Назад</button>
   </section>
 </template>
@@ -48,23 +48,23 @@ export default {
           name: 'url',
           label: 'URL сервиса',
           type: 'url',
-          placeholder: 'https://api.example.com',
+          placeholder: 'ссылка',
         },
       ],
       Donatpay:[
         {
           name: 'key',
-          label: 'Ключ доступа',
+          label: 'Не помню, чо там надо',
           type: 'text',
-          placeholder: 'Введите ключ',
+          placeholder: 'Реально не помню',
         }
       ], 
       StreamElements: [
         {
           name: 'key',
-          label: 'Ключ доступа',
+          label: 'Не помню, чо там надо',
           type: 'text',
-          placeholder: 'Введите ключ',
+          placeholder: 'Реально не помню',
         }
       ],
       formData: {
@@ -95,8 +95,9 @@ export default {
   box-shadow: 0 0 10px #00000070;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
+
+
 
 .card-header {
   font-size: 1.2rem;
@@ -110,6 +111,7 @@ export default {
 }
 
 .btn.back {
+  font-size: large;
   background-color: #6b7280;
   margin-top: 20px;
   width: 100%;
@@ -120,4 +122,16 @@ export default {
   font-weight: bold;
   cursor: pointer;
 }
+.btn.save {
+  font-size: large;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  background-color: #22c55e;
+}
+
 </style>
