@@ -34,19 +34,32 @@ func (a *App) startup(ctx context.Context) {
 	// Создаём канал для событий
 	eventCh := make(chan sources.DonationEvent, 100)
 
-	// Создаём и запускаем Donatty коллектор
-	donattyCollector := sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"))
-	go func() {
-		if err := donattyCollector.Start(ctx, eventCh); err != nil {
-			log.Printf("❌ Ошибка Donatty коллектора: %v", err)
-		}
-	}()
+	// Список коллекторов
+	collectors := []sources.EventCollector{
+		//sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF")),
+		sources.NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID")),
+	}
+
+	// Запускаем все коллекторы
+	for _, collector := range collectors {
+		go func(c sources.EventCollector) {
+			if err := c.Start(ctx, eventCh); err != nil {
+				log.Printf("❌ Ошибка коллектора: %v", err)
+			}
+		}(collector)
+	}
 
 	// Обрабатываем события из канала
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
+				// Останавливаем все коллекторы при завершении
+				for _, collector := range collectors {
+					if err := collector.Stop(); err != nil {
+						log.Printf("❌ Ошибка остановки коллектора: %v", err)
+					}
+				}
 				return
 			case donation := <-eventCh:
 				// Отправка события в фронтенд (для будущего GUI)

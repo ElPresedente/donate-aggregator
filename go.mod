@@ -2,14 +2,28 @@ module go-back
 
 go 1.23
 
-require github.com/wailsapp/wails/v2 v2.10.1
+require (
+	github.com/centrifugal/centrifuge-go v0.8.4
+	github.com/wailsapp/wails/v2 v2.10.1
+)
 
-require gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
+require (
+	github.com/centrifugal/protocol v0.7.3 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/jpillora/backoff v1.0.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/segmentio/encoding v0.4.0 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
+	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
+)
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/joho/godotenv v1.5.1
