@@ -105,15 +105,11 @@ func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent
 			}
 
 			log.Println("🔌 Настройка DonatePay Centrifugo...")
+			config := centrifuge.DefaultConfig()
+			config.Name = "js"
 			client := centrifuge.NewJsonClient(
 				"wss://centrifugo.donatepay.ru/connection/websocket",
-				centrifuge.Config{
-					Name:                 "js",
-					HandshakeTimeout:     100 * time.Second,
-					ReadTimeout:          100 * time.Second,
-					WriteTimeout:         100 * time.Second,
-					PrivateChannelPrefix: "$",
-				},
+				config,
 			)
 			client.SetToken(token)
 			dc.client = client
@@ -128,7 +124,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent
 			client.OnPrivateSub(handler)
 
 			// Подписка на канал
-			channel := fmt.Sprintf("notifications:%s", dc.userID)
+			channel := fmt.Sprintf("notifications#%s", dc.userID)
 
 			log.Println(channel)
 
