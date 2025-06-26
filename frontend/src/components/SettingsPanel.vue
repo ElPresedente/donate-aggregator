@@ -31,7 +31,7 @@ import SettingsCard from './LoginSettingsCard.vue'
 export default {
   setup() {
     const router = useRouter();
-    const goBack = () => router.push('/');
+    const goBack = () => router.go(-1); //router.push('/');
     return { goBack };
   },
   components: { SettingsCard },

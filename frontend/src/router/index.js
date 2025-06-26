@@ -8,7 +8,9 @@ import { createRouter, createWebHistory } from 'vue-router';
      { path: '/', component: Window },
      { path: '/settings', component: SettingsPanel },
      { path: '/roulette-settings', component: RouletteSettingsPanel },
-     { path: '/edit-category/:index', name: 'edit-category', component: RouletteSettingsCardEditor },
+     { path: '/edit-category/:items', name: 'edit-category', component: RouletteSettingsCardEditor },
+     //После подключения бд будем передавать индекс и делать по нему запрос
+     //{ path: '/edit-category/:index', name: 'edit-category', component: RouletteSettingsCardEditor },
    ];
 
    const router = createRouter({
