@@ -36,7 +36,7 @@ func (a *App) startup(ctx context.Context) {
 
 	// Список коллекторов
 	collectors := []sources.EventCollector{
-		//sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF")),
+		sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF")),
 		sources.NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID")),
 	}
 

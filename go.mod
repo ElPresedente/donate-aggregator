@@ -4,7 +4,6 @@ go 1.23
 
 require (
 	github.com/centrifugal/centrifuge-go v0.8.4
-	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/wailsapp/wails/v2 v2.10.1
 )
 
