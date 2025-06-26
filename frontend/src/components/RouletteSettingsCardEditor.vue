@@ -7,7 +7,7 @@
           class="hidden-input"
           @input="updateItem(idx, $event.target.value)"
         />
-        <button class="del-btn" @click="saveItem(idx)">Х</button>
+        <button class="del-btn" @click="deleteItem(idx)">Х</button>
       </li>
     </ul>
     <button class="btn add" @click="add()">Добавить</button>
@@ -39,8 +39,20 @@ export default {
       router.go(-1);
     }
 
+    const updateItem = (idx, value) => {
+      console.log(idx, value);
+    };
+
+    const add = () => {
+      localItems.value.push(''); // Добавление пустой строки
+    };
+
+    const deleteItem = (idx) => {
+      localItems.value.splice(idx, 1); // Удаление элемента
+    };
+
     const goBack = () => router.go(-1);
-    return { localItems, save, goBack };
+    return { localItems, save, updateItem, add, deleteItem, goBack };
   },
 };
 </script>
@@ -71,7 +83,7 @@ export default {
 
 .card li {
   font-size: 20px;
-  color: #999;
+  color: #ffffff;
   margin-bottom: 5px;
   display: flex;
   align-items: center;
@@ -81,15 +93,16 @@ export default {
 .hidden-input {
   background: transparent;
   border: none;
-  color: #999;
+  color: #ffffff;
   font-size: 20px;
   width: 100%;
   outline: none;
   padding: 5px 0;
+  border-bottom: 1px solid #bd7e3f;
 }
 
 .hidden-input:focus {
-  border-bottom: 1px solid #f57d07;
+  border-bottom: 1px solid #f77c00;
 }
 
 .del-btn {
@@ -141,5 +154,6 @@ export default {
   cursor: pointer;
   transition: background 0.2s ease;
   background-color: #22c55e;
+  margin-top: 40px;
 }
 </style>

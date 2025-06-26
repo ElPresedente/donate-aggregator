@@ -3,18 +3,30 @@
     <h2>{{ title }}</h2>
     <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
-      <input
-        :type="input.type"
-        :id="input.name"
-        :name="input.name"
-        v-model="localFormData[input.name]"
-        :placeholder="input.placeholder"
-      />
+      <div class="input-wrapper">
+        <input
+          :type="showPassword[index] ? 'text' : 'password'"
+          :id="input.name"
+          :name="input.name"
+          v-model="localFormData[input.name]"
+          :placeholder="input.placeholder"
+        />
+        <button
+          v-if="input.type === 'password'"
+          type="button"
+          class="toggle-password"
+          @click="togglePassword(index)"
+        >
+          {{ showPassword[index] ? '🙈' : '👁️' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { ref } from 'vue';
+
 export default {
   name: 'LoginSettingsCard',
   props: {
@@ -41,6 +53,15 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  setup() {
+    const showPassword = ref([]);
+
+    const togglePassword = (index) => {
+      showPassword.value[index] = !showPassword.value[index];
+    };
+
+    return { showPassword, togglePassword };
   },
   computed: {
     localFormData: {
@@ -69,7 +90,12 @@ export default {
 .input-group {
   margin-bottom: 12px;
 }
-h2{
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+h2 {
   text-align: left;
   margin: 10px 0 0 10px;
 }
@@ -95,5 +121,15 @@ button {
 }
 button:hover {
   background-color: #0056b3;
+}
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
 }
 </style>
