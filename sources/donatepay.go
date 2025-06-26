@@ -59,7 +59,7 @@ func (c ConnetionEventhandler) OnUnsubscribe(sub *centrifuge.Subscription, e cen
 }
 
 func (c ConnetionEventhandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.PublishEvent) {
-	log.Printf("CENTRIFUGO JSON\n %s", string(e.Data))
+	log.Printf("CENTRIFUGO JSON from channel %s\n %s", sub.Channel(), string(e.Data))
 }
 
 func (c ConnetionEventhandler) OnPrivateSub(client *centrifuge.Client, e centrifuge.PrivateSubEvent) (string, error) {
@@ -123,21 +123,67 @@ func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent
 			client.OnDisconnect(handler)
 			client.OnPrivateSub(handler)
 
-			// Подписка на канал
-			channel := fmt.Sprintf("notifications#%s", dc.userID)
+			// Подписка на канал //:= fmt.Sprintf("notifications#%s", dc.userID)
+			events := "events:events#1393285"
+			notifications := "notifications#1393285"
+			settings := "settings#1393285"
+			widgets_AB := "widgets:AlertBox#1393285"
+			widgets_LE := "widgets:LastEvents#1393285"
 
-			log.Println(channel)
-
-			sub, err := client.NewSubscription(channel)
+			sub_e, err := client.NewSubscription(events)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			sub.OnSubscribeError(handler)
-			sub.OnSubscribeSuccess(handler)
-			sub.OnUnsubscribe(handler)
+			sub_e.OnSubscribeError(handler)
+			sub_e.OnSubscribeSuccess(handler)
+			sub_e.OnUnsubscribe(handler)
 
-			sub.OnPublish(handler)
+			sub_e.OnPublish(handler)
+
+			sub_n, err := client.NewSubscription(notifications)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			sub_n.OnSubscribeError(handler)
+			sub_n.OnSubscribeSuccess(handler)
+			sub_n.OnUnsubscribe(handler)
+
+			sub_n.OnPublish(handler)
+
+			sub_s, err := client.NewSubscription(settings)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			sub_s.OnSubscribeError(handler)
+			sub_s.OnSubscribeSuccess(handler)
+			sub_s.OnUnsubscribe(handler)
+
+			sub_s.OnPublish(handler)
+
+			sub_wab, err := client.NewSubscription(widgets_AB)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			sub_wab.OnSubscribeError(handler)
+			sub_wab.OnSubscribeSuccess(handler)
+			sub_wab.OnUnsubscribe(handler)
+
+			sub_wab.OnPublish(handler)
+
+			sub_wle, err := client.NewSubscription(widgets_LE)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			sub_wle.OnSubscribeError(handler)
+			sub_wle.OnSubscribeSuccess(handler)
+			sub_wle.OnUnsubscribe(handler)
+
+			sub_wle.OnPublish(handler)
 
 			// Подключение
 			if err := client.Connect(); err != nil {
@@ -150,7 +196,11 @@ func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent
 
 			}
 
-			sub.Subscribe()
+			sub_e.Subscribe()
+			sub_n.Subscribe()
+			sub_s.Subscribe()
+			sub_wab.Subscribe()
+			sub_wle.Subscribe()
 
 			// Ожидание завершения
 			select {
