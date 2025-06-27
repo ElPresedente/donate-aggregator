@@ -12,7 +12,6 @@
           :placeholder="input.placeholder"
         />
         <button
-          v-if="input.type === 'password'"
           type="button"
           class="toggle-password"
           @click="togglePassword(index)"

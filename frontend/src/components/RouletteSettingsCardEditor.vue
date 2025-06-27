@@ -131,6 +131,11 @@ export default {
   font-weight: bold;
   cursor: pointer;
 }
+
+.btn.back:hover {
+  background-color: #4b5563;
+}
+
 .btn.save {
   width: 100%;
   font-size: large;
@@ -143,6 +148,11 @@ export default {
   transition: background 0.2s ease;
   background-color: #22c55e;
 }
+
+.btn.save:hover {
+  background-color: #16a34a;
+}
+
 .btn.add {
   width: 100%;
   font-size: large;
@@ -155,5 +165,9 @@ export default {
   transition: background 0.2s ease;
   background-color: #22c55e;
   margin-top: 40px;
+}
+
+.btn.add:hover {
+  background-color: #16a34a;
 }
 </style>

@@ -88,21 +88,45 @@ export default {
 
 .btn.green {
   background-color: #22c55e;
+  transition: background-color 0.2s ease; /* Плавный переход для фона */
+}
+
+.btn.green:hover {
+  background-color: #16a34a; /* Темнее на 20% для наведения */
 }
 
 .btn.red {
   background-color: #ef4444;
+  transition: background-color 0.2s ease;
+}
+
+.btn.red:hover {
+  background-color: #dc2626; /* Темнее на 20% */
 }
 
 .btn.blue {
   background-color: #3b82f6;
+  transition: background-color 0.2s ease;
+}
+
+.btn.blue:hover {
+  background-color: #2563eb; /* Темнее на 20% */
 }
 
 .btn.gold {
   background-color: #fbbf24;
+  transition: background-color 0.2s ease;
+}
+
+.btn.gold:hover {
+  background-color: #d97706; /* Темнее на 20% */
 }
 
 .btn.gray {
+  background-color: #6b7280;
+}
+
+.btn.gray:hover {
   background-color: #4b5563;
 }
 

@@ -115,4 +115,8 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+
+.btn.back:hover {
+  background-color: #4b5563;
+}
 </style>
