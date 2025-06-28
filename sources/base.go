@@ -9,9 +9,8 @@ import (
 type DonationEvent struct {
 	SourceID   string    `json:"sourceId"`
 	User       string    `json:"user"`
-	Subscriber string    `json:"subscriber"`
 	Amount     float64   `json:"amount"`
-	Currency   string    `json:"currency"`
+	//Currency   string    `json:"currency"`
 	Message    string    `json:"message"`
 	Timestamp  time.Time `json:"timestamp"`
 	Date       time.Time `json:"date"`

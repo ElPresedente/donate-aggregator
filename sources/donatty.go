@@ -1,3 +1,4 @@
+
 package sources
 
 import (
@@ -95,8 +96,6 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 			sseUrl := fmt.Sprintf("%s/widgets/%s/sse?zoneOffset=%d&jwt=%s", api_uri, dc.ref, zone_offset, dc.token.AccessToken)
 			sseClient := sse.NewClient(sseUrl)
 
-			log.Println("!!!!! SSE URL " + sseUrl)
-
 			err := sseClient.SubscribeRaw(func(msg *sse.Event) {
 				var outer struct {
 					Action string          `json:"action"`
@@ -107,12 +106,14 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 					return
 				}
 
-				log.Printf("!!!! SSE EVENT %s, %s, %t", outer.Action, outer.Data, outer.Action != "DATA")
 
 				if outer.Action != "DATA" {
 					//возможно где то тут надо отслеживать пришел ли пинг или нет, и на это реагировать
 					return
 				}
+				
+				//log.Printf("!!!! SSE EVENT %s, %s, %t", outer.Action, outer.Data, outer.Action != "DATA")
+
 				var wrapper struct {
 					StreamEventType string  `json:"streamEventType"`
 					StreamEventData string  `json:"streamEventData"`
@@ -143,22 +144,18 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 				donation := DonationEvent{
 					SourceID:   "donatty",
 					User:       streamData.DisplayName,
-					Subscriber: wrapper.Subscriber,
 					Amount:     wrapper.Amount,
-					Currency:   wrapper.Currency,
+					//Currency:   wrapper.Currency,
 					Message:    wrapper.Message,
 					Timestamp:  time.Now(),
 				}
 
-				if donation.Subscriber == "" {
-					donation.Subscriber = streamData.DisplayName
-				}
 				if donation.Amount == 0 {
 					donation.Amount = streamData.Amount
 				}
-				if donation.Currency == "" {
-					donation.Currency = streamData.Currency
-				}
+				// if donation.Currency == "" {
+				// 	donation.Currency = streamData.Currency
+				// }
 				if donation.Message == "" {
 					donation.Message = streamData.Message
 				}
@@ -171,9 +168,9 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 					}
 				}
 				fmt.Printf("\n🎁 Донат через DONATTY:\n")
-				fmt.Printf("👤 От: %s\n", donation.Subscriber)
+				fmt.Printf("👤 От: %s\n", donation.User)
 				fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-				fmt.Printf("💸 Сумма: %.2f %s\n", donation.Amount, donation.Currency)
+				fmt.Printf("💸 Сумма: %.2f\n", donation.Amount/*, donation.Currency*/)
 				fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
 				fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
 				fmt.Printf("----------------------------------------\n")
@@ -192,12 +189,6 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 			}
 		}
 	}
-	// 			log.Printf("❌ Ошибка подключения к Donatty: %v", err)
-	// 			log.Printf("🔁 Переподключение через %v...", dc.reconnectDelay)
-	// 			time.Sleep(dc.reconnectDelay)
-	// 		}
-	// 	}
-	// }
 }
 
 // Stop останавливает коллектор
@@ -209,7 +200,6 @@ func (dc *DonattyCollector) Stop() error {
 // getAccessToken получает access token для Donatty
 func (dc *DonattyCollector) getAccessToken() error {
 	url := fmt.Sprintf("%s/auth/tokens/%s", api_uri, dc.mainToken)
-	log.Println(" !!!! asking auth token at " + url)
 	resp, err := dc.client.Get(url)
 	if err != nil {
 		return err
@@ -224,10 +214,8 @@ func (dc *DonattyCollector) getAccessToken() error {
 		} `json:"response"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		log.Fatal(" !!!! ERROR TOKEN")
+		log.Fatal("DONATTY TOKEN ERROR")
 		return err
-	} else {
-		log.Println(" !!!! GOT TOKEN " + result.Response.AccessToken)
 	}
 	dc.token.AccessToken = result.Response.AccessToken
 	dc.token.RefreshToken = result.Response.RefreshToken

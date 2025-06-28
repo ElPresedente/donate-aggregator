@@ -13,6 +13,8 @@ import (
 	"github.com/centrifugal/centrifuge-go"
 )
 
+var api_uri := "https://donatepay.ru/api/v2"
+
 // DonatePayCollector реализует коллектор для DonatePay
 type DonatePayCollector struct {
 	accessToken    string
@@ -89,9 +91,9 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 		log.Printf("❌ Ошибка парсинга сообщения: %v", err)
 		return
 	}
-
 	if msg.Type != "event" || msg.Notification.Type != "donation" {
 		log.Printf("ℹ️ Пропущено сообщение с type=%s, notification.type=%s", msg.Type, msg.Notification.Type)
+
 		return // Игнорируем сообщения, не связанные с донатами
 	}
 
@@ -119,17 +121,22 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 	// Нормализация данных
 	donation := DonationEvent{
 		SourceID:   "donatepay",
-		User:       fmt.Sprintf("donatepay-%d", msg.Notification.UserID),
-		Subscriber: vars.Name,
+		User:       vars.Name//fmt.Sprintf("donatepay-%d", msg.Notification.UserID),
 		Amount:     vars.Sum,
-		Currency:   vars.Currency,
+		//Currency:   vars.Currency, //мб пригодится потом
 		Message:    vars.Comment,
 		Timestamp:  time.Now(),
 		Date:       time.Now(), // DonatePay не предоставляет дату
 	}
-	if donation.Currency == "" {
-		donation.Currency = "RUB" // Предполагаем RUB
+
+	if donation.User == ""{
+		//если нет нормального имени, будет временное (надеюсь нет)
+		donation.User = fmt.Sprintf("donatepay-%d", msg.Notification.UserID)
 	}
+	
+	//if donation.Currency == "" {
+	//	donation.Currency = "RUB" // Предполагаем RUB
+	//}
 
 	// Декодирование Unicode-экранированных символов
 	if decodedComment, err := decodeUnicode(vars.Comment); err == nil {
@@ -242,7 +249,7 @@ func (dc *DonatePayCollector) Stop() error {
 
 // getConnectionToken получает токен подключения к Centrifugo
 func (dc *DonatePayCollector) getConnectionToken() (string, error) {
-	url := "https://donatepay.ru/api/v2/socket/token"
+	url := fmt.Sprintf("%s/socket/token", api_uri)
 	payload, _ := json.Marshal(map[string]string{"access_token": dc.accessToken})
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
