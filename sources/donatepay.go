@@ -13,7 +13,7 @@ import (
 	"github.com/centrifugal/centrifuge-go"
 )
 
-var api_uri := "https://donatepay.ru/api/v2"
+var api_donatepay_uri string = "https://donatepay.ru/api/v2"
 
 // DonatePayCollector реализует коллектор для DonatePay
 type DonatePayCollector struct {
@@ -120,20 +120,20 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 
 	// Нормализация данных
 	donation := DonationEvent{
-		SourceID:   "donatepay",
-		User:       vars.Name//fmt.Sprintf("donatepay-%d", msg.Notification.UserID),
-		Amount:     vars.Sum,
+		SourceID: "donatepay",
+		User:     vars.Name, //fmt.Sprintf("donatepay-%d", msg.Notification.UserID),
+		Amount:   vars.Sum,
 		//Currency:   vars.Currency, //мб пригодится потом
-		Message:    vars.Comment,
-		Timestamp:  time.Now(),
-		Date:       time.Now(), // DonatePay не предоставляет дату
+		Message:   vars.Comment,
+		Timestamp: time.Now(),
+		Date:      time.Now(), // DonatePay не предоставляет дату
 	}
 
-	if donation.User == ""{
+	if donation.User == "" {
 		//если нет нормального имени, будет временное (надеюсь нет)
 		donation.User = fmt.Sprintf("donatepay-%d", msg.Notification.UserID)
 	}
-	
+
 	//if donation.Currency == "" {
 	//	donation.Currency = "RUB" // Предполагаем RUB
 	//}
@@ -147,9 +147,9 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 
 	// Вывод в консоль
 	fmt.Printf("\n🎁 Донат через DONATEPAY:\n")
-	fmt.Printf("👤 От: %s\n", donation.Subscriber)
+	fmt.Printf("👤 От: %s\n", donation.User)
 	fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-	fmt.Printf("💸 Сумма: %.2f %s\n", donation.Amount, donation.Currency)
+	fmt.Printf("💸 Сумма: %.2f %s\n", donation.Amount /*, donation.Currency*/)
 	fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
 	fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
 	fmt.Printf("----------------------------------------\n")
@@ -249,7 +249,7 @@ func (dc *DonatePayCollector) Stop() error {
 
 // getConnectionToken получает токен подключения к Centrifugo
 func (dc *DonatePayCollector) getConnectionToken() (string, error) {
-	url := fmt.Sprintf("%s/socket/token", api_uri)
+	url := fmt.Sprintf("%s/socket/token", api_donatepay_uri)
 	payload, _ := json.Marshal(map[string]string{"access_token": dc.accessToken})
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
