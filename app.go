@@ -28,7 +28,7 @@ func (a *App) startup(ctx context.Context) {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Ошибка загрузки .env файла")
+		log.Fatal("Ошибка загрузки .env файла: %s", err)
 	}
 
 	// Создаём канал для событий

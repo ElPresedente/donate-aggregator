@@ -149,7 +149,7 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 	fmt.Printf("\n🎁 Донат через DONATEPAY:\n")
 	fmt.Printf("👤 От: %s\n", donation.User)
 	fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-	fmt.Printf("💸 Сумма: %.2f %s\n", donation.Amount /*, donation.Currency*/)
+	fmt.Printf("💸 Сумма: %.2f\n", donation.Amount /*, donation.Currency*/)
 	fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
 	fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
 	fmt.Printf("----------------------------------------\n")
