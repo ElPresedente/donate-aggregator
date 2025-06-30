@@ -2,20 +2,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go-back/sources"
 	"log"
 	"os"
 	"sync"
-	"encoding/json"
 
 	"github.com/joho/godotenv"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"github.com/gorilla/websocket"
 	"net/http"
-)
 
+	"github.com/gorilla/websocket"
+)
 
 //ЯРЧЕ: Мужики, сори, не ебу куда это пихнуть, сами разберётесь---------------------------------------------------------------------------------------------------------------
 
@@ -120,19 +120,19 @@ func (a *App) SendMessageFromFrontend(msg string) {
 // App struct
 type App struct {
 	ctx context.Context
-//ЯРЧЕ: ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
+	//ЯРЧЕ: ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 	clients   map[*websocket.Conn]bool
 	clientsMu sync.Mutex
-//ЯРЧЕ: ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
+	//ЯРЧЕ: ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
+	//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 	return &App{
 		clients: make(map[*websocket.Conn]bool),
 	}
-//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
+	//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 }
 
 // startup is called when the app starts. The context is saved
@@ -144,7 +144,7 @@ func (a *App) startup(ctx context.Context) {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Ошибка загрузки .env файла: %s", err)
+		log.Fatalf("Ошибка загрузки .env файла: %s", err)
 	}
 
 	// Создаём канал для событий
@@ -188,4 +188,11 @@ func (a *App) startup(ctx context.Context) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+func (a *App) FrontendDispatcher(endpoint string, args ...any) {
+	switch endpoint {
+	case "test":
+
+	}
 }
