@@ -39,7 +39,7 @@ export default {
   setup(props){
     //ну может правильней эмит сигнала делать родителю и у него функции вызывать, но проще тут делать хз
     const rollRoulette = () => {
-      //дёргаем из го
+      window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
     };
     const rouletteOn = () => {
       //дёргаем из го

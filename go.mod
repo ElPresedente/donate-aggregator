@@ -6,6 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/centrifugal/centrifuge-go v0.8.4
+	github.com/gorilla/websocket v1.5.3
 	github.com/wailsapp/wails/v2 v2.10.1
 	modernc.org/sqlite v1.38.0
 )
@@ -13,7 +14,6 @@ require (
 require (
 	github.com/centrifugal/protocol v0.7.3 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

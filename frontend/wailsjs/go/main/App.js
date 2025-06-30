@@ -5,3 +5,11 @@
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
+
+export function SendMessageFromFrontend(arg1) {
+  return window['go']['main']['App']['SendMessageFromFrontend'](arg1);
+}
+
+export function StartWebSocketServer() {
+  return window['go']['main']['App']['StartWebSocketServer']();
+}
