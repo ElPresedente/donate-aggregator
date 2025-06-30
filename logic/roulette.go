@@ -2,6 +2,7 @@ package logic
 
 import (
 	"go-back/sources"
+	"log"
 	"time"
 )
 
@@ -24,52 +25,57 @@ type RouletteSettings struct {
 type Roulette struct {
 	sum        int
 	roll_price int
-	timeout    time.Time
-	
-	queue      []DonateEvent
-	stop       chan struct{}
+	timeout    time.Duration
+
+	queue []DonateEvent
+	stop  chan struct{}
 }
 
-func (a *Roulette) rouletteLoop(){
+func (a *Roulette) rouletteLoop() {
 	lastRoll := time.Now()
-	for{
-		if a.queue.empty(){
+	for {
+		if len(a.queue) == 0 {
 			return
 		}
-		select{
-			case <- a.stop:
-				return
-			default:
-				if time.Since( lastRoll ) >= timeout{
-					//прокрутить рандомно число от 1 до 100 
-					//динамически присвоить каждому сектору промежуток чисел
-					//получить сектор, получить варианты сектора
-					//выбрать случайно один из вариантов
-					//выдать событие рулетки
+		select {
+		case <-a.stop:
+			return
+		default:
+			if time.Since(lastRoll) >= a.timeout {
+				//прокрутить рандомно число от 1 до 100
+				//динамически присвоить каждому сектору промежуток чисел
+				//получить сектор, получить варианты сектора
+				//выбрать случайно один из вариантов
+				//выдать событие рулетки
 
-					//и всё это я не могу сделать без инета потому что не знаю как пользоваться этим языком
-					
-				} else{
-					time.Sleep( timeout /* - time.Since( lastRoll )*/)
-				} 
+				//и всё это я не могу сделать без инета потому что не знаю как пользоваться этим языком
+
+			} else {
+				time.Sleep(a.timeout /* - time.Since( lastRoll )*/)
+			}
 		}
 	}
 }
 
-//ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
-func (a *Roulette) roll(){
+// ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
+func (a *Roulette) roll() {
 	log.Printf("Нажатие кнопки Крутить")
 }
+
 //ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
 
-func (a *Roulette) process(){
-	if !queue.empty(){
+func (a *Roulette) process() {
+	if !(len(a.queue) == 0) {
 		return
 	}
-	go rouletteLoop();
+	go RouletteLoop()
 }
 
-func (a *Roulette) EnqueueDonate( event *DonateEvent ){
+func (a *Roulette) EnqueueDonate(event *DonateEvent) {
 	//queue.emplace_back( event ) не знаю как правильно)
-	process();	
+	a.process()
+}
+
+func RouletteLoop() {
+
 }
