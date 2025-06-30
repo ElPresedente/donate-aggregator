@@ -1,7 +1,7 @@
 <template>
   <div id="body">
     <div v-if="!showSettingsPanel" class="dashboard" id="dashboard">
-      <LogList :history="history" />
+      <LogList/>
       <ControlPanel
         :donattyConnected="donattyConnected"
         :donatepayConnected="donatepayConnected"
@@ -35,12 +35,7 @@ export default {
       showSettingsPanel: false,
       settingsTitle: '',
       donattyConnected: false,
-      donatepayConnected: false,
-      history: [
-        'kamicute2 получает Пат-пат',
-        'kamicute2 получает Пат-пат',
-        'kamicute2 получает Пат-пат'
-      ]
+      donatepayConnected: false
     };
   },
   methods: {

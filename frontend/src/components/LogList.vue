@@ -1,24 +1,35 @@
 <template>
   <section class="card stretch">
     <header class="card-header">История рулетки</header>
-    <ul class="card-list">
+    <ul class="card-list" id="log-list">
       <li v-for="(item, index) in history" :key="index">{{ item }}</li>
     </ul>
   </section>
 </template>
 
 <script>
-export default {
+export default {  
   name: 'LogList',
-  props: {
-    history: {
-      type: Array,
-      required: true
-    }
-  }
-};
-</script>
+  data() {
+    return {
+      history: []
+    };
+  },
 
+  /*
+  mounted() {
+    window.wails.runtime.events.on('logUpdate', (data) => {
+      this.history = data;
+    });
+  },
+  beforeUnmount() {
+    // Отписка от события при уничтожении компонента
+    window.wails.runtime.events.off('logUpdate');
+  }
+    */
+};
+
+</script>
 <style scoped>
 .card {
   width: 50%;

@@ -11,10 +11,10 @@
         </span>
       </div>
       <div class="controls">
-        <button class="btn green" @click="$emit('enable')">Включить</button>
-        <button class="btn red" @click="$emit('disable')">Выключить</button>
-        <button class="btn blue" @click="$emit('restart')">Перезапустить</button>
-        <button class="btn gold" @click="$emit('spin')">Крутить</button>
+        <button class="btn green" @click="rouletteOn">Включить</button>
+        <button class="btn red" @click="rouletteOff">Выключить</button>
+        <button class="btn blue" @click="rouletteReconnect">Перезапустить</button>
+        <button class="btn gold" @click="rollRoulette">Крутить</button>
       </div>
     </div>
     <div class="card-block settings-buttons">
@@ -34,6 +34,23 @@ export default {
   props: {
     donattyConnected: Boolean,
     donatepayConnected: Boolean
+  },
+  //пропсы мб в будущем не нужны нахуй будут
+  setup(props){
+    //ну может правильней эмит сигнала делать родителю и у него функции вызывать, но проще тут делать хз
+    const rollRoulette = () => {
+      //дёргаем из го
+    };
+    const rouletteOn = () => {
+      //дёргаем из го
+    };
+    const rouletteOff = () => {
+      //дёргаем из го
+    };
+    const rouletteReconnect = () => {
+      //дёргаем из го
+    };
+    return {rollRoulette, rouletteOn, rouletteOff, rouletteReconnect }
   }
 };
 </script>
