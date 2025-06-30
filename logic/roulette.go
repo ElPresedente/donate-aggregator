@@ -68,14 +68,10 @@ func (a *Roulette) process() {
 	if !(len(a.queue) == 0) {
 		return
 	}
-	go RouletteLoop()
+	go a.rouletteLoop()
 }
 
 func (a *Roulette) EnqueueDonate(event *DonateEvent) {
 	//queue.emplace_back( event ) не знаю как правильно)
 	a.process()
-}
-
-func RouletteLoop() {
-
 }
