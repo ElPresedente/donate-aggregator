@@ -21,7 +21,7 @@ func (a *Logic) NewLogicProcessor() {
 }
 
 func (a *Logic) Process(donate sources.DonationEvent) {
-	a.roulette.
+	a.roulette
 }
 
 func (a *Logic) EraseRouletteQueue() {

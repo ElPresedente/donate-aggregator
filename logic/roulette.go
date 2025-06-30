@@ -25,7 +25,7 @@ type Roulette struct {
 	sum        int
 	roll_price int
 	timeout    time.Time
-
+	
 	queue      []DonateEvent
 	stop       chan struct{}
 }
@@ -55,6 +55,12 @@ func (a *Roulette) rouletteLoop(){
 		}
 	}
 }
+
+//ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
+func (a *Roulette) roll(){
+	log.Printf("Нажатие кнопки Крутить")
+}
+//ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
 
 func (a *Roulette) process(){
 	if !queue.empty(){
