@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Test",
+            "database": "${workspaceFolder:donate-aggregator}/CredentialsDB.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

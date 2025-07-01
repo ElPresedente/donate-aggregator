@@ -31,17 +31,17 @@ type Roulette struct {
 	stop  chan struct{}
 }
 
-func (a *Roulette) rouletteLoop() {
+func (r *Roulette) rouletteLoop() {
 	lastRoll := time.Now()
 	for {
-		if len(a.queue) == 0 {
+		if len(r.queue) == 0 {
 			return
 		}
 		select {
-		case <-a.stop:
+		case <-r.stop:
 			return
 		default:
-			if time.Since(lastRoll) >= a.timeout {
+			if time.Since(lastRoll) >= r.timeout {
 				//прокрутить рандомно число от 1 до 100
 				//динамически присвоить каждому сектору промежуток чисел
 				//получить сектор, получить варианты сектора
@@ -51,27 +51,27 @@ func (a *Roulette) rouletteLoop() {
 				//и всё это я не могу сделать без инета потому что не знаю как пользоваться этим языком
 
 			} else {
-				time.Sleep(a.timeout /* - time.Since( lastRoll )*/)
+				time.Sleep(r.timeout /* - time.Since( lastRoll )*/)
 			}
 		}
 	}
 }
 
 // ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
-func (a *Roulette) roll() {
+func (r *Roulette) roll() {
 	log.Printf("Нажатие кнопки Крутить")
 }
 
 //ТУТ ТЫКАЕТСЯ ЯРЧЕ ДЛЯ ПРОВЕРКИ ДОСТУПА ИЗ JS-------------------------------------------------------------------------
 
-func (a *Roulette) process() {
-	if !(len(a.queue) == 0) {
+func (r *Roulette) process() {
+	if !(len(r.queue) == 0) {
 		return
 	}
-	go a.rouletteLoop()
+	go r.rouletteLoop()
 }
 
-func (a *Roulette) EnqueueDonate(event *DonateEvent) {
+func (r *Roulette) EnqueueDonate(event *DonateEvent) {
 	//queue.emplace_back( event ) не знаю как правильно)
-	a.process()
+	r.process()
 }

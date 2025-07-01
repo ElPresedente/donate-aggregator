@@ -15,15 +15,15 @@ type Logic struct {
 	roulette *Roulette
 }
 
-func (a *Logic) NewLogicProcessor() {
+func (l *Logic) NewLogicProcessor() {
 	//да, я всё делаю на объектах, отъебитесь
-	a.roulette = &Roulette{}
+	l.roulette = &Roulette{}
 }
 
-func (a *Logic) Process(donate sources.DonationEvent) {
-	a.roulette.process()
+func (l *Logic) Process(donate sources.DonationEvent) {
+	l.roulette.process()
 }
 
-func (a *Logic) EraseRouletteQueue() {
-	a.roulette.queue = make([]sources.DonationEvent, 0)
+func (l *Logic) EraseRouletteQueue() {
+	l.roulette.queue = make([]sources.DonationEvent, 0)
 }
