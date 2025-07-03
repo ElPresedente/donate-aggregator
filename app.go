@@ -97,7 +97,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) SendMessageFromFrontend(msg string) {
-	logic.NotifyDBChange(a.ctx, []string{"попа", "жопа", "попа"})
+	
 	a.clientsMu.Lock()
 	defer a.clientsMu.Unlock()
 
@@ -195,6 +195,6 @@ func (a *App) Greet(name string) string {
 func (a *App) FrontendDispatcher(endpoint string, args ...any) {
 	switch endpoint {
 	case "test":
-
+		logic.NotifyDBChange(a.ctx, []string{"попа", "жопа", "попа"})
 	}
 }

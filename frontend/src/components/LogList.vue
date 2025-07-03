@@ -9,28 +9,22 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { EventsOn } from '@wailsapp/runtime'
 
-const data = ref([]);
-onMounted(() => {
-    EventsOn('db_updated', (newData) => {
-        data.value = newData;
-    });
-});
 export default {
   name: 'LogList',
   setup() {
     const data = ref([]);
 
     onMounted(() => {
-      EventsOn('db_updated', (newData) => {
-        console.log('Received db_updated:', newData); // Для отладки
-        data.value = newData; // Обновляем реактивные данные
+      window.runtime.EventsOn('db_updated', (newData) => {
+        data.value = newData;
       });
     });
 
-    return { data }; // Возвращаем data для использования в шаблоне
-  },
+    return {
+      data,
+    };
+  }
 };
   //В теории вот так надо будет подписываться на ивенты с го для обновления интерфейса
   /*
