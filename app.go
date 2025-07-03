@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-back/sources"
+	"go-back/logic"
 	"log"
 	"os"
 	"sync"
@@ -96,6 +97,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) SendMessageFromFrontend(msg string) {
+	logic.NotifyDBChange(a.ctx, []string{"попа", "жопа", "попа"})
 	a.clientsMu.Lock()
 	defer a.clientsMu.Unlock()
 

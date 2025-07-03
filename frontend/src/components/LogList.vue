@@ -2,20 +2,37 @@
   <section class="card stretch">
     <header class="card-header">История рулетки</header>
     <ul class="card-list" id="log-list">
-      <li v-for="(item, index) in history" :key="index">{{ item }}</li>
+      <li v-for="(item, index) in data" :key="index">{{ item }}</li>
     </ul>
   </section>
 </template>
 
 <script>
-export default {  
-  name: 'LogList',
-  data() {
-    return {
-      history: []
-    };
-  },
+import { ref, onMounted } from 'vue';
+import { EventsOn } from '@wailsapp/runtime'
 
+const data = ref([]);
+onMounted(() => {
+    EventsOn('db_updated', (newData) => {
+        data.value = newData;
+    });
+});
+export default {
+  name: 'LogList',
+  setup() {
+    const data = ref([]);
+
+    onMounted(() => {
+      EventsOn('db_updated', (newData) => {
+        console.log('Received db_updated:', newData); // Для отладки
+        data.value = newData; // Обновляем реактивные данные
+      });
+    });
+
+    return { data }; // Возвращаем data для использования в шаблоне
+  },
+};
+  //В теории вот так надо будет подписываться на ивенты с го для обновления интерфейса
   /*
   mounted() {
     window.wails.runtime.events.on('logUpdate', (data) => {
@@ -26,8 +43,8 @@ export default {
     // Отписка от события при уничтожении компонента
     window.wails.runtime.events.off('logUpdate');
   }
-    */
-};
+    
+};*/
 
 </script>
 <style scoped>
