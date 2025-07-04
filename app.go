@@ -180,7 +180,9 @@ func (a *App) startup(ctx context.Context) {
 				}
 				return
 			case donation := <-eventCh:
-				// Отправка события в фронтенд (для будущего GUI)
+				// Отправка события в фронтенд (для будущего GUI) -------------------
+
+				//ПО СУТИ ВОТ ТУТ МЫ БУДЕМ ЮЗАТЬ FrontendDispatcher
 				runtime.EventsEmit(a.ctx, "donation", donation)
 			}
 		}
