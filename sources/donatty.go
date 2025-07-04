@@ -31,11 +31,12 @@ type DonattyCollector struct {
 	ref            string
 	reconnectDelay time.Duration
 	client         *http.Client
+	eventChan      chan<- DonationEvent
 	stop           chan struct{}
 }
 
 // NewDonattyCollector создаёт новый коллектор для Donatty
-func NewDonattyCollector(token_str, ref string) *DonattyCollector {
+func NewDonattyCollector(token_str, ref string, ch chan<- DonationEvent) *DonattyCollector {
 	return &DonattyCollector{
 		mainToken:      token_str,
 		token:          token{},
@@ -45,13 +46,15 @@ func NewDonattyCollector(token_str, ref string) *DonattyCollector {
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
-		stop: make(chan struct{}),
+		eventChan: ch,
+		stop:      make(chan struct{}),
 	}
 }
 
 // Start запускает коллектор
-func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) error {
+func (dc *DonattyCollector) Start(ctx context.Context) error {
 	dc.getAccessToken()
+	dc.stop = make(chan struct{})
 
 	//ping секция
 	go func() {
@@ -175,7 +178,7 @@ func (dc *DonattyCollector) Start(ctx context.Context, ch chan<- DonationEvent) 
 
 				// Отправка события в канал
 				select {
-				case ch <- donation:
+				case dc.eventChan <- donation:
 				case <-ctx.Done():
 					return
 				}

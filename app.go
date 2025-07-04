@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go-back/sources"
 	"go-back/logic"
+	"go-back/sources"
 	"log"
 	"os"
 	"sync"
@@ -97,7 +97,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) SendMessageFromFrontend(msg string) {
-	
+
 	a.clientsMu.Lock()
 	defer a.clientsMu.Unlock()
 
@@ -154,14 +154,14 @@ func (a *App) startup(ctx context.Context) {
 
 	// Список коллекторов
 	collectors := []sources.EventCollector{
-		sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF")),
-		sources.NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID")),
+		sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"), eventCh),
+		sources.NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID"), eventCh),
 	}
 
 	// Запускаем все коллекторы
 	for _, collector := range collectors {
 		go func(c sources.EventCollector) {
-			if err := c.Start(ctx, eventCh); err != nil {
+			if err := c.Start(ctx); err != nil {
 				log.Printf("❌ Ошибка коллектора: %v", err)
 			}
 		}(collector)
