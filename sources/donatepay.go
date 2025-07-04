@@ -21,15 +21,17 @@ type DonatePayCollector struct {
 	userID         string
 	reconnectDelay time.Duration
 	client         *centrifuge.Client
+	eventChan      chan<- DonationEvent
 	stop           chan struct{}
 }
 
 // NewDonatePayCollector создаёт новый коллектор для DonatePay
-func NewDonatePayCollector(accessToken, userID string) *DonatePayCollector {
+func NewDonatePayCollector(accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
 	return &DonatePayCollector{
 		accessToken:    accessToken,
 		userID:         userID,
 		reconnectDelay: 5 * time.Second,
+		eventChan:      ch,
 		stop:           make(chan struct{}),
 	}
 }
@@ -163,7 +165,8 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 }
 
 // Start запускает коллектор
-func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent) error {
+func (dc *DonatePayCollector) Start(ctx context.Context) error {
+	dc.stop = make(chan struct{})
 	for {
 		select {
 		case <-ctx.Done():
@@ -209,7 +212,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context, ch chan<- DonationEvent
 			sub.OnUnsubscribe(handler)
 
 			// Обработка сообщений о донатах
-			sub.OnPublish(PublishHandler{ctx: ctx, ch: ch})
+			sub.OnPublish(PublishHandler{ctx: ctx, ch: dc.eventChan})
 
 			// Подключение и подписка
 			if err := client.Connect(); err != nil {
