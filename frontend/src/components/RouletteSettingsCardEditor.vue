@@ -1,39 +1,101 @@
 <template>
   <div class="card">
     <ul>
-      <li v-for="(item, idx) in localItems" :key="idx">
+      <li 
+      v-for="(item, idx) in localItems" :key="item.id || item.tempId"
+      v-show="item.status !== 'delete'"
+      >
         <input
-          v-model="localItems[idx]"
+          v-model="item.data"
           class="hidden-input"
-          @input="updateItem(idx, $event.target.value)"
+          @input="markAsEdited(idx)"
         />
+        <!--@input="updateItem(idx, $event.target.value)"-->
         <button class="del-btn" @click="deleteItem(idx)">Х</button>
       </li>
     </ul>
-    <button class="btn add" @click="add()">Добавить</button>
+    <button class="btn add" @click="addItem()">Добавить</button>
   </div>
   <section class="card">
-    <button class="btn save" @click="save()">Сохранить все</button>
+    <button class="btn save" @click="saveChanges()">Сохранить все</button>
     <button class="btn back" @click="goBack()">← Назад</button>
   </section>
 </template>
 
 <script>
 import { useRoute, useRouter } from 'vue-router';
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 export default {
   name: 'RouletteSettingsCardEditor',
+  //Представляем, что у нас на входе массив объектов {id: ?, data:?}
   setup() {
     const router = useRouter();//Пока не понял, в чём прикол, но так работает
     const route = useRoute();
-    const localItems = ref(JSON.parse(route.params.items || '[]'));
+    const localItems = ref([]);
+    //const localItems = ref(JSON.parse(route.params.items || '[]'));
+
+    //Тестовые данные
+    onMounted(() => {
+       localItems.value = [
+         { id: 1, data: 'Элемент 1', status: null },
+         { id: 2, data: 'Элемент 2', status: null },
+         { id: 3, data: 'Элемент 3', status: null }
+       ];
+     });
+
+    const markAsEdited = (idx) => {
+      if (localItems.value[idx].id) {
+        localItems.value[idx].status = 'edit';
+      }
+    }
+    const addItem = () => {
+      localItems.value.push({
+        tempId: Date.now(),
+        data: '',
+        status: 'add'
+      });
+    }
+    const deleteItem = (idx) => {
+      if (localItems.value[idx].id) {
+        localItems.value[idx].status = 'delete';
+
+      } else {
+        // Для новых элементов (без id) удаляем сразу
+        localItems.value.splice(idx, 1);
+      }
+    }
+    const saveChanges = () => {
+      // Удаляем строки с пустым data и status != 'delete'
+      const itemsToSave = localItems.value.filter(
+        item => item.data.trim() !== ''
+      );
+      console.log(itemsToSave);
+      
+      try {
+        //const response = await axios.post('/api/update', { items: itemsToSave });
+        // Обновляем localItems данными от сервера
+        //this.localItems = response.data.items.map(item => ({
+        //  id: item.id,
+        //  data: item.data,
+        //  status: null // Сбрасываем status
+        //}));
+      } catch (error) {
+        console.error('Ошибка:', error);
+      }
+    }
 
     // Вывод аргумента в консоль
-    console.log('Index из параметра маршрута:', localItems);
+    //console.log('Index из параметра маршрута:', localItems);
 
     const save = () => {
+      document.getElementsByClassName()
+      //Игнорируем все пустые строки
 
+      //Два варианта для сохранения в бд
+      // 1. Удалаем по айдишнику таблицы все строки, после чего добавляем все новые циклом
+      // 2. Формируем словарь вида "id: новое значение строки" и обновляем данные по циклу
+      
       //Сохранение в бд
       
       router.go(-1);
@@ -44,16 +106,25 @@ export default {
     };
 
     const add = () => {
+      
       localItems.value.push(''); // Добавление пустой строки
     };
 
-    const deleteItem = (idx) => {
+    const deleteItemOld = (idx) => {
       localItems.value.splice(idx, 1); // Удаление элемента
     };
 
     const goBack = () => router.go(-1);
-    return { localItems, save, updateItem, add, deleteItem, goBack };
+    return { 
+      localItems,
+      markAsEdited,
+      addItem,
+      deleteItem,
+      saveChanges,
+      goBack
+     };
   },
+  
 };
 </script>
 
