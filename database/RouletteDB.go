@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	//"fmt"
+	"fmt"
 	"log"
 
 	_ "modernc.org/sqlite"
@@ -10,6 +10,18 @@ import (
 
 type RouletteDatabase struct {
 	db *sql.DB
+}
+
+type RouletteItem struct {
+	ID      int    `json:"id"`
+	GroupID int    `json:"group_id"`
+	Name    string `json:"name"`
+}
+
+type RouletteGroupWithItems struct {
+	Title      string   `json:"title"`      // name
+	Items      []string `json:"items"`      // names из связанных RouletteItem
+	Percentage float64  `json:"percentage"` // chance
 }
 
 func (c *RouletteDatabase) Init() {
@@ -80,4 +92,74 @@ func (c *RouletteDatabase) seedDefaultGroups() {
     } else {
         log.Println("✅ Дефолтные группы успешно добавлены.")
     }
+}
+
+//Получение всех RouletteItem по id RouletteGroup
+func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error) {
+	rows, err := c.db.Query(`SELECT id, group_id, name FROM RouletteItem WHERE group_id = ?`, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []RouletteItem
+	for rows.Next() {
+		var item RouletteItem
+		if err := rows.Scan(&item.ID, &item.GroupID, &item.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (c *RouletteDatabase) AddItemToGroup(groupID int, itemName string) error {
+	_, err := c.db.Exec(`INSERT INTO RouletteItem (group_id, name) VALUES (?, ?)`, groupID, itemName)
+	return err
+}
+
+func (c *RouletteDatabase) GetGroupWithItemsByID(groupID int) (*RouletteGroupWithItems, error) {
+	query := `
+		SELECT g.name AS group_name, g.chance, i.name AS item_name
+		FROM RouletteGroup g
+		LEFT JOIN RouletteItem i ON g.id = i.group_id
+		WHERE g.id = ?
+	`
+
+	rows, err := c.db.Query(query, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result *RouletteGroupWithItems
+
+	for rows.Next() {
+		var groupName string
+		var chance float64
+		var itemName sql.NullString
+
+		err := rows.Scan(&groupName, &chance, &itemName)
+		if err != nil {
+			return nil, err
+		}
+
+		if result == nil {
+			result = &RouletteGroupWithItems{
+				Title:      groupName,
+				Percentage: chance,
+				Items:      []string{},
+			}
+		}
+
+		if itemName.Valid {
+			result.Items = append(result.Items, itemName.String)
+		}
+	}
+
+	if result == nil {
+		return nil, fmt.Errorf("Группа с id %d не найдена", groupID)
+	}
+
+	return result, nil
 }

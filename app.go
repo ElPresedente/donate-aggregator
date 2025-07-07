@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-back/database"
 	"go-back/logic"
 	"go-back/sources"
 	"log"
@@ -194,9 +195,86 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) FrontendDispatcher(endpoint string, args ...any) {
+func (a *App) FrontendDispatcher(endpoint string, arg any)  {
+	log.Printf("🛰 Вызов FrontendDispatcher: %s, arg: %#v", endpoint, arg)
+
+	args, ok := arg.([]interface{})
+	if !ok {
+		log.Println("❌ Ошибка: аргументы не являются массивом")
+		return
+	}
+	
 	switch endpoint {
 	case "test":
 		logic.NotifyDBChange(a.ctx, []string{"попа", "жопа", "попа"})
+	
+	// Получение предметов по ID группы
+	case "getItemsByGroup":
+		if len(args) < 1 {
+			log.Println("❌ Не передан group_id")
+			return
+		}
+		groupID, ok := args[0].(float64) // Wails может передавать числовые значения как float64
+		if !ok {
+			log.Println("❌ Неверный тип group_id")
+			return
+		}
+		items, err := database.RouletteDB.GetItemsByGroupID(int(groupID))
+		if err != nil {
+			log.Println("❌ Ошибка при получении предметов:", err)
+			return
+		}
+		runtime.EventsEmit(a.ctx, "groupItems", items)
+
+	// Добавление нового предмета в группу
+	case "addItemToGroup":
+		if len(args) < 2 {
+			log.Println("❌ Не переданы аргументы для добавления предмета")
+			return
+		}
+		groupID, ok1 := args[0].(float64)
+		itemName, ok2 := args[1].(string)
+		if !ok1 || !ok2 {
+			log.Println("❌ Неверные аргументы для добавления")
+			return
+		}
+		err := database.RouletteDB.AddItemToGroup(int(groupID), itemName)
+		if err != nil {
+			log.Println("❌ Ошибка добавления предмета:", err)
+			return
+		}
+		runtime.EventsEmit(a.ctx, "itemAdded", map[string]interface{}{
+			"group_id": groupID,
+			"name":     itemName,
+		})
+	case "getGroupById":
+		log.Printf("📦 args[0] = %#v (%T)\n", args[0], args[0])
+		if len(args) < 1 {
+			log.Println("⚠️ Не передан id группы")
+			return
+		}
+
+		groupID, ok := args[0].(float64) // потому что JSON числа приходят как float64
+		if !ok {
+			log.Println("⚠️ Неверный тип ID")
+			return
+		}
+
+		groupData, err := database.RouletteDB.GetGroupWithItemsByID(int(groupID))
+		if err != nil {
+			log.Printf("❌ Ошибка получения группы: %s", err)
+			return
+		}
+
+		jsonData, err := json.Marshal(groupData)
+		if err != nil {
+			log.Printf("❌ Ошибка маршалинга JSON: %s", err)
+			return
+		}
+
+		// Отправляем на фронт (например, по событию)
+		//
+		// runtime.EventsEmit(a.ctx, "groupData", string(jsonData))db_updted
+		runtime.EventsEmit(a.ctx, "db_updated", string(jsonData))
 	}
 }
