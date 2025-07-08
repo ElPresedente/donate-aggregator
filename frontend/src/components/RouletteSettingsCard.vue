@@ -8,7 +8,12 @@
     </div>
     
     <ul>
-      <li v-for="item in items" :key="item">{{ item }}</li>
+      <template v-if="items.length > 0">
+        <li v-for="item in items" :key="item">{{ item }}</li>
+      </template>
+      <template v-else>
+        <li>...</li>
+      </template>
     </ul>
     <div class="stats">{{ percentage }}% <span>🎯</span></div>
   </div>

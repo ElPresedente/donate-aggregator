@@ -12,9 +12,15 @@ type RouletteDatabase struct {
 	db *sql.DB
 }
 
+type RouletteGroup struct {
+	ID      	int    `json:"id"`
+	Name 		string    `json:"name"`
+	Percentage  float64 `json:"chance"`
+	Color 		string `json:"color"`
+}
+
 type RouletteItem struct {
 	ID      int    `json:"id"`
-	GroupID int    `json:"group_id"`
 	Name    string `json:"name"`
 }
 
@@ -48,7 +54,8 @@ func (c *RouletteDatabase) Init() {
     CREATE TABLE IF NOT EXISTS RouletteGroup (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        chance REAL NOT NULL
+        chance REAL NOT NULL,
+		color TEXT NOT NULL
     );
 	
 	CREATE TABLE IF NOT EXISTS RouletteItem (
@@ -78,25 +85,77 @@ func (c *RouletteDatabase) seedDefaultGroups() {
         return // Данные уже есть — ничего не делаем
     }
 
-    insertDefaults := `
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Обычные', 50);
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Необычные', 25);
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Редкие', 16);
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Эпические', 7);
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Легендарные', 1.5);
-        INSERT INTO RouletteGroup (name, chance) VALUES ('Артифакты', 0.5);
-    `
-    _, err = c.db.Exec(insertDefaults)
+	tx, err := c.db.Begin()
     if err != nil {
-        log.Printf("❌ Ошибка при вставке дефолтных данных в RouletteGroup: %s", err)
-    } else {
-        log.Println("✅ Дефолтные группы успешно добавлены.")
+		
+        log.Printf("❌ Ошибка начала транзакции: %s", err)
+        return
     }
+	
+	groups := []struct {
+        name       string
+        chance     float64
+        color      string
+    }{
+        {"Обычные", 50, "white"},
+        {"Необычные", 25, "rgb(55, 255, 0)"},
+        {"Редкие", 16, "rgb(0, 200, 255)"},
+        {"Эпические", 7, "rgb(255, 0, 251)"},
+        {"Легендарные", 1.5, "rgb(245, 117, 7)"},
+        {"Артифакты", 0.5, "rgb(229, 204, 128)"},
+    }
+
+    for _, g := range groups {
+        _, err = tx.Exec(`INSERT INTO RouletteGroup (name, chance, color) VALUES (?, ?, ?)`, g.name, g.chance, g.color)
+        if err != nil {
+            tx.Rollback()
+            log.Printf("❌ Ошибка вставки группы: %s", err)
+            return
+        }
+    }
+
+    // Вставляем предметы для группы с id = 1 (предполагается, что первый вставленный id = 1)
+    items := []string{"Тест 1", "Тест 2", "Тест 3"}
+    for _, itemName := range items {
+        _, err = tx.Exec(`INSERT INTO RouletteItem (group_id, name) VALUES (?, ?)`, 1, itemName)
+        if err != nil {
+            tx.Rollback()
+            log.Printf("❌ Ошибка вставки предмета: %s", err)
+            return
+        }
+    }
+
+    err = tx.Commit()
+    if err != nil {
+        log.Printf("❌ Ошибка коммита транзакции: %s", err)
+        return
+    }
+
+    log.Println("✅ Дефолтные группы и предметы успешно добавлены.")
+
+    // insertDefaults := `
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Обычные', 50, 'white');
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Необычные', 25, 'rgb(55, 255, 0)');
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Редкие', 16, 'rgb(0, 200, 255)');
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Эпические', 7, 'rgb(255, 0, 251)');
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Легендарные', 1.5, 'rgb(245, 117, 7)');
+    //     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Артифакты', 0.5, 'rgb(229, 204, 128)');
+
+	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 1");
+	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 2");
+	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 3");
+    // `
+    // _, err = c.db.Exec(insertDefaults)
+    // if err != nil {
+    //     log.Printf("❌ Ошибка при вставке дефолтных данных в RouletteGroup: %s", err)
+    // } else {
+    //     log.Println("✅ Дефолтные группы успешно добавлены.")
+    // }
 }
 
 //Получение всех RouletteItem по id RouletteGroup
 func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error) {
-	rows, err := c.db.Query(`SELECT id, group_id, name FROM RouletteItem WHERE group_id = ?`, groupID)
+	rows, err := c.db.Query(`SELECT id, name FROM RouletteItem WHERE group_id = ?`, groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +164,30 @@ func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error
 	var items []RouletteItem
 	for rows.Next() {
 		var item RouletteItem
-		if err := rows.Scan(&item.ID, &item.GroupID, &item.Name); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
 	}
 	return items, nil
+}
+
+func (c *RouletteDatabase) GetRouletteGroups() ([]RouletteGroup, error) {
+	rows, err := c.db.Query(`SELECT * FROM RouletteGroup`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var groups []RouletteGroup
+	for rows.Next() {
+		var group RouletteGroup
+		if err := rows.Scan(&group.ID, &group.Name, &group.Percentage, &group.Color); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
 }
 
 func (c *RouletteDatabase) AddItemToGroup(groupID int, itemName string) error {

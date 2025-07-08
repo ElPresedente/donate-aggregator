@@ -195,14 +195,8 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) FrontendDispatcher(endpoint string, arg any)  {
-	log.Printf("🛰 Вызов FrontendDispatcher: %s, arg: %#v", endpoint, arg)
-
-	args, ok := arg.([]interface{})
-	if !ok {
-		log.Println("❌ Ошибка: аргументы не являются массивом")
-		return
-	}
+func (a *App) FrontendDispatcher(endpoint string, argJSON string)  {
+	log.Printf("🛰 Вызов FrontendDispatcher: %s, argJSON: %s", endpoint, argJSON)
 	
 	switch endpoint {
 	case "test":
@@ -210,71 +204,94 @@ func (a *App) FrontendDispatcher(endpoint string, arg any)  {
 	
 	// Получение предметов по ID группы
 	case "getItemsByGroup":
-		if len(args) < 1 {
-			log.Println("❌ Не передан group_id")
+		var payload struct {
+			GroupID int `json:"group_id"`
+		}
+		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+			log.Println("❌ Ошибка парсинга JSON:", err)
 			return
 		}
-		groupID, ok := args[0].(float64) // Wails может передавать числовые значения как float64
-		if !ok {
-			log.Println("❌ Неверный тип group_id")
-			return
-		}
-		items, err := database.RouletteDB.GetItemsByGroupID(int(groupID))
+		items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
 		if err != nil {
 			log.Println("❌ Ошибка при получении предметов:", err)
 			return
 		}
 		runtime.EventsEmit(a.ctx, "groupItems", items)
 
+	// Получение всех групп и их итемов
+	case "getGroups":
+		groups, err := database.RouletteDB.GetRouletteGroups()
+		if err != nil {
+			log.Println("❌ Ошибка при получении предметов:", err)
+			return
+		}
+		result := make([]map[string]interface{}, 0)
+
+		for _, group := range groups {
+		items, err := database.RouletteDB.GetItemsByGroupID(group.ID)
+		if err != nil {
+			log.Printf("❌ Ошибка при получении предметов для группы %d: %s", group.ID, err)
+			continue // пропускаем группу, если что-то пошло не так
+		}
+
+		itemNames := make([]string, 0, len(items))
+		for _, item := range items {
+			itemNames = append(itemNames, item.Name)
+		}
+
+		groupData := map[string]interface{}{
+			"title":      group.Name,
+			"items":      itemNames,
+			"percentage": group.Percentage,
+			"color":      group.Color, 
+		}
+		result = append(result, groupData)
+	}
+	log.Println("✅ Группы:", result)
+	// Отправляем на фронт
+		runtime.EventsEmit(a.ctx, "groupsData", result)
+		//runtime.EventsEmit(a.ctx, "groupItems", items)
+
 	// Добавление нового предмета в группу
 	case "addItemToGroup":
-		if len(args) < 2 {
-			log.Println("❌ Не переданы аргументы для добавления предмета")
+		var payload struct {
+			GroupID  int    `json:"group_id"`
+			ItemName string `json:"item_name"`
+		}
+		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+			log.Println("❌ Ошибка парсинга JSON:", err)
 			return
 		}
-		groupID, ok1 := args[0].(float64)
-		itemName, ok2 := args[1].(string)
-		if !ok1 || !ok2 {
-			log.Println("❌ Неверные аргументы для добавления")
-			return
-		}
-		err := database.RouletteDB.AddItemToGroup(int(groupID), itemName)
+		err := database.RouletteDB.AddItemToGroup(payload.GroupID, payload.ItemName)
 		if err != nil {
 			log.Println("❌ Ошибка добавления предмета:", err)
 			return
 		}
 		runtime.EventsEmit(a.ctx, "itemAdded", map[string]interface{}{
-			"group_id": groupID,
-			"name":     itemName,
+			"group_id": payload.GroupID,
+			"name":     payload.ItemName,
 		})
 	case "getGroupById":
-		log.Printf("📦 args[0] = %#v (%T)\n", args[0], args[0])
-		if len(args) < 1 {
-			log.Println("⚠️ Не передан id группы")
+		var payload struct {
+			GroupID int `json:"group_id"`
+		}
+		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+			log.Println("⚠️ Ошибка парсинга JSON:", err)
 			return
 		}
-
-		groupID, ok := args[0].(float64) // потому что JSON числа приходят как float64
-		if !ok {
-			log.Println("⚠️ Неверный тип ID")
-			return
-		}
-
-		groupData, err := database.RouletteDB.GetGroupWithItemsByID(int(groupID))
+		groupData, err := database.RouletteDB.GetGroupWithItemsByID(payload.GroupID)
 		if err != nil {
 			log.Printf("❌ Ошибка получения группы: %s", err)
 			return
 		}
-
 		jsonData, err := json.Marshal(groupData)
 		if err != nil {
 			log.Printf("❌ Ошибка маршалинга JSON: %s", err)
 			return
 		}
-
-		// Отправляем на фронт (например, по событию)
-		//
-		// runtime.EventsEmit(a.ctx, "groupData", string(jsonData))db_updted
 		runtime.EventsEmit(a.ctx, "db_updated", string(jsonData))
+
+	default:
+		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
 }

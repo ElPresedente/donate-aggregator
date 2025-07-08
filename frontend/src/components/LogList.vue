@@ -34,6 +34,8 @@ export default {
     */
     onMounted(() => {
       window.runtime.EventsOn('db_updated', (newData) => {
+        //Вот так тянуть данные
+        //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
         rouletteHistory.value = newData;
         try {
         // Парсим JSON-строку в массив объектов
@@ -43,16 +45,15 @@ export default {
           user: item.user, // Пользователь
           data: item.data // Выпавший сектор
         }));
-      } catch (error) {
-        console.error('Ошибка парсинга JSON:', error);
-        // Запасные данные на случай ошибки
-        rouletteHistory.value = [
-          { time: '2023-10-20T00:00:00Z', user: 'default_user', data: 'Сектор по умолчанию' }
-        ];
-      }
+        } catch (error) {
+          console.error('Ошибка парсинга JSON:', error);
+          // Запасные данные на случай ошибки
+          rouletteHistory.value = [
+            { time: '2023-10-20T00:00:00Z', user: 'default_user', data: 'Сектор по умолчанию' }
+          ];
+        }
       });
     });
-
     return {
       rouletteHistory,
     };
