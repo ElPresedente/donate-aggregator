@@ -13,8 +13,8 @@ type CredentialsDatabase struct {
 }
 
 type ENVVariable struct {
-	Name	string    `json:"name"`
-	Value 	string    `json:"value"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 func (c *CredentialsDatabase) Init() {
@@ -30,8 +30,7 @@ func (c *CredentialsDatabase) Init() {
 
 	createTableQuery := `
     CREATE TABLE IF NOT EXISTS EnvVariables (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        name TEXT PRIMARY KEY NOT NULL,
         value TEXT NOT NULL
     );`
 
@@ -52,7 +51,7 @@ func (c *CredentialsDatabase) InsertENVValue(name, value string) {
 
 func (c *CredentialsDatabase) UpdateENVValue(name, value string) error {
 	_, err := c.db.Exec(`UPDATE EnvVariables SET value = ? WHERE name = ?`, value, name)
- 	return err
+	return err
 }
 
 func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
@@ -71,8 +70,8 @@ func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 }
 
 func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
-    rows, err := c.db.Query(`SELECT name, value FROM EnvVariables`)
-    if err != nil {
+	rows, err := c.db.Query(`SELECT name, value FROM EnvVariables`)
+	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -89,12 +88,12 @@ func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
 }
 
 func (c *CredentialsDatabase) CheckENVExists(name string) (bool, error) {
-    var count int
-    err := c.db.QueryRow("SELECT COUNT(*) FROM EnvVariables WHERE name = ?", name).Scan(&count)
-    if err != nil {
-        return false, err
-    }
-    return count > 0, nil
+	var count int
+	err := c.db.QueryRow("SELECT COUNT(*) FROM EnvVariables WHERE name = ?", name).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func TestInsertGet() {

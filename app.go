@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-back/database"
-	//"go-back/logic"
+	"go-back/logic"
 	"go-back/sources"
 	"log"
 	"os"
@@ -97,6 +97,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// перенсти функционал в FrontendDispatcher
 func (a *App) SendMessageFromFrontend(msg string) {
 
 	a.clientsMu.Lock()
@@ -127,6 +128,7 @@ type App struct {
 	clients   map[*websocket.Conn]bool
 	clientsMu sync.Mutex
 	//ЯРЧЕ: ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
+	logic logic.Logic
 }
 
 // NewApp creates a new App application struct
@@ -134,6 +136,7 @@ func NewApp() *App {
 	//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 	return &App{
 		clients: make(map[*websocket.Conn]bool),
+		logic:   logic.NewLogicProcessor(),
 	}
 	//ЯРЧЕ: НЕ ЕБУ ЧО ЭТО ДЕЛАЕТ, НО ЭТО ТОЖЕ МОЁ---------------------------------------------------------------------------------------------------------------
 }
@@ -152,6 +155,8 @@ func (a *App) startup(ctx context.Context) {
 
 	// Создаём канал для событий
 	eventCh := make(chan sources.DonationEvent, 100)
+
+	//включение-выключение коллекторов по сигналу от фронта
 
 	// Список коллекторов
 	collectors := []sources.EventCollector{
@@ -181,108 +186,104 @@ func (a *App) startup(ctx context.Context) {
 				}
 				return
 			case donation := <-eventCh:
-				// Отправка события в фронтенд (для будущего GUI) -------------------
-
-				//ПО СУТИ ВОТ ТУТ МЫ БУДЕМ ЮЗАТЬ FrontendDispatcher
-				runtime.EventsEmit(a.ctx, "donation", donation)
+				a.logic.Process(donation)
+				//runtime.EventsEmit(a.ctx, "donation", donation) -> в logic.Process
 			}
 		}
 	}()
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
-
-func (a *App) FrontendDispatcher(endpoint string, argJSON string)  {
+func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	log.Printf("🛰 Вызов FrontendDispatcher: %s, argJSON: %s", endpoint, argJSON)
-	
+
 	switch endpoint {
 	// Получение предметов по ID группы
 	case "getItemsByGroupId":
-		var payload struct {
-			GroupID int `json:"group_id"`
-		}
-		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
-			log.Println("❌ Ошибка парсинга JSON:", err)
-			return
-		}
-		items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
-		if err != nil {
-			log.Println("❌ Ошибка при получении предметов:", err)
-			return
-		}
+		{ //to logic class
+			var payload struct {
+				GroupID int `json:"group_id"`
+			}
+			if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+				log.Println("❌ Ошибка парсинга JSON:", err)
+				return
+			}
+			items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
+			if err != nil {
+				log.Println("❌ Ошибка при получении предметов:", err)
+				return
+			}
 
-		var formattedItems []map[string]interface{}
-		for _, item := range items {
-			formattedItems = append(formattedItems, map[string] interface{}{
-				"id": 		item.ID,
-				"data": 	item.Name,
-				"status": 	nil,
-			})
+			var formattedItems []map[string]interface{}
+			for _, item := range items {
+				formattedItems = append(formattedItems, map[string]interface{}{
+					"id":     item.ID,
+					"data":   item.Name,
+					"status": nil,
+				})
+			}
+			runtime.EventsEmit(a.ctx, "itemsByGroupIdData", formattedItems)
 		}
-		runtime.EventsEmit(a.ctx, "itemsByGroupIdData", formattedItems)
 	case "itemsToSave":
- 		var payload struct {
-  			GroupID int `json:"id"` //Если потом произойдет логичный ренейм в групID, то тут тоже поменять
-  			Items   []struct {
-   				ID     	int     `json:"id"`
-   				Data   	string  `json:"data"`
-   				Status 	*string `json:"status"` // может быть null
-  			} `json:"items"`
- 		}
+		{ //to logic class
+			var payload struct {
+				GroupID int `json:"id"` //Если потом произойдет логичный ренейм в групID, то тут тоже поменять
+				Items   []struct {
+					ID     int     `json:"id"`
+					Data   string  `json:"data"`
+					Status *string `json:"status"` // может быть null
+				} `json:"items"`
+			}
 
- 		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
-  			log.Println("❌ Ошибка парсинга JSON itemsToSave:", err)
-  			return
- 		}
+			if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+				log.Println("❌ Ошибка парсинга JSON itemsToSave:", err)
+				return
+			}
+			log.Println(payload)
 
-		log.Println(payload)
+			for _, item := range payload.Items {
+				switch {
+				case item.Status == nil:
+					continue
 
- 		for _, item := range payload.Items {
-  			switch {
-  				case item.Status == nil:
-   					continue
+				case *item.Status == "add":
+					err := database.RouletteDB.AddItem(payload.GroupID, item.Data)
+					if err != nil {
+						log.Printf("❌ Ошибка добавления: %v", err)
+					}
 
-  				case *item.Status == "add":
-   					err := database.RouletteDB.AddItem(payload.GroupID, item.Data)
-   					if err != nil {
-    					log.Printf("❌ Ошибка добавления: %v", err)
-   					}
+				case *item.Status == "edit":
+					err := database.RouletteDB.UpdateItem(item.ID, item.Data)
+					if err != nil {
+						log.Printf("❌ Ошибка обновления: %v", err)
+					}
 
-  				case *item.Status == "edit":
-   					err := database.RouletteDB.UpdateItem(item.ID, item.Data)
-   					if err != nil {
-    					log.Printf("❌ Ошибка обновления: %v", err)
-   					}
+				case *item.Status == "delete":
+					err := database.RouletteDB.DeleteItem(item.ID)
+					if err != nil {
+						log.Printf("❌ Ошибка удаления: %v", err)
+					}
 
-  				case *item.Status == "delete":
-   					err := database.RouletteDB.DeleteItem(item.ID)
-   					if err != nil {
-    					log.Printf("❌ Ошибка удаления: %v", err)
-   					}
+				default:
+					log.Printf("⚠️ Неизвестный статус '%v' для элемента ID %d", *item.Status, item.ID)
+				}
+			}
 
-  				default:
-   					log.Printf("⚠️ Неизвестный статус '%v' для элемента ID %d", *item.Status, item.ID)
-  			}
- 		}
+			items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
+			if err != nil {
+				log.Println("❌ Ошибка при повторном получении предметов:", err)
+				return
+			}
 
-		items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
-		if err != nil {
-			log.Println("❌ Ошибка при повторном получении предметов:", err)
-			return
+			var formattedItems []map[string]interface{}
+			for _, item := range items {
+				formattedItems = append(formattedItems, map[string]interface{}{
+					"id":     item.ID,
+					"data":   item.Name,
+					"status": nil,
+				})
+			}
+			runtime.EventsEmit(a.ctx, "itemsByGroupIdData", formattedItems)
 		}
-
-		var formattedItems []map[string]interface{}
-		for _, item := range items {
-			formattedItems = append(formattedItems, map[string] interface{}{
-				"id": 		item.ID,
-				"data": 	item.Name,
-				"status": 	nil,
-			})
-		}
-		runtime.EventsEmit(a.ctx, "itemsByGroupIdData", formattedItems)
 
 	// Получение всех групп и их итемов
 	case "getGroups":
@@ -309,43 +310,14 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string)  {
 				"title":      group.Name,
 				"items":      itemNames,
 				"percentage": group.Percentage,
-				"color":      group.Color, 
+				"color":      group.Color,
 			}
 			result = append(result, groupData)
+			log.Println("✅ Группы:", result)
+			// Отправляем на фронт
+			runtime.EventsEmit(a.ctx, "groupsData", result)
 		}
-	log.Println("✅ Группы:", result)
-	// Отправляем на фронт
-	runtime.EventsEmit(a.ctx, "groupsData", result)
 
-	case "newLog":
-		//Парсим строку лога
-		//Добавляем лог в бд
-		//Кидаем запрос на 10 записей логов в бд
-
-		/*
-		Допустим к нам будут приходить массив [...] данных вида
-		{
-			time: время активации рулетки DD.MM HH.MM
-			user: пользователь, для которого активировалась рулетка
-			data: сектор, выпавший на рулетке
-		}
-		*/
-		result := make([]map[string]interface{}, 0)
-		// groupData := map[string]interface{}{
-		// 		"time":      "время",
-		// 		"user":      "имя пользователя",
-		// 		"data": 	 "награда",
-		// 	}
-		// result = append(result, groupData)
-		// logData := map[string]interface{}{
-		// 	"title":      group.Name,
-		// 	"items":      itemNames,
-		// 	"percentage": group.Percentage,
-		// 	"color":      group.Color, 
-		// }
-		
-		runtime.EventsEmit(a.ctx, "logUpdated", result)
-	
 	case "getSettings":
 		settings, err := database.CredentialsDB.GetAllENVValues()
 		if err != nil {
@@ -356,12 +328,12 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string)  {
 
 		for _, setting := range settings {
 			settingsData := map[string]interface{}{
-				"name":       setting.Name,
-				"value":      setting.Value,
+				"name":  setting.Name,
+				"value": setting.Value,
 			}
 			result = append(result, settingsData)
 		}
-	runtime.EventsEmit(a.ctx, "SettingsData", result)
+		runtime.EventsEmit(a.ctx, "SettingsData", result)
 
 	case "updateSettings":
 		var payload struct {
