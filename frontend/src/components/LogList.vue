@@ -33,7 +33,7 @@ export default {
       }
     */
     onMounted(() => {
-      window.runtime.EventsOn('db_updated', (newData) => {
+      window.runtime.EventsOn('logUpdated', (newData) => {
         //Вот так тянуть данные
         //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
         rouletteHistory.value = newData;

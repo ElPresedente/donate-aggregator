@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	//"fmt"
 	"log"
 
 	_ "modernc.org/sqlite"
@@ -114,17 +114,6 @@ func (c *RouletteDatabase) seedDefaultGroups() {
         }
     }
 
-    // Вставляем предметы для группы с id = 1 (предполагается, что первый вставленный id = 1)
-    items := []string{"Тест 1", "Тест 2", "Тест 3"}
-    for _, itemName := range items {
-        _, err = tx.Exec(`INSERT INTO RouletteItem (group_id, name) VALUES (?, ?)`, 1, itemName)
-        if err != nil {
-            tx.Rollback()
-            log.Printf("❌ Ошибка вставки предмета: %s", err)
-            return
-        }
-    }
-
     err = tx.Commit()
     if err != nil {
         log.Printf("❌ Ошибка коммита транзакции: %s", err)
@@ -172,6 +161,41 @@ func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error
 	return items, nil
 }
 
+func (c *RouletteDatabase) AddItem(groupID int, name string) error {
+	log.Printf("Вставляемые данные: %d %s", groupID, name)
+	log.Printf("Вставляемые данные:")
+	tx, err := c.db.Begin()
+    if err != nil {
+		
+        log.Printf("❌ Ошибка начала транзакции: %s", err)
+        return err
+    }
+	
+	_, err = tx.Exec(`INSERT INTO RouletteItem (group_id, name) VALUES (?, ?)`, groupID, name)
+        if err != nil {
+            tx.Rollback()
+            log.Printf("❌ Ошибка вставки предмета: %s", err)
+            return err
+        }
+
+	err = tx.Commit()
+    if err != nil {
+        log.Printf("❌ Ошибка коммита транзакции: %s", err)
+        return err
+    }
+ 	return err
+}
+
+func (c *RouletteDatabase) UpdateItem(id int, name string) error {
+ _, err := c.db.Exec(`UPDATE RouletteItem SET name = ? WHERE id = ?`, name, id)
+ return err
+}
+
+func (c *RouletteDatabase) DeleteItem(id int) error {
+ _, err := c.db.Exec(`DELETE FROM RouletteItem WHERE id = ?`, id)
+ return err
+}
+
 func (c *RouletteDatabase) GetRouletteGroups() ([]RouletteGroup, error) {
 	rows, err := c.db.Query(`SELECT * FROM RouletteGroup`)
 	if err != nil {
@@ -188,55 +212,4 @@ func (c *RouletteDatabase) GetRouletteGroups() ([]RouletteGroup, error) {
 		groups = append(groups, group)
 	}
 	return groups, nil
-}
-
-func (c *RouletteDatabase) AddItemToGroup(groupID int, itemName string) error {
-	_, err := c.db.Exec(`INSERT INTO RouletteItem (group_id, name) VALUES (?, ?)`, groupID, itemName)
-	return err
-}
-
-func (c *RouletteDatabase) GetGroupWithItemsByID(groupID int) (*RouletteGroupWithItems, error) {
-	query := `
-		SELECT g.name AS group_name, g.chance, i.name AS item_name
-		FROM RouletteGroup g
-		LEFT JOIN RouletteItem i ON g.id = i.group_id
-		WHERE g.id = ?
-	`
-
-	rows, err := c.db.Query(query, groupID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var result *RouletteGroupWithItems
-
-	for rows.Next() {
-		var groupName string
-		var chance float64
-		var itemName sql.NullString
-
-		err := rows.Scan(&groupName, &chance, &itemName)
-		if err != nil {
-			return nil, err
-		}
-
-		if result == nil {
-			result = &RouletteGroupWithItems{
-				Title:      groupName,
-				Percentage: chance,
-				Items:      []string{},
-			}
-		}
-
-		if itemName.Valid {
-			result.Items = append(result.Items, itemName.String)
-		}
-	}
-
-	if result == nil {
-		return nil, fmt.Errorf("Группа с id %d не найдена", groupID)
-	}
-
-	return result, nil
 }

@@ -2,88 +2,93 @@
    <div>
     <SettingsCard
       title="Donatty"
-      :inputsConfig="Donatty"
-      :formData="formData.Donatty"
-      @update:formData="updateFormData('Donatty', $event)"
+      :inputsConfig="donattyCfg"
+      :formData="donatty"
+      @update:formData="updateFormData('donatty', $event)"
     />
     <SettingsCard
       title="DonatPay"
-      :inputsConfig="Donatpay"
-      :formData="formData.Donatpay"
-      @update:formData="updateFormData('Donatpay', $event)"
-    />
-    <SettingsCard
-      title="StreamElements"
-      :inputsConfig="StreamElements"
-      :formData="formData.StreamElements"
-      @update:formData="updateFormData('StreamElements', $event)"
+      :inputsConfig="donatpayCfg"
+      :formData="donatpay"
+      @update:formData="updateFormData('donatpay', $event)"
     />
   </div>
   <section class="card stretch" id="settings-panel">
-    <button class="btn save" @click="handleSave">Сохранить все</button>
-    <button class="btn back" @click="goBack">← Назад</button>
+    <button class="btn save" @click="handleSave()">Сохранить все</button>
+    <button class="btn back" @click="goBack()">← Назад</button>
   </section>
 </template>
 
 <script>
 import { useRouter } from 'vue-router';
 import SettingsCard from './LoginSettingsCard.vue'
+import { ref } from 'vue';
+import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 export default {
   setup() {
     const router = useRouter();
     const goBack = () => router.go(-1); //router.push('/');
-    return { goBack };
-  },
-  components: { SettingsCard },
-  data() {
-    return {
-      Donatty: [
-        {
-          name: 'token',
-          label: 'Токен API',
-          type: 'text',
-          placeholder: 'Введите токен',
-        },
-        {
-          name: 'url',
-          label: 'URL сервиса',
-          type: 'url',
-          placeholder: 'ссылка',
-        },
-      ],
-      Donatpay:[
-        {
-          name: 'key',
-          label: 'Не помню, чо там надо',
-          type: 'text',
-          placeholder: 'Реально не помню',
-        }
-      ], 
-      StreamElements: [
-        {
-          name: 'key',
-          label: 'Не помню, чо там надо',
-          type: 'text',
-          placeholder: 'Реально не помню',
-        }
-      ],
-      formData: {
-        Donatty: { token: '', url: '' },
-        Donatpay: { key: '' },
-        StreamElements: { key: '' },
+    const donattyCfg = [
+      {
+        name: 'donattyToken',
+        label: 'Токен Донатти',
+        type: 'text',
+        placeholder: 'Введите токен',
       },
+      {
+        name: 'donattyUrl',
+        label: 'URL Донатти',
+        type: 'url',
+        placeholder: 'Введите ссылка',
+      },
+    ]
+    const donatpayCfg = [
+      {
+        name: 'donatpayToken',
+        label: 'Токен Донатпей',
+        type: 'text',
+        placeholder: 'Введите токен',
+      },
+      {
+        name: 'donatpayUserId',
+        label: 'Пользовательский ID',
+        type: 'text',
+        placeholder: 'Введите ID пользователя',
+      }
+    ]
+    const donatty = ref([{donattyToken: '', donattyUrl: ''}])
+    const donatpay = ref([{donatpayToken: '', donatpayUserId: ''}])
+
+    const updateFormData = (target, newData) => {
+      if (target === 'donatty')   donatty.value = newData
+      if (target === 'donatpay')  donatpay.value = newData
+    }
+        
+    const handleSave = () => {
+      console.log('Сохранённые данные donatty:', donatty.value);
+      console.log('Сохранённые данные donatpay:', donatpay.value);
+      const settingsToSave = {
+        settings:  [
+          {name: "donattyToken",   value: donatty.value.donattyToken},
+          {name: "donattyUrl",     value: donatty.value.donattyUrl},
+          {name: "donatpayToken",  value: donatpay.value.donatpayToken},
+          {name: "donatpayUserId", value: donatpay.value.donatpayUserId}
+        ]
+      }
+      FrontendDispatcher("itemsToSave", JSON.stringify(settingsToSave));
+      // Отправка на сервер
+    }
+    return { 
+      goBack,
+      donattyCfg,
+      donatpayCfg,
+      donatty,
+      donatpay,
+      updateFormData,
+      handleSave
     };
   },
-  
-  methods: {
-    updateFormData(service, newData) {
-      this.formData[service] = newData;
-    },
-    handleSave() {
-      console.log('Сохранённые данные:', this.formData);
-      // Отправка на сервер
-    },
-  },
+  components: { SettingsCard },
 };
 </script>
 

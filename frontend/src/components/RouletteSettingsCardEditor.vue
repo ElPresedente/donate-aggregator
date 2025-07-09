@@ -23,26 +23,31 @@
 </template>
 
 <script>
+
 import { useRoute, useRouter } from 'vue-router';
 import { ref, onMounted } from "vue";
+import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 
 export default {
   name: 'RouletteSettingsCardEditor',
   //Представляем, что у нас на входе массив объектов {id: ?, data:?}
   setup() {
     const router = useRouter();//Пока не понял, в чём прикол, но так работает
-    const route = useRoute();
+    const route = useRoute()
+    const index = JSON.parse(route.params.index)+1
     const localItems = ref([]);
     //const localItems = ref(JSON.parse(route.params.items || '[]'));
 
     //Тестовые данные
     onMounted(() => {
-       localItems.value = [
-         { id: 1, data: 'Элемент 1', status: null },
-         { id: 2, data: 'Элемент 2', status: null },
-         { id: 3, data: 'Элемент 3', status: null }
-       ];
-     });
+      
+      FrontendDispatcher("getItemsByGroupId", JSON.stringify({group_id: index }));
+      window.runtime.EventsOn('itemsByGroupIdData', (data) => {
+        console.log('📦 Итемы:', data)
+        if(data)
+          localItems.value = data // ← обновляем реактивно
+      });
+    });
 
     const markAsEdited = (idx) => {
       if (localItems.value[idx].id) {
@@ -71,18 +76,11 @@ export default {
         item => item.data.trim() !== ''
       );
       console.log(itemsToSave);
-      
-      try {
-        //const response = await axios.post('/api/update', { items: itemsToSave });
-        // Обновляем localItems данными от сервера
-        //this.localItems = response.data.items.map(item => ({
-        //  id: item.id,
-        //  data: item.data,
-        //  status: null // Сбрасываем status
-        //}));
-      } catch (error) {
-        console.error('Ошибка:', error);
-      }
+      const data = {
+        id: index,
+        items: itemsToSave
+      };
+      FrontendDispatcher("itemsToSave", JSON.stringify(data));
     }
 
     // Вывод аргумента в консоль

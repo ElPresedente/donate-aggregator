@@ -37,7 +37,7 @@ export default {
   setup(props) {
     const router = useRouter();
     const openEditor = () => {
-      router.push({ name: 'edit-category', params: { items: JSON.stringify(props.items) } });
+      router.push({ name: 'edit-category', params: { index: JSON.stringify(props.index) } });
     };
     return { openEditor };
   }

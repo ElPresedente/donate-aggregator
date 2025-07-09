@@ -11,7 +11,7 @@
     />
   </div>
   <section class="card stretch" id="settings-panel">
-    <button class="btn back" @click="goBack">← Назад</button>
+    <button class="btn back" @click="goBack()">← Назад</button>
   </section>
 </template>
 
@@ -22,11 +22,7 @@ import { onMounted, ref } from "vue";
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 
 export default {
-  setup() {
-    const router = useRouter();
-    const goBack = () => router.go(-1); //router.push('/');
-    return { goBack };
-  },
+  name: 'RouletteSettingsPanel',
   components: { RouletteSettingsCard },
   // data() {
   //   return {
@@ -70,6 +66,8 @@ export default {
   //   };
   // },
   setup() {
+    const router = useRouter();
+    const goBack = () => router.go(-1); //router.push('/');
     const categories = ref([])
     onMounted(() => {
       // Вызываем функцию при монтировании компонента
@@ -81,7 +79,10 @@ export default {
       });
     })
     
-    return { categories }
+    return { 
+      categories,
+      goBack
+     }
   },  
   methods: {
     updateFormData(service, newData) {

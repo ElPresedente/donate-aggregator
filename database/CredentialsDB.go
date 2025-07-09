@@ -45,6 +45,11 @@ func (c *CredentialsDatabase) InsertENVValue(name, value string) {
 	}
 }
 
+func (c *CredentialsDatabase) UpdateENVValue(name, value string) error {
+	_, err := c.db.Exec(`UPDATE EnvVariables SET value = ? WHERE name = ?`, value, name)
+ 	return err
+}
+
 func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 	query := `SELECT value FROM EnvVariables WHERE name = ?`
 
@@ -58,6 +63,15 @@ func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 	}
 
 	return ENVValue, nil
+}
+
+func (c *CredentialsDatabase) CheckENVExists(name string) (bool, error) {
+    var count int
+    err := c.db.QueryRow("SELECT COUNT(*) FROM EnvVariables WHERE name = ?", name).Scan(&count)
+    if err != nil {
+        return false, err
+    }
+    return count > 0, nil
 }
 
 func TestInsertGet() {
