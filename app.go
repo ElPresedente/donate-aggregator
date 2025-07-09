@@ -346,54 +346,52 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string)  {
 		
 		runtime.EventsEmit(a.ctx, "logUpdated", result)
 	
+	case "getSettings":
+		settings, err := database.CredentialsDB.GetAllENVValues()
+		if err != nil {
+			log.Println("❌ Ошибка при получении настроек:", err)
+			return
+		}
+		result := make([]map[string]interface{}, 0)
+
+		for _, setting := range settings {
+			settingsData := map[string]interface{}{
+				"name":       setting.Name,
+				"value":      setting.Value,
+			}
+			result = append(result, settingsData)
+		}
+	runtime.EventsEmit(a.ctx, "SettingsData", result)
+
 	case "updateSettings":
-    var payload struct {
-        Settings []struct {
-            Name  string `json:"name"`
-            Value string `json:"value"`
-        } `json:"settings"`
-    }
+		var payload struct {
+			Settings []struct {
+				Name  string `json:"name"`
+				Value string `json:"value"`
+			} `json:"settings"`
+		}
 
-    if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
-        log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
-        return
-    }
+		if err := json.Unmarshal([]byte(argJSON), &payload); err != nil {
+			log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
+			return
+		}
+		log.Println("Ы:", payload)
+		for _, setting := range payload.Settings {
+			exists, err := database.CredentialsDB.CheckENVExists(setting.Name)
+			if err != nil {
+				log.Printf("❌ Ошибка проверки существования настройки '%s': %v", setting.Name, err)
+				continue
+			}
 
-    for _, setting := range payload.Settings {
-        exists, err := database.CredentialsDB.CheckENVExists(setting.Name)
-        if err != nil {
-            log.Printf("❌ Ошибка проверки существования настройки '%s': %v", setting.Name, err)
-            continue
-        }
-
-        if exists {
-            err = database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
-            if err != nil {
-                log.Printf("❌ Ошибка обновления настройки '%s': %v", setting.Name, err)
-            }
-        } else {
-            database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
-        }
-    }
-		/*логика:
-		Заранее мы знаем, какие у нас настройки
-		приходит массив объектов на сейв
-		[
-			{
-				name:	название настройки,
-				value:	значение настройки,
-			},
-			...
-			]
-			Проверка на наличие даннх по названию настройки в бд
-				если данные есть
-					делаем апдейт на новые
-				если данных нет
-					делаем инсерт новых данных
-			
-			Удаление не предусмотрено
-
-		*/
+			if exists {
+				err = database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
+				if err != nil {
+					log.Printf("❌ Ошибка обновления настройки '%s': %v", setting.Name, err)
+				}
+			} else {
+				database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
+			}
+		}
 
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)

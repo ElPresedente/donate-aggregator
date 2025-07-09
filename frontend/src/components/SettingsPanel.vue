@@ -22,7 +22,7 @@
 <script>
 import { useRouter } from 'vue-router';
 import SettingsCard from './LoginSettingsCard.vue'
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 export default {
   setup() {
@@ -65,8 +65,6 @@ export default {
     }
         
     const handleSave = () => {
-      console.log('Сохранённые данные donatty:', donatty.value);
-      console.log('Сохранённые данные donatpay:', donatpay.value);
       const settingsToSave = {
         settings:  [
           {name: "donattyToken",   value: donatty.value.donattyToken},
@@ -75,9 +73,33 @@ export default {
           {name: "donatpayUserId", value: donatpay.value.donatpayUserId}
         ]
       }
-      FrontendDispatcher("itemsToSave", JSON.stringify(settingsToSave));
+      FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
       // Отправка на сервер
     }
+    onMounted(() =>{
+      FrontendDispatcher("getSettings", "");
+      window.runtime.EventsOn('SettingsData', (data) => {
+        console.log('📦 Группы:', data)
+        data.forEach(setting => {
+        switch (setting.name) {
+          case 'donattyToken':
+            donatty.value.donattyToken = setting.value;
+            break;
+          case 'donattyUrl':
+            donatty.value.donattyUrl = setting.value;
+            break;
+          case 'donatpayToken':
+            donatpay.value.donatpayToken = setting.value;
+            break;
+          case 'donatpayUserId':
+            donatpay.value.donatpayUserId = setting.value;
+            break;
+          default:
+            console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
+          }
+        });
+    });
+  });
     return { 
       goBack,
       donattyCfg,

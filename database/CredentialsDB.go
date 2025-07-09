@@ -12,6 +12,11 @@ type CredentialsDatabase struct {
 	db *sql.DB
 }
 
+type ENVVariable struct {
+	Name	string    `json:"name"`
+	Value 	string    `json:"value"`
+}
+
 func (c *CredentialsDatabase) Init() {
 	var err error
 	c.db, err = sql.Open("sqlite", "./CredentialsDB.db")
@@ -63,6 +68,24 @@ func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 	}
 
 	return ENVValue, nil
+}
+
+func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
+    rows, err := c.db.Query(`SELECT name, value FROM EnvVariables`)
+    if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var envVariables []ENVVariable
+	for rows.Next() {
+		var variable ENVVariable
+		if err := rows.Scan(&variable.Name, &variable.Value); err != nil {
+			return nil, err
+		}
+		envVariables = append(envVariables, variable)
+	}
+	return envVariables, nil
 }
 
 func (c *CredentialsDatabase) CheckENVExists(name string) (bool, error) {

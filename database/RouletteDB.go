@@ -162,8 +162,6 @@ func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error
 }
 
 func (c *RouletteDatabase) AddItem(groupID int, name string) error {
-	log.Printf("Вставляемые данные: %d %s", groupID, name)
-	log.Printf("Вставляемые данные:")
 	tx, err := c.db.Begin()
     if err != nil {
 		

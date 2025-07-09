@@ -109,6 +109,7 @@ input {
   padding: 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 20px;
 }
 button {
   padding: 8px 16px;
