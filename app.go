@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"sync"
-
 	"github.com/joho/godotenv"
 
 	"net/http"

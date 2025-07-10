@@ -27,7 +27,7 @@ func NewLogicProcessor() Logic {
 }
 
 func (l *Logic) Process(donate sources.DonationEvent) {
-	l.roulette.process(donate)
+	//l.roulette.process(donate)
 
 	//db.SaveLog( donate )
 
