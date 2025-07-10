@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"go-back/database"
 	"log"
@@ -14,10 +15,10 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	switch endpoint {
 	// Получение предметов по ID группы
 	case "getItemsByGroupId":
-		getItemsByGroupId(a.ctx, argJSON) 
+		getItemsByGroupId(a.ctx, argJSON)
 
 	case "itemsToSave":
-		itemsToSave(a.ctx, argJSON) 
+		itemsToSave(a.ctx, argJSON)
 
 	// Получение всех групп и их итемов
 	case "getGroups":
@@ -34,7 +35,7 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	}
 }
 
-func getItemsByGroupId (ctx context.Context, data string) {
+func getItemsByGroupId(ctx context.Context, data string) {
 	var payload struct {
 		GroupID int `json:"group_id"`
 	}
@@ -59,7 +60,7 @@ func getItemsByGroupId (ctx context.Context, data string) {
 	runtime.EventsEmit(ctx, "itemsByGroupIdData", formattedItems)
 }
 
-func itemsToSave (ctx context.Context, data string) {
+func itemsToSave(ctx context.Context, data string) {
 	var payload struct {
 		GroupID int `json:"id"` //Если потом произойдет логичный ренейм в групID, то тут тоже поменять
 		Items   []struct {
@@ -120,7 +121,7 @@ func itemsToSave (ctx context.Context, data string) {
 	runtime.EventsEmit(ctx, "itemsByGroupIdData", formattedItems)
 }
 
-func getGroups (ctx context.Context) {
+func getGroups(ctx context.Context) {
 	groups, err := database.RouletteDB.GetRouletteGroups()
 	if err != nil {
 		log.Println("❌ Ошибка при получении предметов:", err)
@@ -153,7 +154,7 @@ func getGroups (ctx context.Context) {
 	}
 }
 
-func getSettings (ctx context.Context) {
+func getSettings(ctx context.Context) {
 	settings, err := database.CredentialsDB.GetAllENVValues()
 	if err != nil {
 		log.Println("❌ Ошибка при получении настроек:", err)
@@ -171,8 +172,7 @@ func getSettings (ctx context.Context) {
 	runtime.EventsEmit(ctx, "SettingsData", result)
 }
 
-
-func updateSettings (ctx context.Context, data string) {
+func updateSettings(ctx context.Context, data string) {
 	var payload struct {
 		Settings []struct {
 			Name  string `json:"name"`

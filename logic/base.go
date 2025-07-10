@@ -27,7 +27,8 @@ func NewLogicProcessor() Logic {
 }
 
 func (l *Logic) Process(donate sources.DonationEvent) {
-	//l.roulette.process(donate)
+
+	l.roulette.EnqueueDonate(&donate)
 
 	//db.SaveLog( donate )
 
