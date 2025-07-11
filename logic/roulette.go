@@ -80,7 +80,7 @@ func (r *Roulette) UpdateDataFromDB() {
 }
 
 func (r *Roulette) rouletteLoop(logic *Logic) {
-	ticker := time.NewTicker(r.timeout) // проверка каждые 5 секунд
+	ticker := time.NewTicker(r.timeout)
 	defer ticker.Stop()
 
 	for {
@@ -98,11 +98,15 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				r.DequeueDonate()
 
 				if r.actualAmount >= float64(r.rollPrice) {
-					winnerItem := choiceSectorItem(choiceSector(r.settings.sectors).items)
+					winnerSector := chooseSector(r.settings.sectors)
+					winnerItem := chooseSectorItem(winnerSector.items)
 
 					logic.DispatchLogicEvent(LogicEvent{
 						name: RouletteSpin,
-						data: winnerItem,
+						data: []any{
+							winnerSector,
+							winnerItem,
+						},
 					})
 					r.actualAmount -= float64(r.rollPrice)
 				}
@@ -111,7 +115,6 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 	}
 }
 
-// короче потом буду дальше думать, пока не работает вообще
 func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
 	r.EnqueueDonate(event)
 	r.UpdateDataFromDB()
@@ -137,7 +140,7 @@ func (r *Roulette) DequeueDonate() {
 	r.queue = r.queue[1:]
 }
 
-func choiceSector(sectors []RouletteSector) RouletteSector {
+func chooseSector(sectors []RouletteSector) RouletteSector {
 	total := 0
 	for _, s := range sectors {
 		total += s.probability
@@ -156,7 +159,7 @@ func choiceSector(sectors []RouletteSector) RouletteSector {
 	return sectors[len(sectors)-1]
 }
 
-func choiceSectorItem(items []RouletteSectorItem) RouletteSectorItem {
+func chooseSectorItem(items []RouletteSectorItem) RouletteSectorItem {
 	// Если нужны будут разные шансы на item
 	// total := 0
 	// for _, i := range items {
