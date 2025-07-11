@@ -21,14 +21,13 @@ type Logic struct {
 func NewLogicProcessor() Logic {
 	//да, я всё делаю на объектах, отъебитесь
 	return Logic{
-		roulette: Roulette{},
+		roulette: NewRouletteProcessor(),
 	}
-
 }
 
 func (l *Logic) Process(donate sources.DonationEvent) {
 
-	l.roulette.EnqueueDonate(&donate)
+	l.roulette.Process(&donate)
 
 	//db.SaveLog( donate )
 

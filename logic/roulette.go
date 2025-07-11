@@ -2,19 +2,22 @@ package logic
 
 import (
 	"go-back/sources"
+	"math/rand"
+	"sync"
 	"time"
 )
 
 type DonateEvent = sources.DonationEvent
 
-type RouletteSectorItem struct { //может потом еще что то понадобится (отдельные шансы для элемента внутри????)
+type RouletteSectorItem struct {
+	// probability int // (отдельные шансы для элемента внутри????)
 	name string
 }
 
 type RouletteSector struct {
 	name        string
-	probability int                  //оно в интерфейсе инт, пусть и в базе и тут будет инт, на месте поделим
-	items       []RouletteSectorItem //надеюсь массив так пишется)
+	probability int //оно в интерфейсе инт, пусть и в базе и тут будет инт, на месте поделим
+	items       []RouletteSectorItem
 }
 
 type RouletteSettings struct {
@@ -22,64 +25,111 @@ type RouletteSettings struct {
 }
 
 type Roulette struct {
-	sum        int
-	roll_price int
-	lastRoll   time.Time
-	timeout    time.Duration
+	actualAmount float64
+	rollPrice    int
+	lastRoll     time.Time
+	timeout      time.Duration
 
-	queue []DonateEvent
-	stop  chan struct{}
+	queue    []DonateEvent
+	stop     chan struct{}
+	mu       sync.Mutex
+	settings RouletteSettings
 }
 
-// func (r *Roulette) rouletteLoop() {
-// 	for {
-// 		if len(r.queue) == 0 {
-// 			return
-// 		}
-// 		select {
-// 		case <-r.stop:
-// 			return
-// 		default:
-// 			if time.Since(r.lastRoll) >= r.timeout {
-// 				//прокрутить рандомно число от 1 до 100
-// 				//динамически присвоить каждому сектору промежуток чисел
-// 				//получить сектор, получить варианты сектора
-// 				//выбрать случайно один из вариантов
-// 				//выдать событие рулетки
+func NewRouletteProcessor() Roulette {
+	return Roulette{}
+}
 
-// 				//и всё это я не могу сделать без инета потому что не знаю как пользоваться этим языком
+func (r *Roulette) UpdateDataFromDB() {
+	// подсасываем настройки из бд
+}
 
-// 			} else {
-// 				time.Sleep(r.timeout /* - time.Since( lastRoll )*/)
-// 			}
-// 		}
-// 	}
-// }
+func (r *Roulette) rouletteLoop() {
+	for {
+		if len(r.queue) == 0 {
+			return
+		}
+		select {
+		case <-r.stop:
+			return
+		case <-time.After(r.timeout):
+			if time.Since(r.lastRoll) >= r.timeout {
+				r.lastRoll = time.Now()
+
+				r.actualAmount += r.queue[0].Amount
+				r.DequeueDonate()
+
+				if r.actualAmount >= float64(r.rollPrice) {
+					winnerItem := choiceSectorItem(choiceSector(r.settings.sectors).items)
+
+					// Прокинуть результат в DispatchLogicEvent
+
+				}
+			}
+		}
+	}
+}
 
 // короче потом буду дальше думать, пока не работает вообще
-func (r *Roulette) process() {
-	if !(len(r.queue) == 0) {
+func (r *Roulette) Process(event *DonateEvent) {
+	r.EnqueueDonate(event)
+	r.UpdateDataFromDB()
+
+	if !(len(r.queue) > 1) {
 		return
 	}
 
-	var currentSum float64
-
-	for _, val := range r.queue {
-		currentSum += val.Amount
-	}
-
-	if currentSum >= float64(r.roll_price) {
-		// жёсткая прокрутка
-		// go r.roll()
-
-	}
-
-	// go r.rouletteLoop()
+	go r.rouletteLoop()
 }
 
 func (r *Roulette) EnqueueDonate(event *DonateEvent) {
-	//queue.emplace_back( event ) не знаю как правильно)
-	r.queue = append(r.queue, *event)
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	r.process()
+	r.queue = append(r.queue, *event)
+}
+
+func (r *Roulette) DequeueDonate() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.queue = r.queue[1:]
+}
+
+func choiceSector(sectors []RouletteSector) RouletteSector {
+	total := 0
+	for _, s := range sectors {
+		total += s.probability
+	}
+
+	r := rand.Intn(total)
+	sum := 0
+	for _, s := range sectors {
+		sum += s.probability
+		if r < sum {
+			return s
+		}
+	}
+
+	// Это на всякий случай — никогда не должно сработать
+	return sectors[len(sectors)-1]
+}
+
+func choiceSectorItem(items []RouletteSectorItem) RouletteSectorItem {
+	// Если нужны будут разные шансы на item
+	// total := 0
+	// for _, i := range items {
+	// 	total += i.probability
+	// }
+
+	// r := rand.Intn(total)
+	// sum := 0
+	// for _, i := range items {
+	// 	sum += i.probability
+	// 	if r < sum {
+	// 		return i
+	// 	}
+	// }
+
+	return items[rand.Intn(len(items))]
 }
