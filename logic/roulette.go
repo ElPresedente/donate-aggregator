@@ -37,14 +37,52 @@ type Roulette struct {
 }
 
 func NewRouletteProcessor() Roulette {
-	return Roulette{}
+	return Roulette{
+		rollPrice: 100,
+		timeout:   1 * time.Second,
+		stop:      make(chan struct{}),
+		settings: RouletteSettings{
+			sectors: []RouletteSector{
+				{
+					name:        "Виски",
+					probability: 20,
+					items: []RouletteSectorItem{
+						{name: "1"},
+						{name: "2"},
+						{name: "3"},
+					},
+				},
+				{
+					name:        "Виски",
+					probability: 20,
+					items: []RouletteSectorItem{
+						{name: "4"},
+						{name: "5"},
+						{name: "6"},
+					},
+				},
+				{
+					name:        "Виски",
+					probability: 20,
+					items: []RouletteSectorItem{
+						{name: "7"},
+						{name: "8"},
+						{name: "9"},
+					},
+				},
+			},
+		},
+	}
 }
 
 func (r *Roulette) UpdateDataFromDB() {
 	// подсасываем настройки из бд
 }
 
-func (r *Roulette) rouletteLoop(responseCh chan LogicResponse) {
+func (r *Roulette) rouletteLoop(logic *Logic) {
+	ticker := time.NewTicker(r.timeout) // проверка каждые 5 секунд
+	defer ticker.Stop()
+
 	for {
 		if len(r.queue) == 0 {
 			return
@@ -52,7 +90,7 @@ func (r *Roulette) rouletteLoop(responseCh chan LogicResponse) {
 		select {
 		case <-r.stop:
 			return
-		case <-time.After(r.timeout):
+		case <-ticker.C:
 			if time.Since(r.lastRoll) >= r.timeout {
 				r.lastRoll = time.Now()
 
@@ -62,11 +100,11 @@ func (r *Roulette) rouletteLoop(responseCh chan LogicResponse) {
 				if r.actualAmount >= float64(r.rollPrice) {
 					winnerItem := choiceSectorItem(choiceSector(r.settings.sectors).items)
 
-					responseCh <- LogicResponse{
+					logic.DispatchLogicEvent(LogicEvent{
 						name: RouletteSpin,
 						data: winnerItem,
-					}
-
+					})
+					r.actualAmount -= float64(r.rollPrice)
 				}
 			}
 		}
@@ -74,15 +112,15 @@ func (r *Roulette) rouletteLoop(responseCh chan LogicResponse) {
 }
 
 // короче потом буду дальше думать, пока не работает вообще
-func (r *Roulette) Process(event *DonateEvent, responseCh chan LogicResponse) {
+func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
 	r.EnqueueDonate(event)
 	r.UpdateDataFromDB()
 
-	if !(len(r.queue) > 1) {
+	if len(r.queue) > 1 {
 		return
 	}
 
-	go r.rouletteLoop(responseCh)
+	go r.rouletteLoop(logic)
 }
 
 func (r *Roulette) EnqueueDonate(event *DonateEvent) {
