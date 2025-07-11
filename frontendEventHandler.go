@@ -192,10 +192,7 @@ func updateSettings(ctx context.Context, data string) {
 		}
 
 		if exists {
-			err = database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
-			if err != nil {
-				log.Printf("❌ Ошибка обновления настройки '%s': %v", setting.Name, err)
-			}
+			database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
 		} else {
 			database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
 		}

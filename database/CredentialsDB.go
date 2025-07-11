@@ -49,13 +49,18 @@ func (c *CredentialsDatabase) InsertENVValue(name, value string) {
 	}
 }
 
-func (c *CredentialsDatabase) UpdateENVValue(name, value string) error {
-	_, err := c.db.Exec(`UPDATE EnvVariables SET value = ? WHERE name = ?`, value, name)
-	return err
+//Проверить функцию, переделал под вид всего файла
+func (c *CredentialsDatabase) UpdateENVValue(name, value string) {
+	insertQuery := "UPDATE EnvVariables SET value = ? WHERE name = ?"
+
+	_, err := c.db.Exec(insertQuery, value, name)
+	if err != nil {
+		log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", name, value, err)
+	}
 }
 
 func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
-	query := `SELECT value FROM EnvVariables WHERE name = ?`
+	query := "SELECT value FROM EnvVariables WHERE name = ?"
 
 	var ENVValue string
 	err := c.db.QueryRow(query, name).Scan(&ENVValue)
@@ -69,8 +74,11 @@ func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 	return ENVValue, nil
 }
 
+//Проверить функцию, переделал под вид всего файла
 func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
-	rows, err := c.db.Query(`SELECT name, value FROM EnvVariables`)
+	query := "SELECT name, value FROM EnvVariables"
+
+	rows, err := c.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +97,9 @@ func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
 
 func (c *CredentialsDatabase) CheckENVExists(name string) (bool, error) {
 	var count int
-	err := c.db.QueryRow("SELECT COUNT(*) FROM EnvVariables WHERE name = ?", name).Scan(&count)
+	query := "SELECT COUNT(*) FROM EnvVariables WHERE name = ?"
+
+	err := c.db.QueryRow(query, name).Scan(&count)
 	if err != nil {
 		return false, err
 	}

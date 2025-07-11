@@ -5,7 +5,7 @@
       <li v-for="(item, index) in rouletteHistory" :key="index" class="log-item">
         <span class="log-time">{{ item.time }}</span>
         <span class="log-content">
-          <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.data }}</strong>
+          <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
           <!--<strong style="color: rgb(255, 0, 251);">{{ item.user }}</strong> получает награду <strong style="color: rgb(255, 0, 251);">{{ item.data }}</strong>-->
         </span>
       </li> 
@@ -20,16 +20,16 @@ export default {
   name: 'LogList',
   setup() {
     const rouletteHistory = ref([
-      {time: "24.06 12:46", user: "kamicute2", data:"какая-то награда"},
-      {time: "24.06 15:12", user: "ElPresedente", data:"магнит из пятигорска"},
-      {time: "25.03 19:00", user: "moonseere", data:"очень длинное название награды чтобы перешло на другую строку"},
+      {time: "24.06 12:46", user: "kamicute2", value:"какая-то награда"},
+      {time: "24.06 15:12", user: "ElPresedente", value:"магнит из пятигорска"},
+      {time: "25.03 19:00", user: "moonseere", value:"очень длинное название награды чтобы перешло на другую строку"},
     ]);
     /*
       Допустим к нам будут приходить массив [...] данных вида
       {
         time: время активации рулетки DD.MM HH.MM
         user: пользователь, для которого активировалась рулетка
-        data: сектор, выпавший на рулетке
+        value: сектор, выпавший на рулетке
       }
     */
     onMounted(() => {
@@ -43,13 +43,13 @@ export default {
         rouletteHistory.value = parsedData.map(item => ({
           time: item.time, // Время активации
           user: item.user, // Пользователь
-          data: item.data // Выпавший сектор
+          value: item.value // Выпавший сектор
         }));
         } catch (error) {
           console.error('Ошибка парсинга JSON:', error);
           // Запасные данные на случай ошибки
           rouletteHistory.value = [
-            { time: '2023-10-20T00:00:00Z', user: 'default_user', data: 'Сектор по умолчанию' }
+            { time: '2023-10-20T00:00:00Z', user: 'default_user', value: 'Сектор по умолчанию' }
           ];
         }
       });
