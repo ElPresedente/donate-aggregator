@@ -44,7 +44,7 @@ func (r *Roulette) UpdateDataFromDB() {
 	// подсасываем настройки из бд
 }
 
-func (r *Roulette) rouletteLoop() {
+func (r *Roulette) rouletteLoop(responseCh chan LogicResponse) {
 	for {
 		if len(r.queue) == 0 {
 			return
@@ -62,7 +62,10 @@ func (r *Roulette) rouletteLoop() {
 				if r.actualAmount >= float64(r.rollPrice) {
 					winnerItem := choiceSectorItem(choiceSector(r.settings.sectors).items)
 
-					// Прокинуть результат в DispatchLogicEvent
+					responseCh <- LogicResponse{
+						name: RouletteSpin,
+						data: winnerItem,
+					}
 
 				}
 			}
@@ -71,7 +74,7 @@ func (r *Roulette) rouletteLoop() {
 }
 
 // короче потом буду дальше думать, пока не работает вообще
-func (r *Roulette) Process(event *DonateEvent) {
+func (r *Roulette) Process(event *DonateEvent, responseCh chan LogicResponse) {
 	r.EnqueueDonate(event)
 	r.UpdateDataFromDB()
 
@@ -79,7 +82,7 @@ func (r *Roulette) Process(event *DonateEvent) {
 		return
 	}
 
-	go r.rouletteLoop()
+	go r.rouletteLoop(responseCh)
 }
 
 func (r *Roulette) EnqueueDonate(event *DonateEvent) {
