@@ -1,0 +1,23 @@
+
+//handshake
+{
+    "name": "widget-name" // пока только roulette
+}
+
+//roulette
+
+//app -> w
+{
+    "request": "enqueue_spins",
+    "spins": [
+        {
+            "category": "category-name",
+            "sector"  : "sector-name"
+        }
+    ]
+}
+//w -> app
+{
+    "request": "spins_done"
+}
+
