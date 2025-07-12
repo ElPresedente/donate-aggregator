@@ -99,29 +99,29 @@ export default {
     onMounted(() =>{
       window.runtime.EventsOn('SettingsData', (data) => {
         data.forEach(setting => {
-        switch (setting.name) {
-          case 'donattyToken':
-            donatty.value.donattyToken = setting.value;
-            break;
-          case 'donattyUrl':
-            donatty.value.donattyUrl = setting.value;
-            break;
-          case 'donatpayToken':
-            donatpay.value.donatpayToken = setting.value;
-            break;
-          case 'donatpayUserId':
-            donatpay.value.donatpayUserId = setting.value;
-            break;
-          case 'rollPrice':
-            otherSettings.value.rollPrice = setting.value;
-            break;
-          default:
-            console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
+          switch (setting.name) {
+            case 'donattyToken':
+              donatty.value.donattyToken = setting.value;
+              break;
+            case 'donattyUrl':
+              donatty.value.donattyUrl = setting.value;
+              break;
+            case 'donatpayToken':
+              donatpay.value.donatpayToken = setting.value;
+              break;
+            case 'donatpayUserId':
+              donatpay.value.donatpayUserId = setting.value;
+              break;
+            case 'rollPrice':
+              otherSettings.value.rollPrice = setting.value;
+              break;
+            default:
+              console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
           }
         });
       });
-    FrontendDispatcher("getSettings", "");
-  });
+      FrontendDispatcher("getSettings", "");
+    });
     return { 
       goBack,
       donattyCfg,

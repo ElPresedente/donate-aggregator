@@ -24,15 +24,33 @@ export default {
       {time: "24.06 15:12", user: "ElPresedente", value:"магнит из пятигорска"},
       {time: "25.03 19:00", user: "moonseere", value:"очень длинное название награды чтобы перешло на другую строку"},
     ]);
-    /*
-      Допустим к нам будут приходить массив [...] данных вида
-      {
-        time: время активации рулетки DD.MM HH.MM
-        user: пользователь, для которого активировалась рулетка
-        value: сектор, выпавший на рулетке
-      }
-    */
     onMounted(() => {
+      /*
+        Допустим к нам будут приходить массив [...] данных вида
+        {
+          user: пользователь, для которого активировалась рулетка
+          time: время активации рулетки DD.MM HH.MM
+          spins: [
+            {
+              winnerItem: выпавший итем
+              winnerSector: выпавший сектор //не используется
+            }
+          ]
+          value: сектор, выпавший на рулетке
+        }
+      */
+      window.runtime.EventsOn('logUpdated2', (newData) => {
+        try{
+          const parsedData = JSON.parse( newData )
+          parsedData.spins.forEach(element => {
+            rouletteHistory.push({ time: parsedData.time, user: parsedData.user, value: parsedData.winnerItem })
+          });
+        } 
+        catch( error ){
+          console.error( error )
+        }
+      });
+
       window.runtime.EventsOn('logUpdated', (newData) => {
         //Вот так тянуть данные
         //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
