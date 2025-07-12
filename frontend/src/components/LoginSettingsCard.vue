@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-card">
+  <div v-if="type === 'pass'" class="settings-card">
     <h2>{{ title }}</h2>
     <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
@@ -18,6 +18,21 @@
         >
           {{ showPassword[index] ? '🙈' : '👁️' }}
         </button>
+      </div>
+    </div>
+  </div>
+  <div v-if="type === 'text'" class="settings-card">
+    <h2>{{ title }}</h2>
+    <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
+      <label :for="input.name">{{ input.label }}</label>
+      <div class="input-wrapper">
+        <input
+          :type="'text'"
+          :id="input.name"
+          :name="input.name"
+          v-model="localFormData[input.name]"
+          :placeholder="input.placeholder"
+        />
       </div>
     </div>
   </div>
@@ -50,6 +65,10 @@ export default {
     },
     formData: {
       type: Object,
+      required: true,
+    },
+    type: {
+      type: String,
       required: true,
     },
   },

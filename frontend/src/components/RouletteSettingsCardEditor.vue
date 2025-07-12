@@ -40,13 +40,12 @@ export default {
 
     //Тестовые данные
     onMounted(() => {
-      
-      FrontendDispatcher("getItemsByGroupId", JSON.stringify({group_id: index }));
       window.runtime.EventsOn('itemsByGroupIdData', (data) => {
         console.log('📦 Итемы:', data)
         if(data)
           localItems.value = data // ← обновляем реактивно
       });
+      FrontendDispatcher("getItemsByGroupId", JSON.stringify({group_id: index }));
     });
 
     const markAsEdited = (idx) => {

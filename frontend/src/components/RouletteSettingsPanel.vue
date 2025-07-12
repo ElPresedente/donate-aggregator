@@ -70,13 +70,11 @@ export default {
     const goBack = () => router.go(-1); //router.push('/');
     const categories = ref([])
     onMounted(() => {
-      // Вызываем функцию при монтировании компонента
-      FrontendDispatcher("getGroups", ""); //Бля передача пустой строки выглядит как костыль
-    
       window.runtime.EventsOn('groupsData', (data) => {
         console.log('📦 Группы:', data)
         categories.value = data // ← обновляем реактивно
       });
+      FrontendDispatcher("getGroups", "");
     })
     
     return { 

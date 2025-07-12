@@ -31,12 +31,12 @@ func (c *LogDatabase) Init() {
 	}
 
 	createTableQuery := `
-    CREATE TABLE IF NOT EXISTS RouletteLog (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user TEXT NOT NULL,
-        item TEXT NOT NULL,
+	CREATE TABLE IF NOT EXISTS RouletteLog (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user TEXT NOT NULL,
+		item TEXT NOT NULL,
 		time TEXT NOT NULL
-    );
+		);
 	`
 
 	/*

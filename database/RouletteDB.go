@@ -119,27 +119,6 @@ func (c *RouletteDatabase) seedDefaultGroups() {
 		log.Printf("❌ Ошибка коммита транзакции: %s", err)
 		return
 	}
-
-	log.Println("✅ Дефолтные группы и предметы успешно добавлены.")
-
-	// insertDefaults := `
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Обычные', 50, 'white');
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Необычные', 25, 'rgb(55, 255, 0)');
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Редкие', 16, 'rgb(0, 200, 255)');
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Эпические', 7, 'rgb(255, 0, 251)');
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Легендарные', 1.5, 'rgb(245, 117, 7)');
-	//     INSERT INTO RouletteGroup (name, chance, color) VALUES ('Артифакты', 0.5, 'rgb(229, 204, 128)');
-
-	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 1");
-	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 2");
-	// 	INSERT INTO RouletteItem (group_id, name) VALUES (1, "Тест 3");
-	// `
-	// _, err = c.db.Exec(insertDefaults)
-	// if err != nil {
-	//     log.Printf("❌ Ошибка при вставке дефолтных данных в RouletteGroup: %s", err)
-	// } else {
-	//     log.Println("✅ Дефолтные группы успешно добавлены.")
-	// }
 }
 
 // Получение всех RouletteItem по id RouletteGroup

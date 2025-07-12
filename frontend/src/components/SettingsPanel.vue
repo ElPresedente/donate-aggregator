@@ -5,12 +5,21 @@
       :inputsConfig="donattyCfg"
       :formData="donatty"
       @update:formData="updateFormData('donatty', $event)"
+      :type="'pass'"
     />
     <SettingsCard
       title="DonatPay"
       :inputsConfig="donatpayCfg"
       :formData="donatpay"
       @update:formData="updateFormData('donatpay', $event)"
+      :type="'pass'"
+    />
+    <SettingsCard
+      title="Другие настройки"
+      :inputsConfig="otherSettingsCfg"
+      :formData="otherSettings"
+      @update:formData="updateFormData('otherSettings', $event)"
+      :type="'text'"
     />
   </div>
   <section class="card stretch" id="settings-panel">
@@ -56,30 +65,39 @@ export default {
         placeholder: 'Введите ID пользователя',
       }
     ]
+    const otherSettingsCfg = [
+      {
+        name: 'rollPrice',
+        label: 'Цена прокрутки рулетки в рублях',
+        type: 'text',
+        placeholder: 'Введите цену',
+      },
+    ]
     const donatty = ref([{donattyToken: '', donattyUrl: ''}])
     const donatpay = ref([{donatpayToken: '', donatpayUserId: ''}])
+    const otherSettings = ref([{rollPrice: ''}])
 
     const updateFormData = (target, newData) => {
-      if (target === 'donatty')   donatty.value = newData
-      if (target === 'donatpay')  donatpay.value = newData
+      if (target === 'donatty')         donatty.value = newData
+      if (target === 'donatpay')        donatpay.value = newData
+      if (target === 'otherSettings')   otherSettings.value = newData
     }
         
     const handleSave = () => {
       const settingsToSave = {
         settings:  [
-          {name: "donattyToken",   value: donatty.value.donattyToken},
-          {name: "donattyUrl",     value: donatty.value.donattyUrl},
-          {name: "donatpayToken",  value: donatpay.value.donatpayToken},
-          {name: "donatpayUserId", value: donatpay.value.donatpayUserId}
+          {name: "donattyToken",    value: donatty.value.donattyToken},
+          {name: "donattyUrl",      value: donatty.value.donattyUrl},
+          {name: "donatpayToken",   value: donatpay.value.donatpayToken},
+          {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
+          {name: "rollPrice",       value: otherSettings.value.rollPrice}
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
       // Отправка на сервер
     }
     onMounted(() =>{
-      FrontendDispatcher("getSettings", "");
       window.runtime.EventsOn('SettingsData', (data) => {
-        console.log('📦 Группы:', data)
         data.forEach(setting => {
         switch (setting.name) {
           case 'donattyToken':
@@ -94,18 +112,24 @@ export default {
           case 'donatpayUserId':
             donatpay.value.donatpayUserId = setting.value;
             break;
+          case 'rollPrice':
+            otherSettings.value.rollPrice = setting.value;
+            break;
           default:
             console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
           }
         });
-    });
+      });
+    FrontendDispatcher("getSettings", "");
   });
     return { 
       goBack,
       donattyCfg,
       donatpayCfg,
+      otherSettingsCfg,
       donatty,
       donatpay,
+      otherSettings,
       updateFormData,
       handleSave
     };

@@ -17,6 +17,14 @@ type ENVVariable struct {
 	Value string `json:"value"`
 }
 
+//названия полей я задаю с фронта
+//на текущий момент мы сохраняем
+//	donattyToken 	- токен donatty
+//	donattyUrl		- URL donatty
+//	donatpayToken	- токен donatpay
+//	donatpayUserId	- UserId donatpay
+//	rollPrice 		- цена прокрута рулетки
+
 func (c *CredentialsDatabase) Init() {
 	var err error
 	c.db, err = sql.Open("sqlite", "./CredentialsDB.db")
@@ -49,7 +57,6 @@ func (c *CredentialsDatabase) InsertENVValue(name, value string) {
 	}
 }
 
-//Проверить функцию, переделал под вид всего файла
 func (c *CredentialsDatabase) UpdateENVValue(name, value string) {
 	insertQuery := "UPDATE EnvVariables SET value = ? WHERE name = ?"
 
@@ -74,7 +81,6 @@ func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {
 	return ENVValue, nil
 }
 
-//Проверить функцию, переделал под вид всего файла
 func (c *CredentialsDatabase) GetAllENVValues() ([]ENVVariable, error) {
 	query := "SELECT name, value FROM EnvVariables"
 
