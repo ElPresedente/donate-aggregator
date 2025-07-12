@@ -24,16 +24,28 @@ type RouletteSettings struct {
 	sectors []RouletteSector
 }
 
+type ResponseData struct {
+	User  string
+	Spins []SpinData
+}
+
+type SpinData struct {
+	winnerSector string
+	winnerItem   string
+}
+
 type Roulette struct {
 	actualAmount float64
 	rollPrice    int
 	lastRoll     time.Time
 	timeout      time.Duration
+	lastDonate   DonateEvent
 
-	queue    []DonateEvent
-	stop     chan struct{}
-	mu       sync.Mutex
-	settings RouletteSettings
+	queue     []DonateEvent
+	stop      chan struct{}
+	mu        sync.Mutex
+	settings  RouletteSettings
+	isWorking bool
 }
 
 func NewRouletteProcessor() Roulette {
@@ -80,37 +92,32 @@ func (r *Roulette) UpdateDataFromDB() {
 }
 
 func (r *Roulette) rouletteLoop(logic *Logic) {
-	ticker := time.NewTicker(r.timeout)
-	defer ticker.Stop()
+	for len(r.queue) > 0 {
+		r.lastDonate = r.queue[0]
+		r.actualAmount += r.lastDonate.Amount
+		r.DequeueDonate()
 
-	for {
-		if len(r.queue) == 0 {
-			return
-		}
-		select {
-		case <-r.stop:
-			return
-		case <-ticker.C:
-			if time.Since(r.lastRoll) >= r.timeout {
-				r.lastRoll = time.Now()
-
-				r.actualAmount += r.queue[0].Amount
-				r.DequeueDonate()
-
-				if r.actualAmount >= float64(r.rollPrice) {
-					winnerSector := chooseSector(r.settings.sectors)
-					winnerItem := chooseSectorItem(winnerSector.items)
-
-					logic.DispatchLogicEvent(LogicEvent{
-						name: RouletteSpin,
-						data: []any{
-							winnerSector,
-							winnerItem,
-						},
-					})
-					r.actualAmount -= float64(r.rollPrice)
-				}
+		if r.actualAmount >= float64(r.rollPrice) {
+			responses := ResponseData{
+				User: r.lastDonate.User,
 			}
+			for r.actualAmount >= float64(r.rollPrice) {
+				winnerSector := chooseSector(r.settings.sectors)
+				winnerItem := chooseSectorItem(winnerSector.items)
+
+				spinResult := SpinData{
+					winnerSector: winnerSector.name,
+					winnerItem:   winnerItem.name,
+				}
+				responses.Spins = append(responses.Spins, spinResult)
+				r.actualAmount -= float64(r.rollPrice)
+			}
+			logic.DispatchLogicEvent(LogicEvent{
+				name: RouletteSpin,
+				data: responses,
+			})
+			r.isWorking = true
+			return
 		}
 	}
 }
@@ -119,11 +126,11 @@ func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
 	r.EnqueueDonate(event)
 	r.UpdateDataFromDB()
 
-	if len(r.queue) > 1 {
+	if r.isWorking {
 		return
 	}
 
-	go r.rouletteLoop(logic)
+	r.rouletteLoop(logic)
 }
 
 func (r *Roulette) EnqueueDonate(event *DonateEvent) {

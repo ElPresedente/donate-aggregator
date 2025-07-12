@@ -35,6 +35,9 @@ func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 		log.Printf("Прокрутили рулетку. Результат: %s", le.data.(RouletteSectorItem).name)
 		//front.emitEvent(...)
 		//передать виджету по websocket результат прокрутки
+		// объёкт поля для отправки в json
+		// 1. (сектор)
+		// 2. item
 
 		// case
 	}
