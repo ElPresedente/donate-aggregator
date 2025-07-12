@@ -9,19 +9,19 @@ import (
 
 type DonateEvent = sources.DonationEvent
 
-type RouletteSectorItem struct {
+type RouletteCategorySector struct {
 	// probability int // (отдельные шансы для элемента внутри????)
 	name string
 }
 
-type RouletteSector struct {
+type RouletteCategory struct {
 	name        string
 	probability int //оно в интерфейсе инт, пусть и в базе и тут будет инт, на месте поделим
-	items       []RouletteSectorItem
+	sectors     []RouletteCategorySector
 }
 
 type RouletteSettings struct {
-	sectors []RouletteSector
+	categories []RouletteCategory
 }
 
 type ResponseData struct {
@@ -30,8 +30,8 @@ type ResponseData struct {
 }
 
 type SpinData struct {
-	winnerSector string
-	winnerItem   string
+	winnerCategory string
+	winnerSector   string
 }
 
 type Roulette struct {
@@ -54,11 +54,11 @@ func NewRouletteProcessor() Roulette {
 		timeout:   1 * time.Second,
 		stop:      make(chan struct{}),
 		settings: RouletteSettings{
-			sectors: []RouletteSector{
+			categories: []RouletteCategory{
 				{
 					name:        "Виски",
 					probability: 20,
-					items: []RouletteSectorItem{
+					sectors: []RouletteCategorySector{
 						{name: "1"},
 						{name: "2"},
 						{name: "3"},
@@ -67,7 +67,7 @@ func NewRouletteProcessor() Roulette {
 				{
 					name:        "Виски",
 					probability: 20,
-					items: []RouletteSectorItem{
+					sectors: []RouletteCategorySector{
 						{name: "4"},
 						{name: "5"},
 						{name: "6"},
@@ -76,7 +76,7 @@ func NewRouletteProcessor() Roulette {
 				{
 					name:        "Виски",
 					probability: 20,
-					items: []RouletteSectorItem{
+					sectors: []RouletteCategorySector{
 						{name: "7"},
 						{name: "8"},
 						{name: "9"},
@@ -102,12 +102,12 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				User: r.lastDonate.User,
 			}
 			for r.actualAmount >= float64(r.rollPrice) {
-				winnerSector := chooseSector(r.settings.sectors)
-				winnerItem := chooseSectorItem(winnerSector.items)
+				winnerCategory := chooseCategory(r.settings.categories)
+				winnerSector := chooseCategorySector(winnerCategory.sectors)
 
 				spinResult := SpinData{
-					winnerSector: winnerSector.name,
-					winnerItem:   winnerItem.name,
+					winnerCategory: winnerCategory.name,
+					winnerSector:   winnerSector.name,
 				}
 				responses.Spins = append(responses.Spins, spinResult)
 				r.actualAmount -= float64(r.rollPrice)
@@ -147,15 +147,15 @@ func (r *Roulette) DequeueDonate() {
 	r.queue = r.queue[1:]
 }
 
-func chooseSector(sectors []RouletteSector) RouletteSector {
+func chooseCategory(categories []RouletteCategory) RouletteCategory {
 	total := 0
-	for _, s := range sectors {
+	for _, s := range categories {
 		total += s.probability
 	}
 
 	r := rand.Intn(total)
 	sum := 0
-	for _, s := range sectors {
+	for _, s := range categories {
 		sum += s.probability
 		if r < sum {
 			return s
@@ -163,24 +163,24 @@ func chooseSector(sectors []RouletteSector) RouletteSector {
 	}
 
 	// Это на всякий случай — никогда не должно сработать
-	return sectors[len(sectors)-1]
+	return categories[len(categories)-1]
 }
 
-func chooseSectorItem(items []RouletteSectorItem) RouletteSectorItem {
-	// Если нужны будут разные шансы на item
+func chooseCategorySector(sectors []RouletteCategorySector) RouletteCategorySector {
+	// Если нужны будут разные шансы на sector
 	// total := 0
-	// for _, i := range items {
+	// for _, i := range sectors {
 	// 	total += i.probability
 	// }
 
 	// r := rand.Intn(total)
 	// sum := 0
-	// for _, i := range items {
+	// for _, i := range sectors {
 	// 	sum += i.probability
 	// 	if r < sum {
 	// 		return i
 	// 	}
 	// }
 
-	return items[rand.Intn(len(items))]
+	return sectors[rand.Intn(len(sectors))]
 }
