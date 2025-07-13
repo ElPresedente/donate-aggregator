@@ -43,8 +43,9 @@ export default {
         try{
           const parsedData = JSON.parse( newData )
           parsedData.spins.forEach(element => {
-            rouletteHistory.push({ time: parsedData.time, user: parsedData.user, value: parsedData.winnerItem })
+            rouletteHistory.push({ time: parsedData.time, user: parsedData.user, value: element.winnerItem })
           });
+
         } 
         catch( error ){
           console.error( error )
