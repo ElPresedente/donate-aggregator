@@ -14,17 +14,12 @@ let isSpinning = false;
 
 const sectorWidth = 220;
 const repeats = 50;
-const donationLimit = 250;
 const rouletteTimeScroll = 6000;
 const rouletteTimeDelay = 2000;
 const container = document.getElementById("roulette-container");
 const donationQueue = [];
 
 let isAnimated = false;
-
-function main(message) {
-  
-}
 
 function renderTrack() {
   const track = document.getElementById("track");
@@ -68,18 +63,25 @@ window.addEventListener('load', () => {
     ws.send('Тестовое сообщение');
   };
   ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    console.log("Получено сообщение от Go:", msg);
-    if(msg.type == 'chat'){
-      spinTo("ЕБАТЬ РАБОТАЕТ");
+    try {
+      const obj = JSON.parse(event.data);
+    } catch (error) {
+      console.error('Ошибка парсинга:', error);
     }
+    // Добавляем ВСЕ элементы в очередь
+    for (const item of obj) {
+      donationQueue.push(item.item);  // item.sector можно сохранить, если понадобится
+    }
+
+    // Запускаем очередь, если нужно
+    handleDonation();
 };
-  //ws.onmessage = (event) => console.log('Получено:', event.data);
   ws.onclose = () => console.log('Соединение закрыто');
   renderTrack();
 });
 
 function spinTo(text = "") {
+  //ПРОДУМАТЬ АНИМАЦИЮ
   clearFlips();
   showRoulette();
   const coinSpan = document.getElementById("coin-25");
@@ -88,6 +90,7 @@ function spinTo(text = "") {
   } else {
     console.warn("coin-25 не найден!");
   }
+
 
   setTimeout(() => {
     const track = document.getElementById("track");
@@ -122,7 +125,6 @@ function spinTo(text = "") {
 
 function checkQueue() {
   if(donationQueue.length != 0) {
-    hideRoulette();
     setTimeout(() => {
       processQueue();
     }, 1000);
