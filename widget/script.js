@@ -11,8 +11,10 @@ const backImages = [
 ];
 
 let isSpinning = false;
+let globalSectorIdCounter = 0;
 
 const sectorWidth = 220;
+const sectorHeight = 150;
 const repeats = 50;
 const rouletteTimeScroll = 6000;
 const rouletteTimeDelay = 2000;
@@ -25,8 +27,6 @@ function renderTrack() {
   const track = document.getElementById("track");
   track.innerHTML = "";
 
-  const sectorWidth = 220;
-  const sectorHeight = 150;
 
   for (let i = 0; i < repeats; i++) {
     const el = document.createElement("div");
@@ -72,9 +72,9 @@ window.addEventListener('load', () => {
     for (const item of obj) {
       donationQueue.push(item.item);  // item.sector можно сохранить, если понадобится
     }
-
-    // Запускаем очередь, если нужно
-    handleDonation();
+    resetTrack();     // Очищаем старый трек
+    showRoulette();   // Показываем рулетку
+    processQueue();   // Стартуем очередь
 };
   ws.onclose = () => console.log('Соединение закрыто');
   renderTrack();
@@ -123,6 +123,43 @@ function spinTo(text = "") {
   }, 1000);
 }
 
+//НОВЫЙ СПИНТУ
+function spinTo(sectorId) {
+  const track = document.getElementById("track");
+  const wrapperWidth = document.querySelector('.roulette-inner-wrapper').clientWidth;
+  const centerOffset = wrapperWidth / 2 - sectorWidth / 2;
+
+  const totalSectors = track.children.length;
+  const targetIndex = totalSectors - (repeats - 2); // ставим последний нужный элемент в центр
+  const totalOffset = (targetIndex - 1) * sectorWidth - centerOffset;
+
+  track.style.transition = "transform 0.8s ease-out";
+  track.style.transform = `translateX(-${totalOffset}px)`;
+
+  setTimeout(() => {
+    const coinSpanId = `coin-${sectorId}-${repeats - 2}`;
+    const span = document.getElementById(coinSpanId);
+    const coinInner = span?.closest(".coin-inner");
+
+    if (coinInner) {
+      coinInner.classList.add("flipped");
+    }
+
+    setTimeout(() => {
+      if (donationQueue.length > 0) {
+        processQueue();
+      } else {
+        setTimeout(() => {
+          hideRoulette();
+          isSpinning = false;
+        }, 1000);
+      }
+    }, rouletteTimeDelay);
+
+  }, 900); // после прокрутки
+}
+
+
 function checkQueue() {
   if(donationQueue.length != 0) {
     setTimeout(() => {
@@ -142,9 +179,15 @@ function handleDonation() {
 function processQueue() {
   if (isSpinning || donationQueue.length === 0) return;
 
+  isSpinning = true;
+
   const text = donationQueue.shift();
-  spinTo(text);
+  const sectorId = globalSectorIdCounter++;
+
+  appendToTrack(text, sectorId);
+  spinTo(sectorId);
 }
+
 
 function clearFlips() {
   const track = document.getElementById("track");
@@ -166,9 +209,54 @@ function hideRoulette() {
   container.classList.remove("visible");
   setTimeout(() => {
     container.classList.add("hidden");
-    clearFlips();
+    //clearFlips();
+    resetTrack();
   }, 1000);
 }
+
+function resetTrack(){
+  const track = document.getElementById("track");
+  track.innerHTML = "";
+  track.style.transform = "translateX(0)";
+  track.style.transition = "none";
+  globalSectorIdCounter = 0;
+}
+
+function appendToTrack(text, sectorId) {
+  const track = document.getElementById("track");
+
+  for (let i = 0; i < repeats; i++) {
+    const el = document.createElement("div");
+    el.className = "sector";
+    el.style.width = `${sectorWidth}px`;
+    el.style.height = `${sectorHeight}px`;
+
+    const frontImage = frontImages[Math.floor(Math.random() * frontImages.length)];
+    const backImage = backImages[Math.floor(Math.random() * backImages.length)];
+
+    const id = `coin-${sectorId}-${i}`;
+    const isTarget = i === (repeats - 2);
+
+    el.innerHTML = `
+      <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">
+        <div class="coin-inner">
+          <div class="coin-front">
+            <img src="${backImage}" alt="back" />
+            <span class="coin-text" id="${id}">${isTarget ? text : ""}</span>
+          </div>
+          <div class="coin-back">
+            <img src="${frontImage}" alt="front" />
+          </div>
+        </div>
+      </div>
+    `;
+
+    track.appendChild(el);
+  }
+
+  track.style.width = `${track.children.length * sectorWidth}px`;
+}
+
 
 document.addEventListener("myCustomEvent", function(event) {
   const payload = event.detail;

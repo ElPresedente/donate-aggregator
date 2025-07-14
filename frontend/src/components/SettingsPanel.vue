@@ -19,7 +19,7 @@
       :inputsConfig="otherSettingsCfg"
       :formData="otherSettings"
       @update:formData="updateFormData('otherSettings', $event)"
-      :type="'text'"
+      :type="'number'"
     />
   </div>
   <section class="card stretch" id="settings-panel">
@@ -69,7 +69,7 @@ export default {
       {
         name: 'rollPrice',
         label: 'Цена прокрутки рулетки в рублях',
-        type: 'text',
+        type: 'number',
         placeholder: 'Введите цену',
       },
     ]

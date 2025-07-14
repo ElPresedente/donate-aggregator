@@ -1,7 +1,7 @@
 <template>
-  <div v-if="type === 'pass'" class="settings-card">
+  <div class="settings-card">
     <h2>{{ title }}</h2>
-    <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
+    <div v-if="type === 'pass'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
       <div class="input-wrapper">
         <input
@@ -20,14 +20,23 @@
         </button>
       </div>
     </div>
-  </div>
-  <div v-if="type === 'text'" class="settings-card">
-    <h2>{{ title }}</h2>
-    <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
+    <div v-if="type === 'text'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
       <div class="input-wrapper">
         <input
           :type="'text'"
+          :id="input.name"
+          :name="input.name"
+          v-model="localFormData[input.name]"
+          :placeholder="input.placeholder"
+        />
+      </div>
+    </div>
+    <div v-if="type === 'number'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
+      <label :for="input.name">{{ input.label }}</label>
+      <div class="input-wrapper">
+        <input
+          :type="'number'"
           :id="input.name"
           :name="input.name"
           v-model="localFormData[input.name]"
