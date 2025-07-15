@@ -10,6 +10,15 @@ const backImages = [
   "https://images2.imgbox.com/46/77/GpI2Pn23_o.png"
 ];
 
+const categoryMapping = {
+  "Обычные": 0,
+  "Необычные": 0,
+  "Редкие": 1,
+  "Эпические": 1,
+  "Легендарные": 2,
+  "Артифакты": 2
+};
+
 let isSpinning = false;
 let globalSectorIdCounter = 0;
 
@@ -23,39 +32,6 @@ const donationQueue = [];
 
 let isAnimated = false;
 
-function renderTrack() {
-  const track = document.getElementById("track");
-  track.innerHTML = "";
-
-
-  for (let i = 0; i < repeats; i++) {
-    const el = document.createElement("div");
-    el.className = "sector";
-    el.style.width = `${sectorWidth}px`;
-    el.style.height = `${sectorHeight}px`;
-
-    const frontImage = frontImages[Math.floor(Math.random() * frontImages.length)];
-    const backImage = backImages[Math.floor(Math.random() * backImages.length)];
-
-    el.innerHTML = `
-      <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">
-        <div class="coin-inner">
-          <div class="coin-front">
-            <img src="${backImage}" alt="back" />
-            <span class="coin-text" id="coin-${i}"></span>
-          </div>
-          <div class="coin-back">
-            <img src="${frontImage}" alt="front" />
-          </div>
-        </div>
-      </div>
-    `;
-
-    track.appendChild(el);
-  }
-  track.style.width = `${repeats * sectorWidth}px`;
-}
-
 window.addEventListener('load', () => {
   const ws = new WebSocket('ws://localhost:8080/ws');
   ws.onopen = () => {
@@ -65,63 +41,19 @@ window.addEventListener('load', () => {
   ws.onmessage = (event) => {
     try {
       const obj = JSON.parse(event.data);
+      for (const item of obj) {
+        donationQueue.push({text: item.spins.sector, category: item.spins.category}); 
+      }
+      resetTrack();     // Очищаем старый трек
+      showRoulette();   // Показываем рулетку
+      processQueue();   // Стартуем очередь
+
     } catch (error) {
       console.error('Ошибка парсинга:', error);
     }
-    // Добавляем ВСЕ элементы в очередь
-    for (const item of obj) {
-      donationQueue.push(item.item);  // item.sector можно сохранить, если понадобится
-    }
-    resetTrack();     // Очищаем старый трек
-    showRoulette();   // Показываем рулетку
-    processQueue();   // Стартуем очередь
-};
+  };
   ws.onclose = () => console.log('Соединение закрыто');
-  renderTrack();
 });
-
-function spinTo(text = "") {
-  //ПРОДУМАТЬ АНИМАЦИЮ
-  clearFlips();
-  showRoulette();
-  const coinSpan = document.getElementById("coin-25");
-  if (coinSpan) {
-    coinSpan.innerText = text;
-  } else {
-    console.warn("coin-25 не найден!");
-  }
-
-
-  setTimeout(() => {
-    const track = document.getElementById("track");
-    const wrapperWidth = document.querySelector('.roulette-inner-wrapper').clientWidth;
-
-    const centerOffset = wrapperWidth / 2 - sectorWidth / 2;
-    const targetIndex = Math.floor(repeats / 2);
-    const totalOffset = targetIndex * sectorWidth - centerOffset;
-    track.style.transform = `translateX(-${totalOffset}px)`;
-
-
-
-    track.style.transition = "none";
-    track.style.transform = "translateX(0)";
-    void track.offsetWidth;
-
-    track.style.transition = `transform ${rouletteTimeScroll}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-    track.style.transform = `translateX(-${totalOffset}px)`;
-
-    setTimeout(() => {
-      const sectorEl = track.children[25];
-      const coinInner = sectorEl.querySelector('.coin-inner');
-      if (coinInner) coinInner.classList.add('flipped');
-
-      setTimeout(() => {
-        checkQueue();
-      }, rouletteTimeDelay);
-    }, rouletteTimeScroll + 100);
-
-  }, 1000);
-}
 
 //НОВЫЙ СПИНТУ
 function spinTo(sectorId) {
@@ -130,15 +62,20 @@ function spinTo(sectorId) {
   const centerOffset = wrapperWidth / 2 - sectorWidth / 2;
 
   const totalSectors = track.children.length;
-  const targetIndex = totalSectors - (repeats - 2); // ставим последний нужный элемент в центр
-  const totalOffset = (targetIndex - 1) * sectorWidth - centerOffset;
+  const targetIndex = totalSectors - 2; //проверить постановку
+  const totalOffset = targetIndex * sectorWidth - centerOffset; //возможно не надо будет минусовать 1
 
-  track.style.transition = "transform 0.8s ease-out";
+  //track.style.transition = "transform 0.8s ease-out";
+  track.style.transition = `transform ${rouletteTimeScroll}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
   track.style.transform = `translateX(-${totalOffset}px)`;
 
   setTimeout(() => {
     const coinSpanId = `coin-${sectorId}-${repeats - 2}`;
     const span = document.getElementById(coinSpanId);
+    if (!span) {
+      console.warn(`Не найден span с id ${coinSpanId}`);
+      return;
+    }
     const coinInner = span?.closest(".coin-inner");
 
     if (coinInner) {
@@ -170,21 +107,15 @@ function checkQueue() {
   }
 }
 
-function handleDonation() {
-  if (!isSpinning) {
-    processQueue();
-  }
-}
-
 function processQueue() {
   if (isSpinning || donationQueue.length === 0) return;
 
   isSpinning = true;
 
-  const text = donationQueue.shift();
+  const {text, category} = donationQueue.shift();
   const sectorId = globalSectorIdCounter++;
 
-  appendToTrack(text, sectorId);
+  appendToTrack(text, sectorId, category);
   spinTo(sectorId);
 }
 
@@ -222,17 +153,28 @@ function resetTrack(){
   globalSectorIdCounter = 0;
 }
 
-function appendToTrack(text, sectorId) {
+function getWeightedRandomIndex() {
+  const rand = Math.random() * 100;
+  if (rand < 69) return 0;
+  if (rand < 99) return 1;
+  return 2;
+}
+
+function appendToTrack(text, sectorId, categotyKey = null) {
   const track = document.getElementById("track");
+
+  const index = sectorMapping.hasOwnProperty(categotyKey)
+    ? sectorMapping[categotyKey]
+    : getWeightedRandomIndex();
+
+  const frontImage = frontImages[index];
+  const backImage = backImages[index];
 
   for (let i = 0; i < repeats; i++) {
     const el = document.createElement("div");
     el.className = "sector";
     el.style.width = `${sectorWidth}px`;
     el.style.height = `${sectorHeight}px`;
-
-    const frontImage = frontImages[Math.floor(Math.random() * frontImages.length)];
-    const backImage = backImages[Math.floor(Math.random() * backImages.length)];
 
     const id = `coin-${sectorId}-${i}`;
     const isTarget = i === (repeats - 2);
@@ -257,23 +199,5 @@ function appendToTrack(text, sectorId) {
   track.style.width = `${track.children.length * sectorWidth}px`;
 }
 
-
-document.addEventListener("myCustomEvent", function(event) {
-  const payload = event.detail;
-  console.log("Custom event received with payload:", payload);
-  // Process the payload, e.g., update UI
-});
-
-window.addEventListener("onEventReceived", function (obj) {
-  if(obj.detail && obj.detail.event && obj.detail.event.isTestEvent) return;
-
-  const { listener, event } = obj.detail;
-  console.log(listener);
-  if (listener === "tip-latest") {
-    donationQueue.push("Текст"); 
-    handleDonation();
-  }
-});
-
-window.addEventListener('load', renderTrack);
+window.addEventListener('load', resetTrack);
 
