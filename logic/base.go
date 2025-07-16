@@ -2,6 +2,7 @@ package logic
 
 import (
 	"go-back/sources"
+	"log"
 )
 
 type Logic struct {
@@ -31,7 +32,10 @@ func (l *Logic) Process(donate sources.DonationEvent) {
 func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 	switch le.name {
 	case RouletteSpin:
-		// log.Printf("Прокрутили рулетку. Результат: %s", )
+		for key, val := range le.data.(ResponseData).Spins {
+			log.Printf("Прокрут рулетки №%d. Результат: категория:%s сектор:%s", key, val.winnerCategory, val.winnerSector)
+		}
+
 		//front.emitEvent(...)
 		//передать виджету по websocket результат прокрутки
 		// объёкт поля для отправки в json

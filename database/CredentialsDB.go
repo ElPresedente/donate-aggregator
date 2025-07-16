@@ -46,6 +46,16 @@ func (c *CredentialsDatabase) Init() {
 	if err != nil {
 		log.Printf("❌ Ошибка создания таблиц в CredentialsDB: %s", err)
 	}
+
+	c.InitDefaultVariable()
+}
+
+func (c *CredentialsDatabase) InitDefaultVariable() {
+	c.InsertENVValue("donattyToken", "")
+	c.InsertENVValue("donattyUrl", "")
+	c.InsertENVValue("donatpayToken", "")
+	c.InsertENVValue("donatpayUserId", "")
+	c.InsertENVValue("rollPrice", "0")
 }
 
 func (c *CredentialsDatabase) InsertENVValue(name, value string) {

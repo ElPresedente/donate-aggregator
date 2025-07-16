@@ -30,19 +30,19 @@ type RouletteGroupWithItems struct {
 	Percentage float64  `json:"percentage"` // chance
 }
 
-func (c *RouletteDatabase) Init() {
+func (rd *RouletteDatabase) Init() {
 	var err error
-	c.db, err = sql.Open("sqlite", "./RouletteDB.db")
+	rd.db, err = sql.Open("sqlite", "./RouletteDB.db")
 	if err != nil {
 		log.Printf("❌ Ошибка подключения к базе RouletteDB: %s", err)
 	}
 
-	if err = c.db.Ping(); err != nil {
+	if err = rd.db.Ping(); err != nil {
 		log.Fatal("❌Ошибка пинга БД:", err)
 	}
 
 	//Это высрал чатгпт, он сказал включать внешние ключи
-	_, err = c.db.Exec("PRAGMA foreign_keys = ON;")
+	_, err = rd.db.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		log.Fatal("Ошибка включения foreign_keys:", err)
 	}
@@ -66,16 +66,16 @@ func (c *RouletteDatabase) Init() {
     );
 	`
 
-	_, err = c.db.Exec(createTableQuery)
+	_, err = rd.db.Exec(createTableQuery)
 	if err != nil {
 		log.Printf("❌ Ошибка создания таблиц в RouletteDB: %s", err)
 	}
 	RouletteDB.seedDefaultGroups()
 }
 
-func (c *RouletteDatabase) seedDefaultGroups() {
+func (rd *RouletteDatabase) seedDefaultGroups() {
 	var count int
-	err := c.db.QueryRow(`SELECT COUNT(*) FROM RouletteGroup`).Scan(&count)
+	err := rd.db.QueryRow(`SELECT COUNT(*) FROM RouletteGroup`).Scan(&count)
 	if err != nil {
 		log.Printf("❌ Ошибка при проверке таблицы RouletteGroup: %s", err)
 		return
@@ -85,7 +85,7 @@ func (c *RouletteDatabase) seedDefaultGroups() {
 		return // Данные уже есть — ничего не делаем
 	}
 
-	tx, err := c.db.Begin()
+	tx, err := rd.db.Begin()
 	if err != nil {
 
 		log.Printf("❌ Ошибка начала транзакции: %s", err)
@@ -122,8 +122,8 @@ func (c *RouletteDatabase) seedDefaultGroups() {
 }
 
 // Получение всех RouletteItem по id RouletteGroup
-func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error) {
-	rows, err := c.db.Query(`SELECT id, name FROM RouletteItem WHERE group_id = ?`, groupID)
+func (rd *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error) {
+	rows, err := rd.db.Query(`SELECT id, name FROM RouletteItem WHERE group_id = ?`, groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +140,8 @@ func (c *RouletteDatabase) GetItemsByGroupID(groupID int) ([]RouletteItem, error
 	return items, nil
 }
 
-func (c *RouletteDatabase) AddItem(groupID int, name string) error {
-	tx, err := c.db.Begin()
+func (rd *RouletteDatabase) AddItem(groupID int, name string) error {
+	tx, err := rd.db.Begin()
 	if err != nil {
 
 		log.Printf("❌ Ошибка начала транзакции: %s", err)
@@ -163,18 +163,18 @@ func (c *RouletteDatabase) AddItem(groupID int, name string) error {
 	return err
 }
 
-func (c *RouletteDatabase) UpdateItem(id int, name string) error {
-	_, err := c.db.Exec(`UPDATE RouletteItem SET name = ? WHERE id = ?`, name, id)
+func (rd *RouletteDatabase) UpdateItem(id int, name string) error {
+	_, err := rd.db.Exec(`UPDATE RouletteItem SET name = ? WHERE id = ?`, name, id)
 	return err
 }
 
-func (c *RouletteDatabase) DeleteItem(id int) error {
-	_, err := c.db.Exec(`DELETE FROM RouletteItem WHERE id = ?`, id)
+func (rd *RouletteDatabase) DeleteItem(id int) error {
+	_, err := rd.db.Exec(`DELETE FROM RouletteItem WHERE id = ?`, id)
 	return err
 }
 
-func (c *RouletteDatabase) GetRouletteGroups() ([]RouletteGroup, error) {
-	rows, err := c.db.Query(`SELECT * FROM RouletteGroup`)
+func (rd *RouletteDatabase) GetRouletteGroups() ([]RouletteGroup, error) {
+	rows, err := rd.db.Query(`SELECT * FROM RouletteGroup`)
 	if err != nil {
 		return nil, err
 	}

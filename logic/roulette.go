@@ -1,8 +1,11 @@
 package logic
 
 import (
+	"go-back/database"
 	"go-back/sources"
+	"log"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -53,42 +56,53 @@ func NewRouletteProcessor() Roulette {
 		rollPrice: 100,
 		timeout:   1 * time.Second,
 		stop:      make(chan struct{}),
-		settings: RouletteSettings{
-			categories: []RouletteCategory{
-				{
-					name:        "Виски",
-					probability: 20,
-					sectors: []RouletteCategorySector{
-						{name: "1"},
-						{name: "2"},
-						{name: "3"},
-					},
-				},
-				{
-					name:        "Виски",
-					probability: 20,
-					sectors: []RouletteCategorySector{
-						{name: "4"},
-						{name: "5"},
-						{name: "6"},
-					},
-				},
-				{
-					name:        "Виски",
-					probability: 20,
-					sectors: []RouletteCategorySector{
-						{name: "7"},
-						{name: "8"},
-						{name: "9"},
-					},
-				},
-			},
-		},
+		settings:  RouletteSettings{},
 	}
 }
 
 func (r *Roulette) UpdateDataFromDB() {
-	// подсасываем настройки из бд
+	dbRollPrice, err := database.CredentialsDB.GetENVValue("rollPrice")
+
+	if err != nil {
+		log.Printf("❌ Ошибка получения стоимости прокрута: %s", err)
+	}
+
+	dbRollPriceInt, err := strconv.Atoi(dbRollPrice)
+
+	if err != nil {
+		log.Printf("❌ Ошибка приведения типа стоимости прокрута: %s", err)
+	}
+
+	if dbRollPriceInt > 0 {
+		r.rollPrice = dbRollPriceInt
+	}
+
+	categories, err := database.RouletteDB.GetRouletteGroups()
+
+	if err != nil {
+		log.Printf("❌ Ошибка получения категорий: %s", err)
+	}
+
+	for _, category := range categories {
+		newCategory := RouletteCategory{}
+		newCategory.name = category.Name
+		newCategory.probability = int(category.Percentage * 100)
+
+		sectors, err := database.RouletteDB.GetItemsByGroupID(category.ID)
+		if err != nil {
+			log.Printf("❌ Ошибка получения секторов: %s", err)
+		}
+
+		for _, sector := range sectors {
+			newSector := RouletteCategorySector{}
+			newSector.name = sector.Name
+
+			newCategory.sectors = append(newCategory.sectors, newSector)
+
+		}
+
+		r.settings.categories = append(r.settings.categories, newCategory)
+	}
 }
 
 func (r *Roulette) rouletteLoop(logic *Logic) {
@@ -116,7 +130,7 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				name: RouletteSpin,
 				data: responses,
 			})
-			r.isWorking = true
+			// r.isWorking = true
 			return
 		}
 	}
