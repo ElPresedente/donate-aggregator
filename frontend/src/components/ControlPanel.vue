@@ -3,12 +3,15 @@
     <div class="card-block" id="main-controls">
       <header class="card-header">Управление рулеткой</header>
       <div class="status">
-        <span :class="{ online: donattyConnected }">
-          {{ donattyConnected ? '✅ Donatty' : '❌ Donatty' }}
-        </span>
-        <span :class="{ online: donatepayConnected }">
-          {{ donatepayConnected ? '✅ Donatpay' : '❌ Donatpay' }}
-        </span>
+        <span v-if="donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
+        <span v-if="donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
+        <span v-if="donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
+        <span v-if="donattyConnected === ConnectionStatus.CONNECTION_LOST" class="status-lost">⚠️ Donatty: Произошел разрыв соединения</span>
+        
+        <span v-if="donatepayConnected === 'connected'" class="status-connected">✅ Donatepay: Подключено</span>
+        <span v-if="donatepayConnected === 'disconnected'" class="status-disconnected">❌ Donatepay: Не подключено</span>
+        <span v-if="donatepayConnected === 'reconnecting'" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+        <span v-if="donatepayConnected === 'connection_lost'" class="status-lost">⚠️ Donatepay: Произошел разрыв соединения</span>
       </div>
       <div class="controls">
         <button class="btn green" @click="rouletteOn">Включить</button>
@@ -18,10 +21,10 @@
       </div>
     </div>
     <div class="card-block settings-buttons">
-      <button class="btn gray" @click="$emit('show-settings')">
+      <button class="btn gray" @click="showSettings">
         Настройка подключения
       </button>
-      <button class="btn gray" @click="$emit('show-roulette-settings')">
+      <button class="btn gray" @click="showRouletteSettings">
         Настройка рулетки
       </button>
     </div>
@@ -29,17 +32,49 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 export default {
   name: 'ControlPanel',
-  props: {
-    donattyConnected: Boolean,
-    donatepayConnected: Boolean
-  },
-  //пропсы мб в будущем не нужны нахуй будут
-  setup(props){
-    //ну может правильней эмит сигнала делать родителю и у него функции вызывать, но проще тут делать хз
+  setup(){
+    const ConnectionStatus = Object.freeze({
+      CONNECTED: 'connected',
+      DISCONNECTED: 'disconnected',
+      RECONNECTING: 'reconnecting',
+      CONNECTION_LOST: 'connectionLost'
+    });
+    const router = useRouter();
+    const donattyConnected = ref("connectionLost");
+    const donatepayConnected = ref("disconnected");
+    //Я вот думаю, надо ли подобные флаги подключения вешать на виджеты...
+
+    onMounted(() => {
+      console.log(donatepayConnected === 'disconnected');
+      window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
+        /*
+          для обоих сервисов сделать сообщения по типу
+          disconnected - соединения нет
+          connected - соединение есть
+          reconnecting
+          connectionLost
+        */
+        donattyConnected.value = connection;
+      });
+      window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
+        /*
+          для обоих сервисов сделать сообщения по типу
+          disconnected - соединения нет
+          connected - соединение есть
+          recconecting
+          connectionLost
+        */
+        donatepayConnected.value = connection;
+      });
+    });
+    
     const rollRoulette = () => {
-      window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
+      //Метод для прокрута рулетки без доната
+      //window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
     };
     const rouletteOn = () => {
       //дёргаем из го
@@ -50,7 +85,23 @@ export default {
     const rouletteReconnect = () => {
       //дёргаем из го
     };
-    return {rollRoulette, rouletteOn, rouletteOff, rouletteReconnect }
+    const showSettings = () => {
+      router.push('/settings');
+    };
+    const showRouletteSettings = () => {
+      router.push('/roulette-settings');
+    };
+    return {
+      ConnectionStatus,
+      donattyConnected,
+      donatepayConnected,
+      rollRoulette, 
+      rouletteOn, 
+      rouletteOff, 
+      rouletteReconnect, 
+      showSettings, 
+      showRouletteSettings 
+    }
   }
 };
 </script>
