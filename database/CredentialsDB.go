@@ -50,12 +50,42 @@ func (c *CredentialsDatabase) Init() {
 	c.InitDefaultVariable()
 }
 
+//Я немножко насрал
+func (c *CredentialsDatabase) checkRecordsExist(names []string) (map[string]bool, error) {
+	exists := make(map[string]bool)
+	for _, name := range names {
+		var count int
+		query := "SELECT COUNT(*) FROM EnvVariables WHERE name = ?"
+		err := c.db.QueryRow(query, name).Scan(&count)
+		if err != nil {
+			return nil, fmt.Errorf("error checking name %s: %v", name, err)
+		}
+		exists[name] = count > 0
+	}
+	return exists, nil
+}
+
 func (c *CredentialsDatabase) InitDefaultVariable() {
-	c.InsertENVValue("donattyToken", "")
-	c.InsertENVValue("donattyUrl", "")
-	c.InsertENVValue("donatpayToken", "")
-	c.InsertENVValue("donatpayUserId", "")
-	c.InsertENVValue("rollPrice", "0")
+	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "rollPrice"}
+	exists, err := c.checkRecordsExist(names)
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	values := map[string]string{
+		"donattyToken":   "",
+		"donattyUrl":     "",
+		"donatpayToken":  "",
+		"donatpayUserId": "",
+		"rollPrice":      "0",
+	}
+
+	for key, value := range values {
+		if !exists[key] {
+			c.InsertENVValue(key, value)
+		}
+	}
 }
 
 func (c *CredentialsDatabase) InsertENVValue(name, value string) {

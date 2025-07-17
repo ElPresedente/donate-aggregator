@@ -5,11 +5,3 @@
 export function FrontendDispatcher(arg1, arg2) {
   return window['go']['main']['App']['FrontendDispatcher'](arg1, arg2);
 }
-
-export function SendMessageFromFrontend(arg1) {
-  return window['go']['main']['App']['SendMessageFromFrontend'](arg1);
-}
-
-export function StartWebSocketServer() {
-  return window['go']['main']['App']['StartWebSocketServer']();
-}

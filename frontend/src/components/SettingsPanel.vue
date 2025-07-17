@@ -90,7 +90,7 @@ export default {
           {name: "donattyUrl",      value: donatty.value.donattyUrl},
           {name: "donatpayToken",   value: donatpay.value.donatpayToken},
           {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
-          {name: "rollPrice",       value: otherSettings.value.rollPrice}
+          {name: "rollPrice",       value: String(otherSettings.value.rollPrice)}
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
