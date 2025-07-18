@@ -30,6 +30,18 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	case "updateSettings":
 		updateSettings(a.ctx, argJSON)
 
+	case "startCollector":
+		startCollector(a.ctx, argJSON, a)
+
+	case "startAllCollector":
+		startAllCollector(a.ctx, a)
+
+	case "stopAllCollector":
+		stopAllCollector(a.ctx, a)
+
+	case "reconnectAllCollector":
+		reconnectAllCollector(a.ctx, a)
+
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
@@ -197,4 +209,47 @@ func updateSettings(ctx context.Context, data string) {
 			database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
 		}
 	}
+}
+
+func startCollector(ctx context.Context, data string, a *App) {
+	var payload struct {
+		Collector string `json:"collectorName"`
+	}
+
+	// парсим JSON-строку
+	if err := json.Unmarshal([]byte(data), &payload); err != nil {
+		log.Println("❌ Ошибка парсинга JSON startCollector:", err)
+		return
+	}
+
+	collectorName := payload.Collector
+	log.Println("🔁 Получен запрос на переключение коллектора:", collectorName)
+
+	a.collManager.StartCollector(collectorName)
+
+}
+
+func startAllCollector(ctx context.Context, a *App) {
+
+	log.Println("🔁 Получен запрос на включение всех коллекторов:")
+
+	a.collManager.StartAllCollector()
+
+}
+
+func stopAllCollector(ctx context.Context, a *App) {
+
+	log.Println("🔁 Получен запрос на выключение всех коллекторов:")
+
+	a.collManager.StopAllCollector()
+
+}
+
+func reconnectAllCollector(ctx context.Context, a *App) {
+
+	log.Println("🔁 Получен запрос на переподключение всех коллекторов:")
+
+	a.collManager.StopAllCollector()
+	a.collManager.StartAllCollector()
+
 }

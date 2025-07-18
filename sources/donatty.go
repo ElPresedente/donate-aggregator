@@ -51,6 +51,10 @@ func NewDonattyCollector(token_str, ref string, ch chan<- DonationEvent) *Donatt
 	}
 }
 
+func (dc *DonattyCollector) GetCollectorType() string {
+	return "Donatty"
+}
+
 // Start запускает коллектор
 func (dc *DonattyCollector) Start(ctx context.Context) error {
 	dc.getAccessToken()

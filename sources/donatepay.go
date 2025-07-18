@@ -164,6 +164,10 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 	}
 }
 
+func (dc *DonatePayCollector) GetCollectorType() string {
+	return "DonatePay"
+}
+
 // Start запускает коллектор
 func (dc *DonatePayCollector) Start(ctx context.Context) error {
 	dc.stop = make(chan struct{})

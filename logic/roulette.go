@@ -167,6 +167,7 @@ func chooseCategory(categories []RouletteCategory) RouletteCategory {
 		total += s.probability
 	}
 
+	// Добавить проверку на total > 0 и придумать, что в этом случае делать
 	r := rand.Intn(total)
 	sum := 0
 	for _, s := range categories {

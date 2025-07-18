@@ -18,6 +18,7 @@ type DonationEvent struct {
 
 // EventCollector интерфейс для всех источников событий
 type EventCollector interface {
+	GetCollectorType() string
 	Start(ctx context.Context) error
 	Stop() error
 }

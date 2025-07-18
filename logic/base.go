@@ -33,7 +33,7 @@ func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 	switch le.name {
 	case RouletteSpin:
 		for key, val := range le.data.(ResponseData).Spins {
-			log.Printf("Прокрут рулетки №%d. Результат: категория:%s сектор:%s", key, val.winnerCategory, val.winnerSector)
+			log.Printf("Прокрут рулетки №%d. Результат: категория:%s сектор:%s", key+1, val.winnerCategory, val.winnerSector)
 		}
 
 		//front.emitEvent(...)

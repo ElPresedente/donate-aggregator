@@ -34,6 +34,7 @@
 <script>
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
+import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 export default {
   name: 'ControlPanel',
   setup(){
@@ -77,13 +78,13 @@ export default {
       //window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
     };
     const rouletteOn = () => {
-      //дёргаем из го
+      FrontendDispatcher("startAllCollector");
     };
     const rouletteOff = () => {
-      //дёргаем из го
+      FrontendDispatcher("stopAllCollector");
     };
     const rouletteReconnect = () => {
-      //дёргаем из го
+      FrontendDispatcher("reconnectAllCollector");
     };
     const showSettings = () => {
       router.push('/settings');
