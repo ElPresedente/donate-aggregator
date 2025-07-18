@@ -14,8 +14,8 @@
         <span v-if="donatepayConnected === 'connection_lost'" class="status-lost">⚠️ Donatepay: Произошел разрыв соединения</span>
       </div>
       <div class="controls">
-        <button class="btn green" @click="rouletteOn">Включить</button>
-        <button class="btn red" @click="rouletteOff">Выключить</button>
+        <button id="onButton" class="btn green" @click="rouletteOn" :disabled="isOnButtonDisabled">Включить</button>
+        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="isOffButtonDisabled">Выключить</button>
         <button class="btn blue" @click="rouletteReconnect">Перезапустить</button>
         <button class="btn gold" @click="rollRoulette">Крутить</button>
       </div>
@@ -44,6 +44,8 @@ export default {
       RECONNECTING: 'reconnecting',
       CONNECTION_LOST: 'connectionLost'
     });
+    const isOnButtonDisabled = ref(false);
+    const isOffButtonDisabled = ref(true);
     const router = useRouter();
     const donattyConnected = ref("connectionLost");
     const donatepayConnected = ref("disconnected");
@@ -78,12 +80,18 @@ export default {
       //window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
     };
     const rouletteOn = () => {
+      isOffButtonDisabled.value = false;
+      isOnButtonDisabled.value = true;
       FrontendDispatcher("startAllCollector");
     };
     const rouletteOff = () => {
+      isOffButtonDisabled.value = true;
+      isOnButtonDisabled.value = false;
       FrontendDispatcher("stopAllCollector");
     };
     const rouletteReconnect = () => {
+      isOffButtonDisabled.value = false;
+      isOnButtonDisabled.value = true;
       FrontendDispatcher("reconnectAllCollector");
     };
     const showSettings = () => {
@@ -93,6 +101,8 @@ export default {
       router.push('/roulette-settings');
     };
     return {
+      isOnButtonDisabled,
+      isOffButtonDisabled,
       ConnectionStatus,
       donattyConnected,
       donatepayConnected,
@@ -164,6 +174,14 @@ export default {
   background-color: #16a34a; /* Темнее на 20% для наведения */
 }
 
+.btn.green:disabled {
+  background-color: #15803d; /* Темный зелёный */
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 .btn.red {
   background-color: #ef4444;
   transition: background-color 0.2s ease;
@@ -171,6 +189,14 @@ export default {
 
 .btn.red:hover {
   background-color: #dc2626; /* Темнее на 20% */
+}
+
+.btn.red:disabled {
+  background-color: #991b1b; /* Темный красный */
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .btn.blue {
