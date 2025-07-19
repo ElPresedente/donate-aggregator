@@ -33,7 +33,7 @@ const donationQueue = [];
 let isAnimated = false;
 
 window.addEventListener('load', () => {
-  const ws = new WebSocket('ws://localhost:8080/ws');
+  const ws = new WebSocket('ws://localhost:8080/ws?type=roulette');
   ws.onopen = () => {
     console.log('Подключено к серверу');
     ws.send('Тестовое сообщение');
