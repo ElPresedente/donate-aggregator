@@ -1,19 +1,8 @@
-
-//handshake
-// w -> app
-{
-    "name": "widget-name" // пока только roulette
-}
-// app -> w
-{
-    "success": true
-}
-
 //roulette
 
 //app -> w
 {
-    "request": "enqueue_spins",
+    "request": "enqueue-spins",
     "spins": [
         {
             "category": "category-name",
@@ -23,6 +12,6 @@
 }
 //w -> app
 {
-    "request": "spins_done"
+    "request": "spins-done"
 }
 

@@ -36,10 +36,11 @@ window.addEventListener('load', () => {
   const ws = new WebSocket('ws://localhost:8080/ws?type=roulette');
   ws.onopen = () => {
     console.log('Подключено к серверу');
-    ws.send('Тестовое сообщение');
+    //ws.send('Тестовое сообщение');
   };
   ws.onmessage = (event) => {
     try {
+      console.log(event.data)
       const obj = JSON.parse(event.data);
       for (const item of obj) {
         donationQueue.push({text: item.spins.sector, category: item.spins.category}); 

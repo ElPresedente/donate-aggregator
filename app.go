@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-back/logic"
 	"go-back/sources"
+	"go-back/widget"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -12,22 +13,23 @@ import (
 type App struct {
 	ctx         context.Context
 	logic       logic.Logic
-	ws          *sources.WebSocketHub
+	widgetHub   widget.WidgetsHub
 	collManager *sources.CollectorManager
 }
 
 func NewApp() *App {
-	return &App{
+	a := App{
 		logic:       logic.NewLogicProcessor(),
-		ws:          sources.NewWebSocketHub(),
+		widgetHub:   widget.NewWidgetsHub(),
 		collManager: &sources.CollectorManager{},
 	}
+	a.widgetHub.LogicEventHandler = &a.logic
+	a.logic.WidgetEventHandler = &a.widgetHub
+	return &a
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.ws.Start()
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Ошибка загрузки .env файла: %s", err)
@@ -37,30 +39,7 @@ func (a *App) startup(ctx context.Context) {
 	eventCh := make(chan sources.DonationEvent, 100)
 	a.collManager = sources.NewCollectorManager(ctx, eventCh)
 
-	a.collManager.StartCollector("Donatty")
-	err = a.collManager.StartCollector("Donatty")
-	if err != nil {
-		log.Printf("%s", err)
-	}
-
-	// a.collManager.StartAllCollector()
-
-	//включение-выключение коллекторов по сигналу от фронта
-
-	// Список коллекторов
-	// collectors := []sources.EventCollector{
-	// 	sources.NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"), eventCh),
-	// 	sources.NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID"), eventCh),
-	// }
-
-	// // Запускаем все коллекторы
-	// for _, collector := range collectors {
-	// 	go func(c sources.EventCollector) {
-	// 		if err := c.Start(ctx); err != nil {
-	// 			log.Printf("❌ Ошибка коллектора: %v", err)
-	// 		}
-	// 	}(collector)
-	// }
+	go a.widgetHub.Start(":8080")
 
 	// Обрабатываем события из канала
 	go func() {

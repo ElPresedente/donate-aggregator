@@ -33,8 +33,8 @@ type ResponseData struct {
 }
 
 type SpinData struct {
-	winnerCategory string
-	winnerSector   string
+	WinnerCategory string `json:"category"`
+	WinnerSector   string `json:"sector"`
 }
 
 type Roulette struct {
@@ -120,8 +120,8 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				winnerSector := chooseCategorySector(winnerCategory.sectors)
 
 				spinResult := SpinData{
-					winnerCategory: winnerCategory.name,
-					winnerSector:   winnerSector.name,
+					WinnerCategory: winnerCategory.name,
+					WinnerSector:   winnerSector.name,
 				}
 				responses.Spins = append(responses.Spins, spinResult)
 				r.actualAmount -= float64(r.rollPrice)
@@ -130,7 +130,7 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				name: RouletteSpin,
 				data: responses,
 			})
-			// r.isWorking = true
+			r.isWorking = true
 			return
 		}
 	}
