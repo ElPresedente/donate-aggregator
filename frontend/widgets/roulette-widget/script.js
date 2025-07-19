@@ -41,6 +41,11 @@ window.addEventListener('load', () => {
   ws.onmessage = (event) => {
     try {
       console.log(event.data)
+      const reply = {
+        request: "spins-done"
+      }
+      ws.send( JSON.stringify( reply ))
+
       const obj = JSON.parse(event.data);
       for (const item of obj) {
         donationQueue.push({text: item.spins.sector, category: item.spins.category}); 
