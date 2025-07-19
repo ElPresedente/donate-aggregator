@@ -6,12 +6,14 @@
         <span v-if="donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
         <span v-if="donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
         <span v-if="donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
-        <span v-if="donattyConnected === ConnectionStatus.CONNECTION_LOST" class="status-lost">⚠️ Donatty: Произошел разрыв соединения</span>
         
-        <span v-if="donatepayConnected === 'connected'" class="status-connected">✅ Donatepay: Подключено</span>
-        <span v-if="donatepayConnected === 'disconnected'" class="status-disconnected">❌ Donatepay: Не подключено</span>
-        <span v-if="donatepayConnected === 'reconnecting'" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
-        <span v-if="donatepayConnected === 'connection_lost'" class="status-lost">⚠️ Donatepay: Произошел разрыв соединения</span>
+        <span v-if="donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
+        <span v-if="donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
+        <span v-if="donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+
+        <span v-if="rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
+        <span v-if="rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
+        <span v-if="rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
       </div>
       <div class="controls">
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="isOnButtonDisabled">Включить</button>
@@ -42,42 +44,45 @@ export default {
       CONNECTED: 'connected',
       DISCONNECTED: 'disconnected',
       RECONNECTING: 'reconnecting',
-      CONNECTION_LOST: 'connectionLost'
     });
     const isOnButtonDisabled = ref(false);
     const isOffButtonDisabled = ref(true);
     const router = useRouter();
-    const donattyConnected = ref("connectionLost");
+    const donattyConnected = ref("disconnected");
     const donatepayConnected = ref("disconnected");
-    //Я вот думаю, надо ли подобные флаги подключения вешать на виджеты...
+    const rouletteConnected = ref("disconnected");
 
     onMounted(() => {
       console.log(donatepayConnected === 'disconnected');
       window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
         /*
-          для обоих сервисов сделать сообщения по типу
           disconnected - соединения нет
           connected - соединение есть
-          reconnecting
-          connectionLost
+          reconnecting - переподключение
         */
         donattyConnected.value = connection;
       });
       window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
         /*
-          для обоих сервисов сделать сообщения по типу
           disconnected - соединения нет
           connected - соединение есть
-          recconecting
-          connectionLost
+          recconecting - переподключение
         */
         donatepayConnected.value = connection;
+      });
+      window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
+        /*
+          disconnected - соединения нет
+          connected - соединение есть
+          recconecting - переподключение
+        */
+        rouletteConnected.value = connection;
       });
     });
     
     const rollRoulette = () => {
       //Метод для прокрута рулетки без доната
-      //window.go.main.App.SendMessageFromFrontend("Привет от кнопки!");
+      //window.go.main.App.SendMessageFromFrontend("сообщение");
     };
     const rouletteOn = () => {
       isOffButtonDisabled.value = false;
@@ -106,6 +111,7 @@ export default {
       ConnectionStatus,
       donattyConnected,
       donatepayConnected,
+      rouletteConnected,
       rollRoulette, 
       rouletteOn, 
       rouletteOff, 

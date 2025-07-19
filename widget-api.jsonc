@@ -14,4 +14,9 @@
 {
     "request": "spins-done"
 }
+//app -> w
+{
+    "request": "reset",
+}
+
 

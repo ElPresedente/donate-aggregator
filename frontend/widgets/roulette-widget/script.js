@@ -21,39 +21,30 @@ const categoryMapping = {
 
 let isSpinning = false;
 let globalSectorIdCounter = 0;
+let ws;
 
 const sectorWidth = 220;
 const sectorHeight = 150;
 const repeats = 50;
+const targetOffset = 3;
+const targetRepeats = repeats - targetOffset;
 const rouletteTimeScroll = 6000;
 const rouletteTimeDelay = 2000;
 const container = document.getElementById("roulette-container");
 const donationQueue = [];
 
+
 let isAnimated = false;
 
 window.addEventListener('load', () => {
-  const ws = new WebSocket('ws://localhost:8080/ws?type=roulette');
+  ws = new WebSocket('ws://localhost:8080/ws?type=roulette');
   ws.onopen = () => {
     console.log('Подключено к серверу');
     //ws.send('Тестовое сообщение');
   };
   ws.onmessage = (event) => {
     try {
-      console.log(event.data)
-      const reply = {
-        request: "spins-done"
-      }
-      ws.send( JSON.stringify( reply ))
-
-      const obj = JSON.parse(event.data);
-      for (const item of obj) {
-        donationQueue.push({text: item.spins.sector, category: item.spins.category}); 
-      }
-      resetTrack();     // Очищаем старый трек
-      showRoulette();   // Показываем рулетку
-      processQueue();   // Стартуем очередь
-
+      eventHandler(JSON.parse(event.data));
     } catch (error) {
       console.error('Ошибка парсинга:', error);
     }
@@ -61,45 +52,70 @@ window.addEventListener('load', () => {
   ws.onclose = () => console.log('Соединение закрыто');
 });
 
-//НОВЫЙ СПИНТУ
+function eventHandler(event) {
+  switch (event.request)
+  {
+    case "enqueue-spins": return enqueueSpinsHandler(event.spins);
+    case "reset":         return resetHandler();
+  }
+}
+
+function enqueueSpinsHandler(spins)
+{
+  console.log("Цикл объектов");
+  for (const item of spins) {
+    console.log(item);
+    donationQueue.push({text: item.sector, category: item.category}); 
+  }
+  resetTrack();     // Очищаем старый трек
+  showRoulette();   // Показываем рулетку
+  processQueue();   // Стартуем очередь
+}
+
+function resetHandler()
+{
+  donationQueue = [];
+  resetTrack(); 
+}
+
 function spinTo(sectorId) {
-  const track = document.getElementById("track");
-  const wrapperWidth = document.querySelector('.roulette-inner-wrapper').clientWidth;
-  const centerOffset = wrapperWidth / 2 - sectorWidth / 2;
-
-  const totalSectors = track.children.length;
-  const targetIndex = totalSectors - 2; //проверить постановку
-  const totalOffset = targetIndex * sectorWidth - centerOffset; //возможно не надо будет минусовать 1
-
-  //track.style.transition = "transform 0.8s ease-out";
-  track.style.transition = `transform ${rouletteTimeScroll}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
-  track.style.transform = `translateX(-${totalOffset}px)`;
-
+  console.log("spinTo");
   setTimeout(() => {
-    const coinSpanId = `coin-${sectorId}-${repeats - 2}`;
-    const span = document.getElementById(coinSpanId);
-    if (!span) {
-      console.warn(`Не найден span с id ${coinSpanId}`);
-      return;
-    }
-    const coinInner = span?.closest(".coin-inner");
+    const track = document.getElementById("track");
+    const wrapperWidth = document.querySelector('.roulette-inner-wrapper').clientWidth;
+    const centerOffset = wrapperWidth / 2 - sectorWidth / 2;
 
-    if (coinInner) {
-      coinInner.classList.add("flipped");
-    }
+    const totalSectors = track.children.length;
+    const targetIndex = totalSectors - targetOffset; //проверить постановку
+    const totalOffset = targetIndex * sectorWidth - centerOffset; //возможно не надо будет минусовать 1
 
+    track.style.transition = `transform ${rouletteTimeScroll}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+    track.style.transform = `translateX(-${totalOffset}px)`;
+    
     setTimeout(() => {
+      const coinSpanId = `coin-${sectorId}-${targetRepeats}`;
+      const span = document.getElementById(coinSpanId);
+      if (!span) {
+        console.warn(`Не найден span с id ${coinSpanId}`);
+        return;
+      }
+      const coinInner = span?.closest(".coin-inner");
+
+      if (coinInner) {
+        coinInner.classList.add("flipped");
+      }
+      isSpinning = false;
       if (donationQueue.length > 0) {
+        
         processQueue();
       } else {
         setTimeout(() => {
           hideRoulette();
-          isSpinning = false;
-        }, 1000);
+        }, rouletteTimeDelay);
       }
-    }, rouletteTimeDelay);
+    }, rouletteTimeScroll + 100);
 
-  }, 900); // после прокрутки
+  }, 1000); // после прокрутки
 }
 
 
@@ -114,8 +130,10 @@ function checkQueue() {
 }
 
 function processQueue() {
+  
   if (isSpinning || donationQueue.length === 0) return;
-
+  console.log("processQueue");
+  console.log(donationQueue);
   isSpinning = true;
 
   const {text, category} = donationQueue.shift();
@@ -125,17 +143,8 @@ function processQueue() {
   spinTo(sectorId);
 }
 
-
-function clearFlips() {
-  const track = document.getElementById("track");
-  for (const sectorEl of track.children) {
-    const coinInner = sectorEl.querySelector(".coin-inner");
-    coinInner.classList.remove("flipped");
-  }
-}
-
 function showRoulette() {
-  isSpinning = true;
+  console.log("showRoulette");
   container.classList.remove("hidden");
   void container.offsetWidth;
   container.classList.add("visible");
@@ -146,12 +155,17 @@ function hideRoulette() {
   container.classList.remove("visible");
   setTimeout(() => {
     container.classList.add("hidden");
-    //clearFlips();
+    const reply = {
+        request: "spins-done"
+      }
+      ws.send( JSON.stringify( reply ))
     resetTrack();
   }, 1000);
 }
 
 function resetTrack(){
+  console.log("resetTrack");
+  isSpinning = false;
   const track = document.getElementById("track");
   track.innerHTML = "";
   track.style.transform = "translateX(0)";
@@ -166,11 +180,12 @@ function getWeightedRandomIndex() {
   return 2;
 }
 
-function appendToTrack(text, sectorId, categotyKey = null) {
+function appendToTrack(text, sectorId, categoryKey  = null) {
+  console.log("appendToTrack");
   const track = document.getElementById("track");
 
-  const index = sectorMapping.hasOwnProperty(categotyKey)
-    ? sectorMapping[categotyKey]
+  const index = categoryMapping.hasOwnProperty(categoryKey )
+    ? categoryMapping[categoryKey ]
     : getWeightedRandomIndex();
 
   const frontImage = frontImages[index];
@@ -183,7 +198,7 @@ function appendToTrack(text, sectorId, categotyKey = null) {
     el.style.height = `${sectorHeight}px`;
 
     const id = `coin-${sectorId}-${i}`;
-    const isTarget = i === (repeats - 2);
+    const isTarget = i === (targetRepeats);
 
     el.innerHTML = `
       <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">
