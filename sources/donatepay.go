@@ -11,12 +11,14 @@ import (
 	"time"
 
 	"github.com/centrifugal/centrifuge-go"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 var api_donatepay_uri string = "https://donatepay.ru/api/v2"
 
 // DonatePayCollector реализует коллектор для DonatePay
 type DonatePayCollector struct {
+	ctx            context.Context
 	accessToken    string
 	userID         string
 	reconnectDelay time.Duration
@@ -25,9 +27,14 @@ type DonatePayCollector struct {
 	stop           chan struct{}
 }
 
+func (dc *DonatePayCollector) setGUIState(state string) {
+	runtime.EventsEmit(dc.ctx, "donatepayConnectionUpdated", state)
+}
+
 // NewDonatePayCollector создаёт новый коллектор для DonatePay
-func NewDonatePayCollector(accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
+func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
 	return &DonatePayCollector{
+		ctx:            ctx,
 		accessToken:    accessToken,
 		userID:         userID,
 		reconnectDelay: 5 * time.Second,
@@ -37,10 +44,13 @@ func NewDonatePayCollector(accessToken, userID string, ch chan<- DonationEvent) 
 }
 
 // ConnetionEventHandler обрабатывает события Centrifugo
-type ConnetionEventHandler struct{}
+type ConnetionEventHandler struct {
+	dc *DonatePayCollector
+}
 
 // OnConnect вызывается при успешном подключении
 func (c ConnetionEventHandler) OnConnect(client *centrifuge.Client, event centrifuge.ConnectEvent) {
+	c.dc.setGUIState(Connected)
 	log.Println("✅ Подключено к DonatePay Centrifugo")
 }
 
@@ -51,6 +61,7 @@ func (c ConnetionEventHandler) OnError(client *centrifuge.Client, event centrifu
 
 // OnDisconnect вызывается при отключении
 func (c ConnetionEventHandler) OnDisconnect(client *centrifuge.Client, event centrifuge.DisconnectEvent) {
+	c.dc.setGUIState(Disonnected)
 	log.Printf("🔌 Отключено от Centrifugo: %v", event)
 }
 
@@ -61,6 +72,7 @@ func (c ConnetionEventHandler) OnSubscribeSuccess(sub *centrifuge.Subscription, 
 
 // OnSubscribeError вызывается при ошибке подписки
 func (c ConnetionEventHandler) OnSubscribeError(sub *centrifuge.Subscription, event centrifuge.SubscribeErrorEvent) {
+	c.dc.setGUIState(Disonnected)
 	log.Printf("❌ Ошибка подписки на канал %s: %s", sub.Channel(), event.Error)
 }
 
@@ -178,6 +190,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context) error {
 		case <-dc.stop:
 			return nil
 		default:
+			dc.setGUIState(Connecting)
 			log.Println("🔑 Получение токена подключения DonatePay...")
 			token, err := dc.getConnectionToken()
 			if err != nil {
@@ -195,7 +208,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context) error {
 			dc.client = client
 
 			// Обработка событий Centrifugo
-			handler := ConnetionEventHandler{}
+			handler := ConnetionEventHandler{dc}
 			client.OnConnect(handler)
 			client.OnError(handler)
 			client.OnDisconnect(handler)
@@ -248,6 +261,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context) error {
 // Stop останавливает коллектор
 func (dc *DonatePayCollector) Stop() error {
 	close(dc.stop)
+	dc.setGUIState(Disonnected)
 	if dc.client != nil {
 		dc.client.Close()
 	}

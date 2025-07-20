@@ -37,9 +37,9 @@ func (m *CollectorManager) NewManagedCollector(ctx context.Context, cancel conte
 
 	switch name {
 	case "Donatty":
-		collector = NewDonattyCollector(os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"), m.eventCh)
+		collector = NewDonattyCollector(m.ctx, os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"), m.eventCh)
 	case "DonatePay":
-		collector = NewDonatePayCollector(os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID"), m.eventCh)
+		collector = NewDonatePayCollector(m.ctx, os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID"), m.eventCh)
 	default:
 		return fmt.Errorf("❌ Ошибка создания коллектора. Коллектор с именем %s не найден", name)
 	}
@@ -58,6 +58,7 @@ func (m *CollectorManager) StartCollector(name string) error {
 	ctx, cancel := context.WithCancel(m.ctx)
 
 	if _, exists := m.collectors[name]; exists {
+		cancel()
 		return fmt.Errorf("❌ Ошибка запуска коллектора. Коллектор с именем %s уже работает", name)
 	}
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/r3labs/sse/v2"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 var api_donatty_uri string = "http://api-013.donatty.com"
@@ -26,6 +27,7 @@ type token struct {
 }
 
 type DonattyCollector struct {
+	ctx            context.Context
 	mainToken      string
 	token          token
 	ref            string
@@ -36,9 +38,14 @@ type DonattyCollector struct {
 	sseCancel      context.CancelFunc
 }
 
+func (dc *DonattyCollector) setGUIState(state string) {
+	runtime.EventsEmit(dc.ctx, "donattyConnectionUpdated", state)
+}
+
 // NewDonattyCollector создаёт новый коллектор для Donatty
-func NewDonattyCollector(token_str, ref string, ch chan<- DonationEvent) *DonattyCollector {
+func NewDonattyCollector(ctx context.Context, token_str, ref string, ch chan<- DonationEvent) *DonattyCollector {
 	return &DonattyCollector{
+		ctx:            ctx,
 		mainToken:      token_str,
 		token:          token{},
 		ref:            ref,
@@ -113,6 +120,16 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 		default:
 			sseUrl := fmt.Sprintf("%s/widgets/%s/sse?zoneOffset=%d&jwt=%s", api_donatty_uri, dc.ref, zone_offset, dc.token.AccessToken)
 			sseClient := sse.NewClient(sseUrl)
+
+			dc.setGUIState(Connecting)
+
+			sseClient.OnConnect(func(c *sse.Client) {
+				dc.setGUIState(Connected)
+			})
+
+			sseClient.OnDisconnect(func(c *sse.Client) {
+				dc.setGUIState(Disonnected)
+			})
 
 			// Подписываемся с использованием контекста
 			err := sseClient.SubscribeRawWithContext(sseCtx, func(msg *sse.Event) {
@@ -194,6 +211,7 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 				}
 			})
 			if err != nil {
+				dc.setGUIState(Connecting)
 				log.Printf("❌ Ошибка подключения к Donatty: %v", err)
 				log.Printf("🔁 Переподключение через %v...", dc.reconnectDelay)
 				time.Sleep(dc.reconnectDelay)
@@ -208,6 +226,7 @@ func (dc *DonattyCollector) Stop() error {
 	if dc.sseCancel != nil {
 		dc.sseCancel()
 	}
+	dc.setGUIState(Disonnected)
 	return nil
 }
 

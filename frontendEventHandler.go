@@ -54,10 +54,12 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 }
 
 func reconnectDonatty(ctx context.Context, a *App) {
+	a.collManager.StopCollector("Donatty")
 	a.collManager.StartCollector("Donatty")
 }
 
 func reconnectDonatepay(ctx context.Context, a *App) {
+	a.collManager.StopCollector("DonatePay")
 	a.collManager.StartCollector("DonatePay")
 }
 

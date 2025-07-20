@@ -22,3 +22,10 @@ type EventCollector interface {
 	Start(ctx context.Context) error
 	Stop() error
 }
+
+// состояния подключения
+const (
+	Connected   string = "connected"
+	Connecting  string = "reconnecting"
+	Disonnected string = "disconnected"
+)
