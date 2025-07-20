@@ -3,22 +3,30 @@
     <div class="card-block" id="main-controls">
       <header class="card-header">Управление рулеткой</header>
       <div class="status">
-        <span v-if="donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
-        <span v-if="donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
-        <span v-if="donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
+        <div class="status-row">
+          <span v-if="donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
+          <span v-if="donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
+          <span v-if="donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
+          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
+        </div>
         
-        <span v-if="donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
-        <span v-if="donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
-        <span v-if="donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+        <div class="status-row">
+          <span v-if="donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
+          <span v-if="donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
+          <span v-if="donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
+        </div>
 
-        <span v-if="rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
-        <span v-if="rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
-        <span v-if="rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
+        <div class="status-row">
+          <span v-if="rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
+          <span v-if="rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
+          <span v-if="rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
+          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reloadRoulette">🔄</button>
+        </div>
       </div>
       <div class="controls">
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="isOnButtonDisabled">Включить</button>
         <button id="offButton" class="btn red" @click="rouletteOff" :disabled="isOffButtonDisabled">Выключить</button>
-        <button class="btn blue" @click="rouletteReconnect">Перезапустить</button>
         <button class="btn gold" @click="rollRoulette">Крутить</button>
       </div>
     </div>
@@ -94,9 +102,17 @@ export default {
       isOnButtonDisabled.value = false;
       FrontendDispatcher("stopAllCollector");
     };
+    const reconnectDonatty = () => {
+
+    };
+    const reconnectDonatepay = () => {
+
+    };
+    const reloadRoulette = () => {
+
+    };
     const rouletteReconnect = () => {
-      isOffButtonDisabled.value = false;
-      isOnButtonDisabled.value = true;
+      //старый метод
       FrontendDispatcher("reconnectAllCollector");
     };
     const showSettings = () => {
@@ -115,7 +131,9 @@ export default {
       rollRoulette, 
       rouletteOn, 
       rouletteOff, 
-      rouletteReconnect, 
+      reconnectDonatty,
+      reconnectDonatepay,
+      reloadRoulette,
       showSettings, 
       showRouletteSettings 
     }
@@ -151,6 +169,32 @@ export default {
 
 .status span.online {
   color: #22c55e;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reload-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 2px 6px;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  color: inherit;
+}
+
+.reload-btn:hover {
+  transform: scale(1.15);
+  filter: brightness(0.8);
+}
+
+.reload-btn:active {
+  transform: scale(1.1);
+  filter: brightness(0.6);
 }
 
 .controls {
@@ -203,15 +247,6 @@ export default {
   cursor: not-allowed;
   opacity: 0.7;
   pointer-events: none;
-}
-
-.btn.blue {
-  background-color: #3b82f6;
-  transition: background-color 0.2s ease;
-}
-
-.btn.blue:hover {
-  background-color: #2563eb; /* Темнее на 20% */
 }
 
 .btn.gold {

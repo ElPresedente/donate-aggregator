@@ -104,29 +104,17 @@ function spinTo(sectorId) {
       if (coinInner) {
         coinInner.classList.add("flipped");
       }
-      isSpinning = false;
-      if (donationQueue.length > 0) {
-        
-        processQueue();
-      } else {
-        setTimeout(() => {
+      setTimeout(() => {
+        isSpinning = false;
+        if (donationQueue.length > 0) {
+          processQueue();
+        } else {
           hideRoulette();
-        }, rouletteTimeDelay);
-      }
+        }
+      }, rouletteTimeDelay);
     }, rouletteTimeScroll + 100);
 
   }, 1000); // после прокрутки
-}
-
-
-function checkQueue() {
-  if(donationQueue.length != 0) {
-    setTimeout(() => {
-      processQueue();
-    }, 1000);
-  } else if (isSpinning) {
-    hideRoulette();
-  }
 }
 
 function processQueue() {

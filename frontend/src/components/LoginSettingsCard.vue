@@ -1,46 +1,19 @@
 <template>
   <div class="settings-card">
     <h2>{{ title }}</h2>
-    <div v-if="type === 'pass'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
+
+    <div v-for="(input, index) in inputsConfig" :key="index" class="input-group">
       <label :for="input.name">{{ input.label }}</label>
       <div class="input-wrapper">
-        <input
-          :type="showPassword[index] ? 'text' : 'password'"
-          :id="input.name"
-          :name="input.name"
+        <component
+          :is="resolveInputComponent(input.type)"
           v-model="localFormData[input.name]"
           :placeholder="input.placeholder"
-        />
-        <button
-          type="button"
-          class="toggle-password"
-          @click="togglePassword(index)"
-        >
-          {{ showPassword[index] ? '🙈' : '👁️' }}
-        </button>
-      </div>
-    </div>
-    <div v-if="type === 'text'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
-      <label :for="input.name">{{ input.label }}</label>
-      <div class="input-wrapper">
-        <input
-          :type="'text'"
           :id="input.name"
           :name="input.name"
-          v-model="localFormData[input.name]"
-          :placeholder="input.placeholder"
-        />
-      </div>
-    </div>
-    <div v-if="type === 'number'" v-for="(input, index) in inputsConfig" :key="index" class="input-group">
-      <label :for="input.name">{{ input.label }}</label>
-      <div class="input-wrapper">
-        <input
-          :type="'number'"
-          :id="input.name"
-          :name="input.name"
-          v-model="localFormData[input.name]"
-          :placeholder="input.placeholder"
+          :index="index"
+          @toggle-password="togglePassword(index)"
+          :visible="showPassword[index]"
         />
       </div>
     </div>
@@ -49,37 +22,16 @@
 
 <script>
 import { ref } from 'vue';
+import PasswordInput from './inputs/PasswordInput.vue';
+import NumberInput from './inputs/NumberInput.vue';
 
 export default {
   name: 'LoginSettingsCard',
+  components: { PasswordInput, NumberInput },
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    inputsConfig: {
-      type: Array,
-      required: true,
-      validator: (config) => {
-        return config.every(
-          (input) =>
-            input.name &&
-            input.label &&
-            input.type &&
-            typeof input.name === 'string' &&
-            typeof input.label === 'string' &&
-            typeof input.type === 'string'
-        );
-      },
-    },
-    formData: {
-      type: Object,
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
+    title: String,
+    inputsConfig: Array,
+    formData: Object,
   },
   setup() {
     const showPassword = ref([]);
@@ -88,15 +40,27 @@ export default {
       showPassword.value[index] = !showPassword.value[index];
     };
 
-    return { showPassword, togglePassword };
+    const resolveInputComponent = (type) => {
+      switch (type) {
+        case 'pass': return PasswordInput;
+        case 'number': return NumberInput;
+        default: return 'input';
+      }
+    };
+
+    return {
+      showPassword,
+      togglePassword,
+      resolveInputComponent,
+    };
   },
   computed: {
     localFormData: {
       get() {
         return this.formData;
       },
-      set(newValue) {
-        this.$emit('update:formData', newValue);
+      set(val) {
+        this.$emit('update:formData', val);
       },
     },
   },

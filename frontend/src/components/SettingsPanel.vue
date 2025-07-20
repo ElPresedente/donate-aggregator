@@ -5,21 +5,18 @@
       :inputsConfig="donattyCfg"
       :formData="donatty"
       @update:formData="updateFormData('donatty', $event)"
-      :type="'pass'"
     />
     <SettingsCard
       title="DonatPay"
       :inputsConfig="donatpayCfg"
       :formData="donatpay"
       @update:formData="updateFormData('donatpay', $event)"
-      :type="'pass'"
     />
     <SettingsCard
       title="Другие настройки"
       :inputsConfig="otherSettingsCfg"
       :formData="otherSettings"
       @update:formData="updateFormData('otherSettings', $event)"
-      :type="'number'"
     />
   </div>
   <section class="card stretch" id="settings-panel">
@@ -41,13 +38,13 @@ export default {
       {
         name: 'donattyToken',
         label: 'Токен Донатти',
-        type: 'text',
+        type: 'pass',
         placeholder: 'Введите токен',
       },
       {
         name: 'donattyUrl',
         label: 'URL Донатти',
-        type: 'url',
+        type: 'pass',
         placeholder: 'Введите ссылка',
       },
     ]
@@ -55,13 +52,13 @@ export default {
       {
         name: 'donatpayToken',
         label: 'Токен Донатпей',
-        type: 'text',
+        type: 'pass',
         placeholder: 'Введите токен',
       },
       {
         name: 'donatpayUserId',
         label: 'Пользовательский ID',
-        type: 'text',
+        type: 'pass',
         placeholder: 'Введите ID пользователя',
       }
     ]
