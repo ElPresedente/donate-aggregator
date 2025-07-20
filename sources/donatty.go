@@ -33,6 +33,7 @@ type DonattyCollector struct {
 	client         *http.Client
 	eventChan      chan<- DonationEvent
 	stop           chan struct{}
+	sseCancel      context.CancelFunc
 }
 
 // NewDonattyCollector создаёт новый коллектор для Donatty
@@ -48,6 +49,7 @@ func NewDonattyCollector(token_str, ref string, ch chan<- DonationEvent) *Donatt
 		},
 		eventChan: ch,
 		stop:      make(chan struct{}),
+		sseCancel: nil,
 	}
 }
 
@@ -60,12 +62,21 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 	dc.getAccessToken()
 	dc.stop = make(chan struct{})
 
-	//ping секция
+	// Создаем контекст с возможностью отмены для SSE
+	sseCtx, sseCancel := context.WithCancel(ctx)
+	dc.sseCancel = sseCancel
+	defer sseCancel() // Гарантируем вызов отмены при выходе из функции
+
+	// ping секция
 	go func() {
 		lastPing := time.Now()
 		for {
 			select {
 			case <-dc.stop:
+				log.Println("Donatty коллектор отключен (ping горутина)")
+				return
+			case <-ctx.Done():
+				log.Println("Donatty коллектор отключен (контекст отменен)")
 				return
 			default:
 				if time.Since(lastPing) > ping_interval {
@@ -83,9 +94,8 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 						resp.Body.Close()
 					}
 					lastPing = time.Now()
-				} else {
-					time.Sleep(ping_interval)
 				}
+				time.Sleep(ping_interval)
 			}
 		}
 	}()
@@ -93,16 +103,20 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Println("Donatty коллектор отключен (контекст)")
+			sseCancel() // Прерываем SSE-подключение
 			return ctx.Err()
 		case <-dc.stop:
+			log.Println("Donatty коллектор отключен (stop канал)")
+			sseCancel() // Прерываем SSE-подключение
 			return nil
 		default:
-			//check is token expired
-			//if expired - getAccessToken()
 			sseUrl := fmt.Sprintf("%s/widgets/%s/sse?zoneOffset=%d&jwt=%s", api_donatty_uri, dc.ref, zone_offset, dc.token.AccessToken)
 			sseClient := sse.NewClient(sseUrl)
 
-			err := sseClient.SubscribeRaw(func(msg *sse.Event) {
+			// Подписываемся с использованием контекста
+			err := sseClient.SubscribeRawWithContext(sseCtx, func(msg *sse.Event) {
+				// Логика обработки сообщений (без изменений)
 				var outer struct {
 					Action string          `json:"action"`
 					Data   json.RawMessage `json:"data"`
@@ -113,11 +127,8 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 				}
 
 				if outer.Action != "DATA" {
-					//возможно где то тут надо отслеживать пришел ли пинг или нет, и на это реагировать
 					return
 				}
-
-				//log.Printf("!!!! SSE EVENT %s, %s, %t", outer.Action, outer.Data, outer.Action != "DATA")
 
 				var wrapper struct {
 					StreamEventType string  `json:"streamEventType"`
@@ -147,10 +158,9 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 				}
 
 				donation := DonationEvent{
-					SourceID: "donatty",
-					User:     streamData.DisplayName,
-					Amount:   wrapper.Amount,
-					//Currency:   wrapper.Currency,
+					SourceID:  "donatty",
+					User:      streamData.DisplayName,
+					Amount:    wrapper.Amount,
 					Message:   wrapper.Message,
 					Timestamp: time.Now(),
 				}
@@ -158,9 +168,6 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 				if donation.Amount == 0 {
 					donation.Amount = streamData.Amount
 				}
-				// if donation.Currency == "" {
-				// 	donation.Currency = streamData.Currency
-				// }
 				if donation.Message == "" {
 					donation.Message = streamData.Message
 				}
@@ -175,12 +182,11 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 				fmt.Printf("\n🎁 Донат через DONATTY:\n")
 				fmt.Printf("👤 От: %s\n", donation.User)
 				fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-				fmt.Printf("💸 Сумма: %.2f\n", donation.Amount /*, donation.Currency*/)
+				fmt.Printf("💸 Сумма: %.2f\n", donation.Amount)
 				fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
 				fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
 				fmt.Printf("----------------------------------------\n")
 
-				// Отправка события в канал
 				select {
 				case dc.eventChan <- donation:
 				case <-ctx.Done():
@@ -199,6 +205,9 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 // Stop останавливает коллектор
 func (dc *DonattyCollector) Stop() error {
 	close(dc.stop)
+	if dc.sseCancel != nil {
+		dc.sseCancel()
+	}
 	return nil
 }
 
