@@ -61,6 +61,12 @@ func NewRouletteProcessor() Roulette {
 	}
 }
 
+func (r *Roulette) ManualSpin(l *Logic) {
+	fake := DonateEvent{SourceID: "manual", User: "user", Amount: float64(r.rollPrice), Message: "", Timestamp: time.Now(), Date: time.Now()}
+	r.EnqueueDonate(&fake)
+	r.rouletteLoop(l)
+}
+
 func (r *Roulette) UpdateDataFromDB() {
 	dbRollPrice, err := database.CredentialsDB.GetENVValue("rollPrice")
 
@@ -107,6 +113,7 @@ func (r *Roulette) UpdateDataFromDB() {
 }
 
 func (r *Roulette) rouletteLoop(logic *Logic) {
+	r.UpdateDataFromDB()
 	for len(r.queue) > 0 {
 		r.lastDonate = r.queue[0]
 		r.actualAmount += r.lastDonate.Amount
@@ -145,7 +152,6 @@ func (r *Roulette) Reload() {
 
 func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
 	r.EnqueueDonate(event)
-	r.UpdateDataFromDB()
 
 	if r.isWorking {
 		return

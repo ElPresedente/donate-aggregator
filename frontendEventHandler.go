@@ -43,27 +43,33 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		reconnectAllCollector(a.ctx, a)
 
 	case "reconnectDonatty":
-		reconnectDonatty(a.ctx, a)
+		reconnectDonatty(a)
 	case "reconnectDonatepay":
-		reconnectDonatepay(a.ctx, a)
+		reconnectDonatepay(a)
 	case "reloadRoulette":
-		reloadRoulette(a.ctx, a)
+		reloadRoulette(a)
+	case "manualRouletteSpin":
+		manualRouletteSpin(a)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
 }
 
-func reconnectDonatty(ctx context.Context, a *App) {
+func manualRouletteSpin(a *App) {
+	a.logic.ManualRouletteSpin()
+}
+
+func reconnectDonatty(a *App) {
 	a.collManager.StopCollector("Donatty")
 	a.collManager.StartCollector("Donatty")
 }
 
-func reconnectDonatepay(ctx context.Context, a *App) {
+func reconnectDonatepay(a *App) {
 	a.collManager.StopCollector("DonatePay")
 	a.collManager.StartCollector("DonatePay")
 }
 
-func reloadRoulette(ctx context.Context, a *App) {
+func reloadRoulette(a *App) {
 	a.logic.ReloadRoulette()
 }
 

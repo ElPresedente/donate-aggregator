@@ -91,6 +91,7 @@ export default {
     const rollRoulette = () => {
       //Метод для прокрута рулетки без доната
       //window.go.main.App.SendMessageFromFrontend("сообщение");
+      FrontendDispatcher("manualRouletteSpin", "");
     };
     const rouletteOn = () => {
       isOffButtonDisabled.value = false;

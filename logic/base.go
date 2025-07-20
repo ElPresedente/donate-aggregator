@@ -40,6 +40,10 @@ func (l *Logic) LogicEventHandler(request string, data string) {
 	}
 }
 
+func (l *Logic) ManualRouletteSpin() {
+	l.roulette.ManualSpin(l)
+}
+
 func (l *Logic) Process(donate sources.DonationEvent) {
 
 	l.roulette.Process(&donate, l)

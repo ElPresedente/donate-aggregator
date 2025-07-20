@@ -55,6 +55,7 @@ window.addEventListener('load', () => {
 });
 
 function eventHandler(event) {
+  console.log(event)
   switch (event.request)
   {
     case "enqueue-spins": return enqueueSpinsHandler(event.spins);
@@ -76,8 +77,9 @@ function enqueueSpinsHandler(spins)
 
 function resetHandler()
 {
-  donationQueue = [];
+  donationQueue.length = 0;
   resetTrack(); 
+  hideRoulette();
 }
 
 function spinTo(sectorId) {
