@@ -63,8 +63,9 @@ func NewRouletteProcessor() Roulette {
 
 func (r *Roulette) ManualSpin(l *Logic) {
 	fake := DonateEvent{SourceID: "manual", User: "user", Amount: float64(r.rollPrice), Message: "", Timestamp: time.Now(), Date: time.Now()}
-	r.EnqueueDonate(&fake)
-	r.rouletteLoop(l)
+	// r.EnqueueDonate(&fake)
+	// r.rouletteLoop(l)
+	r.Process(&fake, l)
 }
 
 func (r *Roulette) UpdateDataFromDB() {
