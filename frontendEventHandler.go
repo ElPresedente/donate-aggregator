@@ -42,9 +42,27 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	case "reconnectAllCollector":
 		reconnectAllCollector(a.ctx, a)
 
+	case "reconnectDonatty":
+		reconnectDonatty(a.ctx, a)
+	case "reconnectDonatepay":
+		reconnectDonatepay(a.ctx, a)
+	case "reloadRoulette":
+		reloadRoulette(a.ctx, a)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func reconnectDonatty(ctx context.Context, a *App) {
+	a.collManager.StartCollector("Donatty")
+}
+
+func reconnectDonatepay(ctx context.Context, a *App) {
+	a.collManager.StartCollector("DonatePay")
+}
+
+func reloadRoulette(ctx context.Context, a *App) {
+	a.logic.ReloadRoulette()
 }
 
 func getItemsByGroupId(ctx context.Context, data string) {

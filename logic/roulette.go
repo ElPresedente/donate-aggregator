@@ -57,6 +57,7 @@ func NewRouletteProcessor() Roulette {
 		timeout:   1 * time.Second,
 		stop:      make(chan struct{}),
 		settings:  RouletteSettings{},
+		isWorking: true,
 	}
 }
 
@@ -134,6 +135,12 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 			return
 		}
 	}
+}
+
+func (r *Roulette) Reload() {
+	r.actualAmount = 0
+	r.isWorking = false
+	r.queue = []DonateEvent{}
 }
 
 func (r *Roulette) Process(event *DonateEvent, logic *Logic) {

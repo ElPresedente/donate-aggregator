@@ -30,6 +30,7 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.logic.AppCtx = ctx
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Ошибка загрузки .env файла: %s", err)
@@ -46,16 +47,9 @@ func (a *App) startup(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
-				// Останавливаем все коллекторы при завершении
-				// for _, collector := range collectors {
-				// 	if err := collector.Stop(); err != nil {
-				// 		log.Printf("❌ Ошибка остановки коллектора%v: %v", collector, err)
-				// 	}
-				// }
 				return
 			case donation := <-eventCh:
 				a.logic.Process(donation)
-				//runtime.EventsEmit(a.ctx, "donation", donation) -> в logic.Process
 			}
 		}
 	}()

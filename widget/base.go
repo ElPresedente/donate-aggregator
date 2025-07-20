@@ -21,6 +21,8 @@ type WidgetsHub struct {
 	upgrader          websocket.Upgrader
 	LogicEventHandler l2wbridge.W2LHandler
 	widgets           map[Widget]bool
+
+	rouletteWidgets int
 }
 
 func (wh *WidgetsHub) WidgetEventHandler(request string, data string) {
@@ -38,6 +40,7 @@ func NewWidgetsHub() WidgetsHub {
 		},
 		LogicEventHandler: nil,
 		widgets:           map[Widget]bool{},
+		rouletteWidgets:   0,
 	}
 }
 
@@ -62,7 +65,7 @@ func (wh *WidgetsHub) ConnectionHandler(w http.ResponseWriter, r *http.Request) 
 	switch widgetType {
 	case "roulette":
 		{
-			currentWidget = NewRouletteWidget(conn, wh.LogicEventHandler)
+			currentWidget = wh.NewRouletteWidget(conn, wh.LogicEventHandler)
 		}
 	default:
 		{
@@ -71,7 +74,6 @@ func (wh *WidgetsHub) ConnectionHandler(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 	wh.widgets[currentWidget] = true
-	defer currentWidget.Close()
 
 	for {
 		msgType, payload, err := conn.ReadMessage()
@@ -94,6 +96,7 @@ func (wh *WidgetsHub) ConnectionHandler(w http.ResponseWriter, r *http.Request) 
 		}
 		currentWidget.W2ARequest(baseRequest.Request, string(payload))
 	}
+	currentWidget.Close()
 	delete(wh.widgets, currentWidget)
 }
 

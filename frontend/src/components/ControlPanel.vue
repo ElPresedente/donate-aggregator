@@ -95,21 +95,21 @@ export default {
     const rouletteOn = () => {
       isOffButtonDisabled.value = false;
       isOnButtonDisabled.value = true;
-      FrontendDispatcher("startAllCollector");
+      FrontendDispatcher("startAllCollector", "");
     };
     const rouletteOff = () => {
       isOffButtonDisabled.value = true;
       isOnButtonDisabled.value = false;
-      FrontendDispatcher("stopAllCollector");
+      FrontendDispatcher("stopAllCollector", "");
     };
     const reconnectDonatty = () => {
-
+      FrontendDispatcher("reconnectDonatty", "")
     };
     const reconnectDonatepay = () => {
-
+      FrontendDispatcher("reconnectDonatepay", "")
     };
     const reloadRoulette = () => {
-
+      FrontendDispatcher("reloadRoulette", "")
     };
     const rouletteReconnect = () => {
       //старый метод

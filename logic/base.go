@@ -1,21 +1,26 @@
 package logic
 
 import (
+	"context"
 	"encoding/json"
 	"go-back/l2wbridge"
 	"go-back/sources"
 	"log"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type Logic struct {
 	roulette           Roulette
 	WidgetEventHandler l2wbridge.L2WHandler
+	AppCtx             context.Context
 }
 
 func NewLogicProcessor() Logic {
 	return Logic{
 		roulette:           NewRouletteProcessor(),
 		WidgetEventHandler: nil,
+		AppCtx:             nil,
 	}
 }
 
@@ -24,6 +29,14 @@ func (l *Logic) LogicEventHandler(request string, data string) {
 	case "spins-done":
 		l.roulette.isWorking = false
 		l.roulette.rouletteLoop(l)
+	case "rouletteConnected":
+		log.Println("Roulette widget connected")
+		l.roulette.isWorking = false
+		l.roulette.rouletteLoop(l)
+		runtime.EventsEmit(l.AppCtx, "rouletteConnectionUpdated", "connected")
+	case "rouletteDisconnected":
+		log.Println("Roulette widget disconnected")
+		runtime.EventsEmit(l.AppCtx, "rouletteConnectionUpdated", "disconnected")
 	}
 }
 
@@ -63,7 +76,12 @@ func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 
 		// case
 	}
+}
 
+func (l *Logic) ReloadRoulette() {
+	l.roulette.Reload()
+	l.roulette.rouletteLoop(l)
+	l.WidgetEventHandler.WidgetEventHandler("reloadRoulette", "")
 }
 
 func (l *Logic) EraseRouletteQueue() {
