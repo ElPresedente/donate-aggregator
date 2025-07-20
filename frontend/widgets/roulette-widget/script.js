@@ -29,7 +29,9 @@ const repeats = 50;
 const targetOffset = 3;
 const targetRepeats = repeats - targetOffset;
 const rouletteTimeScroll = 6000;
-const rouletteTimeDelay = 2000;
+const rouletteTimeScrollDelay = 500;
+const rouletteAftrScrollTimeDelay = 4000;
+const showRouletteTimeDelay = 2000;
 const container = document.getElementById("roulette-container");
 const donationQueue = [];
 
@@ -68,7 +70,7 @@ function enqueueSpinsHandler(spins)
     donationQueue.push({text: item.sector, category: item.category}); 
   }
   resetTrack();     // Очищаем старый трек
-  showRoulette();   // Показываем рулетку
+  setTimeout(() => showRoulette(), showRouletteTimeDelay);// Показываем рулетку
   processQueue();   // Стартуем очередь
 }
 
@@ -106,15 +108,16 @@ function spinTo(sectorId) {
       }
       setTimeout(() => {
         isSpinning = false;
+        clearFlips();
         if (donationQueue.length > 0) {
           processQueue();
         } else {
           hideRoulette();
         }
-      }, rouletteTimeDelay);
-    }, rouletteTimeScroll + 100);
+      }, rouletteAftrScrollTimeDelay);
+    }, rouletteTimeScroll + rouletteTimeScrollDelay);
 
-  }, 1000); // после прокрутки
+  }, 1000 + showRouletteTimeDelay); // после прокрутки
 }
 
 function processQueue() {
@@ -149,6 +152,14 @@ function hideRoulette() {
       ws.send( JSON.stringify( reply ))
     resetTrack();
   }, 1000);
+}
+
+function clearFlips() {
+  const track = document.getElementById("track");
+  for (const sectorEl of track.children) {
+    const coinInner = sectorEl.querySelector(".coin-inner");
+    coinInner.classList.remove("flipped");
+  }
 }
 
 function resetTrack(){
