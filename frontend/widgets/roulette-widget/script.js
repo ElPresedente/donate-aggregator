@@ -39,20 +39,36 @@ const donationQueue = [];
 let isAnimated = false;
 
 window.addEventListener('load', () => {
+  resetTrack();
+  connectWebSocket();
+});
+
+function connectWebSocket() {
+  const RETRY_INTERVAL = 5000;
   ws = new WebSocket('ws://localhost:8080/ws?type=roulette');
+
   ws.onopen = () => {
-    console.log('Подключено к серверу');
-    //ws.send('Тестовое сообщение');
+    console.log('✅ Подключено к серверу WebSocket');
   };
+
   ws.onmessage = (event) => {
     try {
       eventHandler(JSON.parse(event.data));
     } catch (error) {
-      console.error('Ошибка парсинга:', error);
+      console.error('❌ Ошибка парсинга:', error);
     }
   };
-  ws.onclose = () => console.log('Соединение закрыто');
-});
+
+  ws.onclose = () => {
+    console.warn('⚠️ Соединение закрыто. Повторная попытка через 5 секунд...');
+    setTimeout(connectWebSocket, RETRY_INTERVAL);
+  };
+
+  ws.onerror = (err) => {
+    console.error('❌ Ошибка WebSocket:', err);
+    ws.close(); // Принудительно закрываем, чтобы сработал onclose и началась повторная попытка
+  };
+}
 
 function eventHandler(event) {
   console.log(event)
@@ -220,6 +236,4 @@ function appendToTrack(text, sectorId, categoryKey  = null) {
 
   track.style.width = `${track.children.length * sectorWidth}px`;
 }
-
-window.addEventListener('load', resetTrack);
 

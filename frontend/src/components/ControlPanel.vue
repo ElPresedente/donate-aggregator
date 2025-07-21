@@ -21,7 +21,7 @@
           <span v-if="rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
           <span v-if="rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
           <span v-if="rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
-          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reloadRoulette">🔄</button>
+          <button v-if="rouletteConnected === ConnectionStatus.CONNECTED && rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
         </div>
       </div>
       <div class="controls">

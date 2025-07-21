@@ -78,7 +78,7 @@ func (c *CredentialsDatabase) InitDefaultVariable() {
 		"donattyUrl":     "",
 		"donatpayToken":  "",
 		"donatpayUserId": "",
-		"rollPrice":      "0",
+		"rollPrice":      "100",
 	}
 
 	for key, value := range values {
