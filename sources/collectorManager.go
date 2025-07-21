@@ -3,8 +3,8 @@ package sources
 import (
 	"context"
 	"fmt"
+	"go-back/database"
 	"log"
-	"os"
 	"strings"
 	"sync"
 )
@@ -37,9 +37,14 @@ func (m *CollectorManager) NewManagedCollector(ctx context.Context, cancel conte
 
 	switch name {
 	case "Donatty":
-		collector = NewDonattyCollector(m.ctx, os.Getenv("DONATTY_TOKEN"), os.Getenv("DONATTY_REF"), m.eventCh)
+		//GetENVValue
+		token, _ := database.CredentialsDB.GetENVValue("donattyToken")
+		url, _ := database.CredentialsDB.GetENVValue("donattyUrl")
+		collector = NewDonattyCollector(m.ctx, token, url, m.eventCh)
 	case "DonatePay":
-		collector = NewDonatePayCollector(m.ctx, os.Getenv("DONATPAY_TOKEN"), os.Getenv("DONATPAY_USERID"), m.eventCh)
+		token, _ := database.CredentialsDB.GetENVValue("donatpayToken")
+		userId, _ := database.CredentialsDB.GetENVValue("donatpayUserId")
+		collector = NewDonatePayCollector(m.ctx, token, userId, m.eventCh)
 	default:
 		return fmt.Errorf("❌ Ошибка создания коллектора. Коллектор с именем %s не найден", name)
 	}
