@@ -26,7 +26,7 @@
       </div>
       <div class="controls">
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
-        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="connectionStore.isOffButtonDisabled">Выключить</button>
+        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
         <button class="btn gold" @click="rollRoulette">Крутить</button>
       </div>
     </div>
@@ -90,12 +90,10 @@ export default {
       FrontendDispatcher("manualRouletteSpin", "");
     };
     const rouletteOn = () => {
-      connectionStore.isOffButtonDisabled = false;
       connectionStore.isOnButtonDisabled = true;
       FrontendDispatcher("startAllCollector", "");
     };
     const rouletteOff = () => {
-      connectionStore.isOffButtonDisabled = true;
       connectionStore.isOnButtonDisabled = false;
       FrontendDispatcher("stopAllCollector", "");
     };

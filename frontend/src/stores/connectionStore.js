@@ -6,13 +6,11 @@ export const useConnectionStore = defineStore('connection', () => {
   const donatepayConnected = ref('disconnected');
   const rouletteConnected = ref('disconnected');
   const isOnButtonDisabled = ref(false);
-  const isOffButtonDisabled = ref(true);
 
   return {
     donattyConnected,
     donatepayConnected,
     rouletteConnected,
     isOnButtonDisabled,
-    isOffButtonDisabled,
   };
 });
