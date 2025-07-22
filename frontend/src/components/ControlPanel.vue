@@ -21,13 +21,13 @@
           <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
           <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
           <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
-          <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED && connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
+          <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
         </div>
       </div>
       <div class="controls">
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
         <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
-        <button class="btn gold" @click="rollRoulette">Крутить</button>
+        <button class="btn gold" @click="rollRoulette" :disabled="connectionStore.rouletteConnected !== ConnectionStatus.CONNECTED">Крутить</button>
       </div>
     </div>
     <div class="card-block settings-buttons">
@@ -247,6 +247,14 @@ export default {
 
 .btn.gold:hover {
   background-color: #d97706; /* Темнее на 20% */
+}
+
+.btn.gold:disabled {
+  background-color: #b45309; /* Темный красный */
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .btn.gray {

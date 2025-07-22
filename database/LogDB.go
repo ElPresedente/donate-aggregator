@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	//"fmt"
 	"log"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -18,6 +19,15 @@ type RouletteLog struct {
 	Time string `json:"time"`
 }
 
+type ResponseData struct {
+	User  string
+	Spins []SpinData
+}
+
+type SpinData struct {
+	WinnerCategory string `json:"category"`
+	WinnerSector   string `json:"sector"`
+}
 
 func (c *LogDatabase) Init() {
 	var err error
@@ -40,9 +50,9 @@ func (c *LogDatabase) Init() {
 	`
 
 	/*
-	user: пользователь, для которого активировалась рулетка
-	item: сектор, выпавший на рулетке
-	time: время активации рулетки DD.MM HH.MM
+		user: пользователь, для которого активировалась рулетка
+		item: сектор, выпавший на рулетке
+		time: время активации рулетки DD.MM HH.MM
 	*/
 
 	_, err = c.db.Exec(createTableQuery)
@@ -60,7 +70,14 @@ func (c *LogDatabase) InsertValue(user, item, time string) {
 	}
 }
 
-//Подумать над названием функции
+func (c *LogDatabase) InsertSpins(data ResponseData) {
+	for _, spin := range data.Spins {
+		currentTime := time.Now().Format("02.01 15:04")
+		c.InsertValue(data.User, spin.WinnerSector, currentTime)
+	}
+}
+
+// Подумать над названием функции
 func (c *LogDatabase) GetLastNLogs(limit int) ([]RouletteLog, error) {
 	query := "SELECT user, item, time FROM RouletteLog ORDER BY id DESC LIMIT ?"
 
@@ -72,12 +89,12 @@ func (c *LogDatabase) GetLastNLogs(limit int) ([]RouletteLog, error) {
 
 	var logs []RouletteLog
 	for rows.Next() {
-  		var log RouletteLog
-  		if err := rows.Scan(&log.User, &log.Item, &log.Time); err != nil {
-   			return nil, err
-  		}
-  		logs = append(logs, log)
- 	}
+		var log RouletteLog
+		if err := rows.Scan(&log.User, &log.Item, &log.Time); err != nil {
+			return nil, err
+		}
+		logs = append(logs, log)
+	}
 
 	return logs, nil
 }

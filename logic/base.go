@@ -72,6 +72,10 @@ func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 			log.Fatalf("Json encoding failed %v", err)
 		}
 		l.WidgetEventHandler.WidgetEventHandler("enqueue-spins", string(jsonData))
+
+		//Фиксаните пж, не ебу как на бд передать
+		//database.LogDB.InsertSpins(le.data.(database.ResponseData))
+
 		//front.emitEvent(...)
 		//передать виджету по websocket результат прокрутки
 		// объёкт поля для отправки в json
