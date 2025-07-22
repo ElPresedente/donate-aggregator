@@ -4,29 +4,29 @@
       <header class="card-header">Управление рулеткой</header>
       <div class="status">
         <div class="status-row">
-          <span v-if="donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
-          <span v-if="donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
-          <span v-if="donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
-          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
+          <span v-if="connectionStore.donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
+          <span v-if="connectionStore.donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
+          <span v-if="connectionStore.donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
+          <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
         </div>
         
         <div class="status-row">
-          <span v-if="donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
-          <span v-if="donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
-          <span v-if="donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
-          <button v-if="isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
+          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
+          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
+          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+          <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
         </div>
 
         <div class="status-row">
-          <span v-if="rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
-          <span v-if="rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
-          <span v-if="rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
-          <button v-if="rouletteConnected === ConnectionStatus.CONNECTED && rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
+          <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED && connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
         </div>
       </div>
       <div class="controls">
-        <button id="onButton" class="btn green" @click="rouletteOn" :disabled="isOnButtonDisabled">Включить</button>
-        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="isOffButtonDisabled">Выключить</button>
+        <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
+        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="connectionStore.isOffButtonDisabled">Выключить</button>
         <button class="btn gold" @click="rollRoulette">Крутить</button>
       </div>
     </div>
@@ -45,30 +45,26 @@
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
+import { useConnectionStore } from '../stores/connectionStore';
+
 export default {
   name: 'ControlPanel',
   setup(){
+    const connectionStore = useConnectionStore();
     const ConnectionStatus = Object.freeze({
       CONNECTED: 'connected',
       DISCONNECTED: 'disconnected',
       RECONNECTING: 'reconnecting',
     });
-    const isOnButtonDisabled = ref(false);
-    const isOffButtonDisabled = ref(true);
     const router = useRouter();
-    const donattyConnected = ref("disconnected");
-    const donatepayConnected = ref("disconnected");
-    const rouletteConnected = ref("disconnected");
-
     onMounted(() => {
-      console.log(donatepayConnected === 'disconnected');
       window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
         /*
           disconnected - соединения нет
           connected - соединение есть
           reconnecting - переподключение
         */
-        donattyConnected.value = connection;
+        connectionStore.donattyConnected = connection;
       });
       window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
         /*
@@ -76,7 +72,7 @@ export default {
           connected - соединение есть
           recconecting - переподключение
         */
-        donatepayConnected.value = connection;
+        connectionStore.donatepayConnected = connection;
       });
       window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
         /*
@@ -84,7 +80,7 @@ export default {
           connected - соединение есть
           recconecting - переподключение
         */
-        rouletteConnected.value = connection;
+        connectionStore.rouletteConnected = connection;
       });
     });
     
@@ -94,13 +90,13 @@ export default {
       FrontendDispatcher("manualRouletteSpin", "");
     };
     const rouletteOn = () => {
-      isOffButtonDisabled.value = false;
-      isOnButtonDisabled.value = true;
+      connectionStore.isOffButtonDisabled = false;
+      connectionStore.isOnButtonDisabled = true;
       FrontendDispatcher("startAllCollector", "");
     };
     const rouletteOff = () => {
-      isOffButtonDisabled.value = true;
-      isOnButtonDisabled.value = false;
+      connectionStore.isOffButtonDisabled = true;
+      connectionStore.isOnButtonDisabled = false;
       FrontendDispatcher("stopAllCollector", "");
     };
     const reconnectDonatty = () => {
@@ -123,12 +119,8 @@ export default {
       router.push('/roulette-settings');
     };
     return {
-      isOnButtonDisabled,
-      isOffButtonDisabled,
       ConnectionStatus,
-      donattyConnected,
-      donatepayConnected,
-      rouletteConnected,
+      connectionStore,
       rollRoulette, 
       rouletteOn, 
       rouletteOff, 
