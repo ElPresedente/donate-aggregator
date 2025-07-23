@@ -2,6 +2,7 @@ package logic
 
 import (
 	"go-back/database"
+	"go-back/l2db"
 	"go-back/sources"
 	"log"
 	"math/rand"
@@ -25,16 +26,6 @@ type RouletteCategory struct {
 
 type RouletteSettings struct {
 	categories []RouletteCategory
-}
-
-type ResponseData struct {
-	User  string
-	Spins []SpinData
-}
-
-type SpinData struct {
-	WinnerCategory string `json:"category"`
-	WinnerSector   string `json:"sector"`
 }
 
 type Roulette struct {
@@ -62,9 +53,7 @@ func NewRouletteProcessor() Roulette {
 }
 
 func (r *Roulette) ManualSpin(l *Logic) {
-	fake := DonateEvent{SourceID: "manual", User: "user", Amount: float64(r.rollPrice), Message: "", Timestamp: time.Now(), Date: time.Now()}
-	// r.EnqueueDonate(&fake)
-	// r.rouletteLoop(l)
+	fake := DonateEvent{SourceID: "manual", User: "Пользователь", Amount: float64(r.rollPrice), Message: "", Timestamp: time.Now(), Date: time.Now()}
 	r.Process(&fake, l)
 }
 
@@ -121,14 +110,14 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 		r.DequeueDonate()
 
 		if r.actualAmount >= float64(r.rollPrice) {
-			responses := ResponseData{
+			responses := l2db.ResponseData{
 				User: r.lastDonate.User,
 			}
 			for r.actualAmount >= float64(r.rollPrice) {
 				winnerCategory := chooseCategory(r.settings.categories)
 				winnerSector := chooseCategorySector(winnerCategory.sectors)
 
-				spinResult := SpinData{
+				spinResult := l2db.SpinData{
 					WinnerCategory: winnerCategory.name,
 					WinnerSector:   winnerSector.name,
 				}

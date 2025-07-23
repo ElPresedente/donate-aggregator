@@ -3,9 +3,12 @@ package logic
 import (
 	"context"
 	"encoding/json"
+	"go-back/database"
+	"go-back/l2db"
 	"go-back/l2wbridge"
 	"go-back/sources"
 	"log"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -45,45 +48,54 @@ func (l *Logic) ManualRouletteSpin() {
 }
 
 func (l *Logic) Process(donate sources.DonationEvent) {
-
 	l.roulette.Process(&donate, l)
-
-	//db.SaveLog( donate )
-
-	//проверить на сообщения от процессоров
-	//dispatch инветов
 }
 
 func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 	switch le.name {
 	case RouletteSpin:
-		for key, val := range le.data.(ResponseData).Spins {
+		for key, val := range le.data.(l2db.ResponseData).Spins {
 			log.Printf("Прокрут рулетки №%d. Результат: категория:%s сектор:%s", key+1, val.WinnerCategory, val.WinnerSector)
 		}
 
-		var data struct {
-			Request string     `json:"request"`
-			Spins   []SpinData `json:"spins"`
-		}
-		data.Request = "enqueue-spins"
-		data.Spins = le.data.(ResponseData).Spins
-		jsonData, err := json.Marshal(data)
-		if err != nil {
-			log.Fatalf("Json encoding failed %v", err)
-		}
-		l.WidgetEventHandler.WidgetEventHandler("enqueue-spins", string(jsonData))
+		database.LogDB.InsertSpins(le.data.(l2db.ResponseData))
 
-		//Фиксаните пж, не ебу как на бд передать
-		//database.LogDB.InsertSpins(le.data.(database.ResponseData))
+		l.sendToWidgetSpinData(le.data.(l2db.ResponseData))
+		l.sendToFrontSpinData(le.data.(l2db.ResponseData))
 
-		//front.emitEvent(...)
-		//передать виджету по websocket результат прокрутки
-		// объёкт поля для отправки в json
-		// 1. (сектор)
-		// 2. item
-
-		// case
 	}
+}
+
+func (l *Logic) sendToWidgetSpinData(spinData l2db.ResponseData) {
+	var data struct {
+		Request string          `json:"request"`
+		Spins   []l2db.SpinData `json:"spins"`
+	}
+	data.Request = "enqueue-spins"
+	data.Spins = spinData.Spins
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Fatalf("Json encoding failed %v", err)
+	}
+
+	l.WidgetEventHandler.WidgetEventHandler("enqueue-spins", string(jsonData))
+}
+
+func (l *Logic) sendToFrontSpinData(spinData l2db.ResponseData) {
+	var data struct {
+		User  string          `json:"user"`
+		Time  string          `json:"time"`
+		Spins []l2db.SpinData `json:"spins"`
+	}
+	data.User = spinData.User
+	data.Time = time.Now().Format("02.01 15:04")
+	data.Spins = spinData.Spins
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Fatalf("Json encoding failed %v", err)
+	}
+
+	runtime.EventsEmit(l.AppCtx, "logUpdated", string(jsonData))
 }
 
 func (l *Logic) ReloadRoulette() {

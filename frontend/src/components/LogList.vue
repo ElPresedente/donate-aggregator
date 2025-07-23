@@ -36,14 +36,14 @@ export default {
               winnerSector: выпавший сектор //не используется
             }
           ]
-          value: сектор, выпавший на рулетке
         }
       */
-      window.runtime.EventsOn('logUpdated2', (newData) => {
+      window.runtime.EventsOn('logUpdated', (newData) => {
         try{
           const parsedData = JSON.parse( newData )
+          console.log(parsedData)
           parsedData.spins.forEach(element => {
-            rouletteHistory.push({ time: parsedData.time, user: parsedData.user, value: element.winnerItem })
+            rouletteHistory.value.push({ time: parsedData.time, user: parsedData.user, value: element.sector })
           });
 
         } 
@@ -52,26 +52,26 @@ export default {
         }
       });
 
-      window.runtime.EventsOn('logUpdated', (newData) => {
-        //Вот так тянуть данные
-        //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
-        rouletteHistory.value = newData;
-        try {
-        // Парсим JSON-строку в массив объектов
-        const parsedData = JSON.parse(newData);
-        rouletteHistory.value = parsedData.map(item => ({
-          time: item.time, // Время активации
-          user: item.user, // Пользователь
-          value: item.value // Выпавший сектор
-        }));
-        } catch (error) {
-          console.error('Ошибка парсинга JSON:', error);
-          // Запасные данные на случай ошибки
-          rouletteHistory.value = [
-            { time: '2023-10-20T00:00:00Z', user: 'default_user', value: 'Сектор по умолчанию' }
-          ];
-        }
-      });
+      // window.runtime.EventsOn('logUpdated', (newData) => {
+      //   //Вот так тянуть данные
+      //   //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
+      //   rouletteHistory.value = newData;
+      //   try {
+      //   // Парсим JSON-строку в массив объектов
+      //   const parsedData = JSON.parse(newData);
+      //   rouletteHistory.value = parsedData.map(item => ({
+      //     time: item.time, // Время активации
+      //     user: item.user, // Пользователь
+      //     value: item.value // Выпавший сектор
+      //   }));
+      //   } catch (error) {
+      //     console.error('Ошибка парсинга JSON:', error);
+      //     // Запасные данные на случай ошибки
+      //     rouletteHistory.value = [
+      //       { time: '2023-10-20T00:00:00Z', user: 'default_user', value: 'Сектор по умолчанию' }
+      //     ];
+      //   }
+      // });
     });
     return {
       rouletteHistory,

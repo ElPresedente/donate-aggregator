@@ -5,6 +5,12 @@
             "driver": "SQLite",
             "name": "Test",
             "database": "${workspaceFolder:donate-aggregator}/CredentialsDB.db"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "LogDB",
+            "database": "${workspaceFolder:donate-aggregator}/LogDB.db"
         }
     ],
     "sqltools.useNodeRuntime": true

@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"go-back/l2db"
+
 	//"fmt"
 	"log"
 	"time"
@@ -17,16 +19,6 @@ type RouletteLog struct {
 	User string `json:"user"`
 	Item string `json:"item"`
 	Time string `json:"time"`
-}
-
-type ResponseData struct {
-	User  string
-	Spins []SpinData
-}
-
-type SpinData struct {
-	WinnerCategory string `json:"category"`
-	WinnerSector   string `json:"sector"`
 }
 
 func (c *LogDatabase) Init() {
@@ -70,7 +62,7 @@ func (c *LogDatabase) InsertValue(user, item, time string) {
 	}
 }
 
-func (c *LogDatabase) InsertSpins(data ResponseData) {
+func (c *LogDatabase) InsertSpins(data l2db.ResponseData) {
 	for _, spin := range data.Spins {
 		currentTime := time.Now().Format("02.01 15:04")
 		c.InsertValue(data.User, spin.WinnerSector, currentTime)
