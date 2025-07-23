@@ -14,64 +14,43 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { FrontendDispatcher } from '../../wailsjs/go/main/App'
+const numLogs = 10;
 
 export default {
   name: 'LogList',
   setup() {
-    const rouletteHistory = ref([
-      {time: "24.06 12:46", user: "kamicute2", value:"какая-то награда"},
-      {time: "24.06 15:12", user: "ElPresedente", value:"магнит из пятигорска"},
-      {time: "25.03 19:00", user: "moonseere", value:"очень длинное название награды чтобы перешло на другую строку"},
-    ]);
+    let unsubscribes = [];
+    const rouletteHistory = ref([]);
     onMounted(() => {
-      /*
-        Допустим к нам будут приходить массив [...] данных вида
-        {
-          user: пользователь, для которого активировалась рулетка
-          time: время активации рулетки DD.MM HH.MM
-          spins: [
-            {
-              winnerItem: выпавший итем
-              winnerSector: выпавший сектор //не используется
-            }
-          ]
-        }
-      */
-      window.runtime.EventsOn('logUpdated', (newData) => {
-        try{
-          const parsedData = JSON.parse( newData )
-          console.log(parsedData)
-          parsedData.spins.forEach(element => {
-            rouletteHistory.value.push({ time: parsedData.time, user: parsedData.user, value: element.sector })
-          });
-
-        } 
-        catch( error ){
-          console.error( error )
-        }
-      });
-
-      // window.runtime.EventsOn('logUpdated', (newData) => {
-      //   //Вот так тянуть данные
-      //   //window.go.main.App.FrontendDispatcher("getGroupById", [1]);
-      //   rouletteHistory.value = newData;
-      //   try {
-      //   // Парсим JSON-строку в массив объектов
-      //   const parsedData = JSON.parse(newData);
-      //   rouletteHistory.value = parsedData.map(item => ({
-      //     time: item.time, // Время активации
-      //     user: item.user, // Пользователь
-      //     value: item.value // Выпавший сектор
-      //   }));
-      //   } catch (error) {
-      //     console.error('Ошибка парсинга JSON:', error);
-      //     // Запасные данные на случай ошибки
-      //     rouletteHistory.value = [
-      //       { time: '2023-10-20T00:00:00Z', user: 'default_user', value: 'Сектор по умолчанию' }
-      //     ];
-      //   }
-      // });
+      unsubscribes.push(
+        window.runtime.EventsOn('logNumData', (newData) => {
+          if(newData != null)
+            rouletteHistory.value = newData;
+        })
+      );
+      unsubscribes.push(
+        window.runtime.EventsOn('logUpdated', (newData) => {
+          try{
+            const parsedData = JSON.parse( newData )
+            parsedData.spins.forEach(element => {
+              if (rouletteHistory.value.length > numLogs-1)
+              {
+                rouletteHistory.value.pop()
+              }
+              rouletteHistory.value.unshift({ time: parsedData.time, user: parsedData.user, value: element.sector })
+            });
+          } 
+          catch( error ){
+            console.error( error )
+          }
+        })
+      );
+      FrontendDispatcher("getNumLogs", String(numLogs));
+    });
+    onUnmounted(() => {
+      unsubscribes.forEach(unsub => unsub());
     });
     return {
       rouletteHistory,
@@ -85,7 +64,7 @@ export default {
       this.history = data;
     });
   },
-  beforeUnmount() {
+  onUnmounted() {
     // Отписка от события при уничтожении компонента
     window.wails.runtime.events.off('logUpdate');
   }

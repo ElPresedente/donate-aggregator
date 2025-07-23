@@ -5,9 +5,6 @@ import (
 	"go-back/logic"
 	"go-back/sources"
 	"go-back/widget"
-	"log"
-
-	"github.com/joho/godotenv"
 )
 
 type App struct {
@@ -31,11 +28,6 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.logic.AppCtx = ctx
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Ошибка загрузки .env файла: %s", err)
-	}
-
 	// Создаём канал для событий
 	eventCh := make(chan sources.DonationEvent, 100)
 	a.collManager = sources.NewCollectorManager(ctx, eventCh)

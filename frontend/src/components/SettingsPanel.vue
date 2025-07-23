@@ -28,10 +28,11 @@
 <script>
 import { useRouter } from 'vue-router';
 import SettingsCard from './LoginSettingsCard.vue'
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 export default {
   setup() {
+    let unsubscribes = [];
     const router = useRouter();
     const goBack = () => router.go(-1); //router.push('/');
     const donattyCfg = [
@@ -94,30 +95,35 @@ export default {
       // Отправка на сервер
     }
     onMounted(() =>{
-      window.runtime.EventsOn('SettingsData', (data) => {
-        data.forEach(setting => {
-          switch (setting.name) {
-            case 'donattyToken':
-              donatty.value.donattyToken = setting.value;
-              break;
-            case 'donattyUrl':
-              donatty.value.donattyUrl = setting.value;
-              break;
-            case 'donatpayToken':
-              donatpay.value.donatpayToken = setting.value;
-              break;
-            case 'donatpayUserId':
-              donatpay.value.donatpayUserId = setting.value;
-              break;
-            case 'rollPrice':
-              otherSettings.value.rollPrice = setting.value;
-              break;
-            default:
-              console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
-          }
-        });
-      });
+      unsubscribes.push(
+        window.runtime.EventsOn('SettingsData', (data) => {
+          data.forEach(setting => {
+            switch (setting.name) {
+              case 'donattyToken':
+                donatty.value.donattyToken = setting.value;
+                break;
+              case 'donattyUrl':
+                donatty.value.donattyUrl = setting.value;
+                break;
+              case 'donatpayToken':
+                donatpay.value.donatpayToken = setting.value;
+                break;
+              case 'donatpayUserId':
+                donatpay.value.donatpayUserId = setting.value;
+                break;
+              case 'rollPrice':
+                otherSettings.value.rollPrice = setting.value;
+                break;
+              default:
+                console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
+            }
+          });
+        })
+      );
       FrontendDispatcher("getSettings", "");
+    });
+    onUnmounted(() => {
+      unsubscribes.forEach(unsub => unsub());
     });
     return { 
       goBack,

@@ -50,9 +50,33 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		reloadRoulette(a)
 	case "manualRouletteSpin":
 		manualRouletteSpin(a)
+	case "getNumLogs":
+		getNumLogs(a.ctx, argJSON)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func getNumLogs(ctx context.Context, data string) {
+	var num int
+	if err := json.Unmarshal([]byte(data), &num); err != nil {
+		log.Println("❌ Ошибка парсинга JSON:", err)
+		return
+	}
+	items, err := database.LogDB.GetLastNLogs(num)
+	if err != nil {
+		log.Println("❌ Ошибка при получении предметов:", err)
+		return
+	}
+	var formattedItems []map[string]interface{}
+	for _, item := range items {
+		formattedItems = append(formattedItems, map[string]interface{}{
+			"time":  item.Time,
+			"user":  item.User,
+			"value": item.Item,
+		})
+	}
+	runtime.EventsEmit(ctx, "logNumData", formattedItems)
 }
 
 func manualRouletteSpin(a *App) {

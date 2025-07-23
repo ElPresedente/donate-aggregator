@@ -191,22 +191,18 @@ function resetTrack(){
 }
 
 function getWeightedRandomIndex() {
-  const rand = Math.random() * 100;
-  if (rand < 69) return 0;
-  if (rand < 99) return 1;
+  const rand = Math.random() * 100.0;
+  if (rand < 69.0) return 0;
+  if (rand < 99.0) return 1;
   return 2;
 }
 
-function appendToTrack(text, sectorId, categoryKey  = null) {
-  console.log("appendToTrack");
+function appendToTrack(text, sectorId, categoryKey = null) {
   const track = document.getElementById("track");
 
-  const index = categoryMapping.hasOwnProperty(categoryKey )
-    ? categoryMapping[categoryKey ]
-    : getWeightedRandomIndex();
-
-  const frontImage = frontImages[index];
-  const backImage = backImages[index];
+  let index = 0;
+  let frontImage = frontImages[index];
+  let backImage = backImages[index];
 
   for (let i = 0; i < repeats; i++) {
     const el = document.createElement("div");
@@ -216,6 +212,14 @@ function appendToTrack(text, sectorId, categoryKey  = null) {
 
     const id = `coin-${sectorId}-${i}`;
     const isTarget = i === (targetRepeats);
+
+    if (isTarget)
+      index = categoryMapping[categoryKey];
+    else
+      index = getWeightedRandomIndex();
+
+    frontImage = frontImages[index];
+    backImage = backImages[index];
 
     el.innerHTML = `
       <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">

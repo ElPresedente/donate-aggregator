@@ -6,21 +6,21 @@
         <div class="status-row">
           <span v-if="connectionStore.donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
           <span v-if="connectionStore.donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
-          <span v-if="connectionStore.donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка переподключения...</span>
+          <span v-if="connectionStore.donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка подключения...</span>
           <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
         </div>
         
         <div class="status-row">
           <span v-if="connectionStore.donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
           <span v-if="connectionStore.donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
-          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка переподключения...</span>
+          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка подключения...</span>
           <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
         </div>
 
         <div class="status-row">
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Вижет рулетки: Подключено</span>
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Вижет рулетки: Не подключено</span>
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Вижет рулетки: Попытка переподключения...</span>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет рулетки: Подключено</span>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет рулетки: Не подключено</span>
+          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет рулетки: Попытка подключения...</span>
           <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
         </div>
       </div>
@@ -43,7 +43,7 @@
 
 <script>
 import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 import { useConnectionStore } from '../stores/connectionStore';
 
@@ -57,36 +57,28 @@ export default {
       RECONNECTING: 'reconnecting',
     });
     const router = useRouter();
+    let unsubscribes = [];
     onMounted(() => {
-      window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
-        /*
-          disconnected - соединения нет
-          connected - соединение есть
-          reconnecting - переподключение
-        */
-        connectionStore.donattyConnected = connection;
-      });
-      window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
-        /*
-          disconnected - соединения нет
-          connected - соединение есть
-          recconecting - переподключение
-        */
-        connectionStore.donatepayConnected = connection;
-      });
-      window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
-        /*
-          disconnected - соединения нет
-          connected - соединение есть
-          recconecting - переподключение
-        */
-        connectionStore.rouletteConnected = connection;
-      });
+      unsubscribes.push(
+        window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
+          connectionStore.donattyConnected = connection;
+        })
+      );
+      unsubscribes.push(
+        window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
+          connectionStore.donatepayConnected = connection;
+        })
+      );
+      unsubscribes.push(
+        window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
+          connectionStore.rouletteConnected = connection;
+        })
+      );
     });
-    
+    onUnmounted(() => {
+      unsubscribes.forEach(unsub => unsub());
+    });
     const rollRoulette = () => {
-      //Метод для прокрута рулетки без доната
-      //window.go.main.App.SendMessageFromFrontend("сообщение");
       FrontendDispatcher("manualRouletteSpin", "");
     };
     const rouletteOn = () => {
@@ -107,7 +99,6 @@ export default {
       FrontendDispatcher("reloadRoulette", "")
     };
     const rouletteReconnect = () => {
-      //старый метод
       FrontendDispatcher("reconnectAllCollector");
     };
     const showSettings = () => {

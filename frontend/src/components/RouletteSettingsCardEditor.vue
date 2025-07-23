@@ -23,31 +23,30 @@
 </template>
 
 <script>
-
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
-
 export default {
   name: 'RouletteSettingsCardEditor',
-  //Представляем, что у нас на входе массив объектов {id: ?, data:?}
   setup() {
-    const router = useRouter();//Пока не понял, в чём прикол, но так работает
+    let unsubscribes = [];
+    const router = useRouter()
     const route = useRoute()
     const index = JSON.parse(route.params.index)+1
     const localItems = ref([]);
-    //const localItems = ref(JSON.parse(route.params.items || '[]'));
-
-    //Тестовые данные
     onMounted(() => {
-      window.runtime.EventsOn('itemsByGroupIdData', (data) => {
-        console.log('📦 Итемы:', data)
-        if(data)
-          localItems.value = data // ← обновляем реактивно
-      });
+      unsubscribes.push(
+        window.runtime.EventsOn('itemsByGroupIdData', (data) => {
+          console.log('📦 Итемы:', data)
+          if(data)
+            localItems.value = data // ← обновляем реактивно
+        })
+      );
       FrontendDispatcher("getItemsByGroupId", JSON.stringify({group_id: index }));
     });
-
+    onUnmounted(() => {
+      unsubscribes.forEach(unsub => unsub());
+    });
     const markAsEdited = (idx) => {
       if (localItems.value[idx].id) {
         localItems.value[idx].status = 'edit';
