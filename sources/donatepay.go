@@ -292,6 +292,7 @@ func (dc *DonatePayCollector) getConnectionToken() (string, error) {
 	}
 
 	if result.Token == "" {
+		log.Println(body)
 		return "", fmt.Errorf("получен пустой токен")
 	}
 	return result.Token, nil
