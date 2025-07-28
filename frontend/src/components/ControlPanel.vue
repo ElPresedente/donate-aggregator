@@ -23,6 +23,13 @@
           <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет рулетки: Попытка подключения...</span>
           <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
         </div>
+
+        <br></br>
+
+        <div class="status-row">
+          <span>💲 Накоплено в рулетке: &nbsp;</span>
+          <span id="current-amount">{{ connectionStore.currentAmount }}</span> <!--БЛЯ вынеси нахуй стили-->
+        </div>
       </div>
       <div class="controls">
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
@@ -72,6 +79,11 @@ export default {
       unsubscribes.push(
         window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
           connectionStore.rouletteConnected = connection;
+        })
+      );
+      unsubscribes.push(
+        window.runtime.EventsOn('currentAmountUpdate', (amount) => {
+          connectionStore.currentAmount = amount;
         })
       );
     });
@@ -155,7 +167,6 @@ export default {
 
 .status-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
@@ -261,5 +272,11 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+#current-amount{
+  color: rgb(28, 226, 28);
+  font-weight: bold;
+  font-size: 1.5rem;
 }
 </style>

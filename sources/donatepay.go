@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -272,6 +273,10 @@ func (dc *DonatePayCollector) Stop() error {
 func (dc *DonatePayCollector) getConnectionToken() (string, error) {
 	url := fmt.Sprintf("%s/socket/token", api_donatepay_uri)
 	payload, _ := json.Marshal(map[string]string{"access_token": dc.accessToken})
+
+	// Выводим JSON, отправляемый на сервер
+	fmt.Println("Отправляемый JSON:", string(payload))
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", fmt.Errorf("ошибка создания запроса для токена: %v", err)
@@ -284,10 +289,19 @@ func (dc *DonatePayCollector) getConnectionToken() (string, error) {
 	}
 	defer resp.Body.Close()
 
+	// Читаем тело ответа
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
+	}
+
+	// Выводим весь ответ в консоль
+	fmt.Println("Полный ответ сервера:", string(body))
+
 	var result struct {
 		Token string `json:"token"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(body, &result); err != nil {
 		return "", fmt.Errorf("ошибка декодирования ответа токена: %v", err)
 	}
 

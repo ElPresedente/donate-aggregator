@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"go-back/database"
+
 	//"go-back/logic"
 
 	"github.com/wailsapp/wails/v2"
@@ -22,7 +23,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "go-back",
+		Title:  "Donate Agreagator",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
