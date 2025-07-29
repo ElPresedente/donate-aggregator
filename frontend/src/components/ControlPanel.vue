@@ -68,34 +68,27 @@ export default {
     const router = useRouter();
     let unsubscribes = [];
     onMounted(() => {
-      unsubscribes.push(
+      if( !connectionStore.subscribedStatus ){
         window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
           connectionStore.donattyConnected = connection;
         })
-      );
-      unsubscribes.push(
         window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
           connectionStore.donatepayConnected = connection;
         })
-      );
-      unsubscribes.push(
         window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
           connectionStore.rouletteConnected = connection;
         })
-      );
-      unsubscribes.push(
         window.runtime.EventsOn('currentAmountUpdate', (amount) => {
           connectionStore.currentAmount = amount;
         })
-      );
-      unsubscribes.push(
         window.runtime.EventsOn('donateQueueLengthUpdate', (amount) => {
           connectionStore.donateQueueLength = amount;
         })
-      );
+        connectionStore.subscribedStatus = true
+      }
     });
     onUnmounted(() => {
-      unsubscribes.forEach(unsub => unsub());
+      //unsubscribes.forEach(unsub => unsub());
     });
     const rollRoulette = () => {
       FrontendDispatcher("manualRouletteSpin", "");

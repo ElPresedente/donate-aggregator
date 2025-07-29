@@ -8,6 +8,8 @@ export const useConnectionStore = defineStore('connection', () => {
   const isOnButtonDisabled = ref(false);
   const currentAmount = ref(0); // В будущем перенести в нормальный стор
   const donateQueueLength = ref(0); // В будущем перенести в нормальный стор
+  const subscribedStatus = ref(false); // В будущем перенести в нормальный стор
+
 
   return {
     donattyConnected,
@@ -16,5 +18,6 @@ export const useConnectionStore = defineStore('connection', () => {
     isOnButtonDisabled,
     currentAmount,
     donateQueueLength,
+    subscribedStatus,
   };
 });

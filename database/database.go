@@ -8,13 +8,13 @@ var CredentialsDB CredentialsDatabase
 var RouletteDB RouletteDatabase
 var LogDB LogDatabase
 
-func InitDataBases() {
+func InitDatabases() {
 	CredentialsDB.Init()
 	RouletteDB.Init()
 	LogDB.Init()
 }
 
-func CloseDataBases() {
+func CloseDatabases() {
 	CredentialsDB.db.Close()
 	RouletteDB.db.Close()
 	LogDB.db.Close()

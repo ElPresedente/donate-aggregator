@@ -77,6 +77,11 @@ export default {
         type: 'number',
         placeholder: 'Введите цену',
       },
+      {
+        name: 'logEnabled',
+        label: 'Записывать лог программы в файл',
+        type: 'checkbox',
+      },
     ]
     const donatty = ref([{donattyToken: '', donattyUrl: ''}])
     const donatpay = ref([{donatpayToken: '', donatpayUserId: ''}])
@@ -96,7 +101,8 @@ export default {
           {name: "donatpayToken",   value: donatpay.value.donatpayToken},
           {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
           {name: "donatpayDomain",  value: donatpay.value.donatpayDomain},
-          {name: "rollPrice",       value: String(otherSettings.value.rollPrice)}
+          {name: "rollPrice",       value: String(otherSettings.value.rollPrice)},
+          {name: "logEnabled",      value: String(otherSettings.value.logEnabled)}
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
@@ -124,6 +130,9 @@ export default {
                 break;
               case 'rollPrice':
                 otherSettings.value.rollPrice = setting.value;
+                break;
+              case 'logEnabled':
+                otherSettings.value.logEnabled = setting.value;
                 break;
               default:
                 console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
