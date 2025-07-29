@@ -89,7 +89,9 @@ func reconnectDonatty(a *App) {
 }
 
 func reconnectDonatepay(a *App) {
-	a.collManager.StopCollector("DonatePay")
+	if a.collManager.IsCollectorActive("DonatePay") {
+		a.collManager.StopCollector("DonatePay")
+	}
 	a.collManager.StartCollector("DonatePay")
 }
 

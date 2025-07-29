@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-back/database"
 	"io"
 	"log"
 	"net/http"
@@ -15,13 +16,15 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-var api_donatepay_uri string = "https://donatepay.ru/api/v2"
+var api_donatepay_uri_ru string = "https://donatepay.ru/api/v2"
+var api_donatepay_uri_eu string = "https://donatepay.eu/api/v2"
 
 // DonatePayCollector реализует коллектор для DonatePay
 type DonatePayCollector struct {
 	ctx            context.Context
 	accessToken    string
 	userID         string
+	api_uri        string
 	reconnectDelay time.Duration
 	client         *centrifuge.Client
 	eventChan      chan<- DonationEvent
@@ -34,10 +37,16 @@ func (dc *DonatePayCollector) setGUIState(state string) {
 
 // NewDonatePayCollector создаёт новый коллектор для DonatePay
 func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
+	api_uri, err := database.CredentialsDB.GetENVValue("donatpayDomain")
+	if err != nil {
+		log.Printf("Ошибка при создании коллектора донатпей:", err)
+	}
+
 	return &DonatePayCollector{
 		ctx:            ctx,
 		accessToken:    accessToken,
 		userID:         userID,
+		api_uri:        api_uri,
 		reconnectDelay: 5 * time.Second,
 		eventChan:      ch,
 		stop:           make(chan struct{}),
@@ -271,11 +280,11 @@ func (dc *DonatePayCollector) Stop() error {
 
 // getConnectionToken получает токен подключения к Centrifugo
 func (dc *DonatePayCollector) getConnectionToken() (string, error) {
-	url := fmt.Sprintf("%s/socket/token", api_donatepay_uri)
+	url := fmt.Sprintf("%s/socket/token", dc.api_uri)
 	payload, _ := json.Marshal(map[string]string{"access_token": dc.accessToken})
 
 	// Выводим JSON, отправляемый на сервер
-	fmt.Println("Отправляемый JSON:", string(payload))
+	log.Println("Отправляемый JSON:", string(payload))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
@@ -296,7 +305,7 @@ func (dc *DonatePayCollector) getConnectionToken() (string, error) {
 	}
 
 	// Выводим весь ответ в консоль
-	fmt.Println("Полный ответ сервера:", string(body))
+	log.Println("Полный ответ сервера:", string(body))
 
 	var result struct {
 		Token string `json:"token"`

@@ -135,3 +135,8 @@ func (m *CollectorManager) StopAllCollector() error {
 	}
 	return nil
 }
+
+func (m *CollectorManager) IsCollectorActive(name string) bool {
+	_, exists := m.collectors[name]
+	return exists
+}
