@@ -278,6 +278,7 @@ export default {
   color: rgb(28, 226, 28);
   font-weight: bold;
   font-size: 1.5rem;
+  margin-right: 20px;
 }
 
 #donate-queue-length{
