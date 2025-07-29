@@ -140,3 +140,7 @@ func (m *CollectorManager) IsCollectorActive(name string) bool {
 	_, exists := m.collectors[name]
 	return exists
 }
+
+func (m *CollectorManager) IsActive() bool {
+	return len(m.collectors) > 0
+}

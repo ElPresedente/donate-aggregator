@@ -37,9 +37,16 @@ func (dc *DonatePayCollector) setGUIState(state string) {
 
 // NewDonatePayCollector создаёт новый коллектор для DonatePay
 func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
-	api_uri, err := database.CredentialsDB.GetENVValue("donatpayDomain")
+	domain, err := database.CredentialsDB.GetENVValue("donatpayDomain")
 	if err != nil {
 		log.Printf("Ошибка при создании коллектора донатпей:", err)
+	}
+	api_uri := "UNKNOWN DOMAIN"
+	switch domain {
+	case ".ru":
+		api_uri = api_donatepay_uri_ru
+	case ".eu":
+		api_uri = api_donatepay_uri_eu
 	}
 
 	return &DonatePayCollector{

@@ -28,19 +28,19 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		getSettings(a.ctx)
 
 	case "updateSettings":
-		updateSettings(a.ctx, argJSON)
+		updateSettings(a, argJSON)
 
 	case "startCollector":
-		startCollector(a.ctx, argJSON, a)
+		startCollector(argJSON, a)
 
 	case "startAllCollector":
-		startAllCollector(a.ctx, a)
+		startAllCollector(a)
 
 	case "stopAllCollector":
-		stopAllCollector(a.ctx, a)
+		stopAllCollector(a)
 
 	case "reconnectAllCollector":
-		reconnectAllCollector(a.ctx, a)
+		reconnectAllCollector(a)
 
 	case "reconnectDonatty":
 		reconnectDonatty(a)
@@ -236,7 +236,7 @@ func getSettings(ctx context.Context) {
 	runtime.EventsEmit(ctx, "SettingsData", result)
 }
 
-func updateSettings(ctx context.Context, data string) {
+func updateSettings(a *App, data string) {
 	var payload struct {
 		Settings []struct {
 			Name  string `json:"name"`
@@ -261,9 +261,12 @@ func updateSettings(ctx context.Context, data string) {
 			database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
 		}
 	}
+	if a.collManager.IsActive() {
+		reconnectAllCollector(a)
+	}
 }
 
-func startCollector(ctx context.Context, data string, a *App) {
+func startCollector(data string, a *App) {
 	var payload struct {
 		Collector string `json:"collectorName"`
 	}
@@ -281,7 +284,7 @@ func startCollector(ctx context.Context, data string, a *App) {
 
 }
 
-func startAllCollector(ctx context.Context, a *App) {
+func startAllCollector(a *App) {
 
 	log.Println("🔁 Получен запрос на включение всех коллекторов:")
 
@@ -289,7 +292,7 @@ func startAllCollector(ctx context.Context, a *App) {
 
 }
 
-func stopAllCollector(ctx context.Context, a *App) {
+func stopAllCollector(a *App) {
 
 	log.Println("🔁 Получен запрос на выключение всех коллекторов:")
 
@@ -297,7 +300,7 @@ func stopAllCollector(ctx context.Context, a *App) {
 
 }
 
-func reconnectAllCollector(ctx context.Context, a *App) {
+func reconnectAllCollector(a *App) {
 
 	log.Println("🔁 Получен запрос на переподключение всех коллекторов:")
 
