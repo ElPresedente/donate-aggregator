@@ -29,7 +29,7 @@
         <div class="status-row">
           <span>💲 Накоплено в рулетке: &nbsp;</span>
           <span id="current-amount">{{ connectionStore.currentAmount }}</span> <!--БЛЯ вынеси нахуй стили-->
-          <span>💲 Донатов в очереди: &nbsp;</span>
+          <span>Донатов в очереди: &nbsp;</span>
           <span id="donate-queue-length">{{ connectionStore.donateQueueLength }}</span> <!--БЛЯ вынеси нахуй стили-->
         </div>
       </div>
