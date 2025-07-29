@@ -4,7 +4,9 @@ type EventName string
 
 // вместо enum для LogicResponse.name
 const (
-	RouletteSpin EventName = "roulette-spin-result"
+	RouletteSpin                    EventName = "roulette-spin-result"
+	RouletteBalanceUpdate           EventName = "roulette-update-remaining-amount"
+	RouletteDonateQueueLengthUpdate EventName = "roulette-update-queue-length"
 )
 
 type LogicEvent struct {

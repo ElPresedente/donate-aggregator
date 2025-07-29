@@ -7,6 +7,7 @@ export const useConnectionStore = defineStore('connection', () => {
   const rouletteConnected = ref('disconnected');
   const isOnButtonDisabled = ref(false);
   const currentAmount = ref(0); // В будущем перенести в нормальный стор
+  const donateQueueLength = ref(0); // В будущем перенести в нормальный стор
 
   return {
     donattyConnected,
@@ -14,5 +15,6 @@ export const useConnectionStore = defineStore('connection', () => {
     rouletteConnected,
     isOnButtonDisabled,
     currentAmount,
+    donateQueueLength,
   };
 });

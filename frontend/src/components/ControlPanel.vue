@@ -29,6 +29,8 @@
         <div class="status-row">
           <span>💲 Накоплено в рулетке: &nbsp;</span>
           <span id="current-amount">{{ connectionStore.currentAmount }}</span> <!--БЛЯ вынеси нахуй стили-->
+          <span>💲 Донатов в очереди: &nbsp;</span>
+          <span id="donate-queue-length">{{ connectionStore.donateQueueLength }}</span> <!--БЛЯ вынеси нахуй стили-->
         </div>
       </div>
       <div class="controls">
@@ -84,6 +86,11 @@ export default {
       unsubscribes.push(
         window.runtime.EventsOn('currentAmountUpdate', (amount) => {
           connectionStore.currentAmount = amount;
+        })
+      );
+      unsubscribes.push(
+        window.runtime.EventsOn('donateQueueLengthUpdate', (amount) => {
+          connectionStore.donateQueueLength = amount;
         })
       );
     });
@@ -275,6 +282,12 @@ export default {
 }
 
 #current-amount{
+  color: rgb(28, 226, 28);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+#donate-queue-length{
   color: rgb(28, 226, 28);
   font-weight: bold;
   font-size: 1.5rem;

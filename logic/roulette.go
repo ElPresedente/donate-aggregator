@@ -107,8 +107,11 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 	for len(r.queue) > 0 {
 		r.lastDonate = r.queue[0]
 		r.actualAmount += r.lastDonate.Amount
-		r.DequeueDonate()
-
+		logic.DispatchLogicEvent(LogicEvent{
+			name: RouletteBalanceUpdate,
+			data: r.actualAmount,
+		})
+		r.DequeueDonate(logic)
 		if r.actualAmount >= float64(r.rollPrice) {
 			responses := l2db.ResponseData{
 				User: r.lastDonate.User,
@@ -128,20 +131,32 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				name: RouletteSpin,
 				data: responses,
 			})
+			logic.DispatchLogicEvent(LogicEvent{
+				name: RouletteBalanceUpdate,
+				data: r.actualAmount,
+			})
 			r.isWorking = true
 			return
 		}
 	}
 }
 
-func (r *Roulette) Reload() {
+func (r *Roulette) Reload(logic *Logic) {
 	r.actualAmount = 0
 	r.isWorking = false
 	r.queue = []DonateEvent{}
+	logic.DispatchLogicEvent(LogicEvent{
+		name: RouletteDonateQueueLengthUpdate,
+		data: len(r.queue),
+	})
+	logic.DispatchLogicEvent(LogicEvent{
+		name: RouletteDonateQueueLengthUpdate,
+		data: len(r.queue),
+	})
 }
 
 func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
-	r.EnqueueDonate(event)
+	r.EnqueueDonate(event, logic)
 
 	if r.isWorking {
 		return
@@ -150,18 +165,26 @@ func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
 	r.rouletteLoop(logic)
 }
 
-func (r *Roulette) EnqueueDonate(event *DonateEvent) {
+func (r *Roulette) EnqueueDonate(event *DonateEvent, logic *Logic) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.queue = append(r.queue, *event)
+	logic.DispatchLogicEvent(LogicEvent{
+		name: RouletteDonateQueueLengthUpdate,
+		data: len(r.queue),
+	})
 }
 
-func (r *Roulette) DequeueDonate() {
+func (r *Roulette) DequeueDonate(logic *Logic) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.queue = r.queue[1:]
+	logic.DispatchLogicEvent(LogicEvent{
+		name: RouletteDonateQueueLengthUpdate,
+		data: len(r.queue),
+	})
 }
 
 func chooseCategory(categories []RouletteCategory) RouletteCategory {

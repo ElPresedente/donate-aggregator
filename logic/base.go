@@ -62,6 +62,11 @@ func (l *Logic) DispatchLogicEvent(le LogicEvent) {
 
 		l.sendToWidgetSpinData(le.data.(l2db.ResponseData))
 		l.sendToFrontSpinData(le.data.(l2db.ResponseData))
+	case RouletteBalanceUpdate:
+		runtime.EventsEmit(l.AppCtx, "currentAmountUpdate", le.data.(float64))
+		//	l.WidgetEventHandler.WidgetEventHandler("set-roulette-balance", le.data.(float64)) //ченить такое будет
+	case RouletteDonateQueueLengthUpdate:
+		runtime.EventsEmit(l.AppCtx, "donateQueueLengthUpdate", le.data.(int))
 
 	}
 }
@@ -99,7 +104,7 @@ func (l *Logic) sendToFrontSpinData(spinData l2db.ResponseData) {
 }
 
 func (l *Logic) ReloadRoulette() {
-	l.roulette.Reload()
+	l.roulette.Reload(l)
 	l.roulette.rouletteLoop(l)
 	l.WidgetEventHandler.WidgetEventHandler("reloadRoulette", "")
 }
