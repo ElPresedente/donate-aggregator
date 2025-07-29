@@ -50,7 +50,7 @@ func (c *CredentialsDatabase) Init() {
 	c.InitDefaultVariable()
 }
 
-//Я немножко насрал
+// Я немножко насрал
 func (c *CredentialsDatabase) checkRecordsExist(names []string) (map[string]bool, error) {
 	exists := make(map[string]bool)
 	for _, name := range names {
@@ -66,9 +66,9 @@ func (c *CredentialsDatabase) checkRecordsExist(names []string) (map[string]bool
 }
 
 func (c *CredentialsDatabase) InitDefaultVariable() {
-	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "rollPrice"}
+	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "donatpayDomain", "rollPrice"}
 	exists, err := c.checkRecordsExist(names)
-	
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +78,7 @@ func (c *CredentialsDatabase) InitDefaultVariable() {
 		"donattyUrl":     "",
 		"donatpayToken":  "",
 		"donatpayUserId": "",
+		"donatpayDomain": ".eu",
 		"rollPrice":      "100",
 	}
 

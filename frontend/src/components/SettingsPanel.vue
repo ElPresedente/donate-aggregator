@@ -44,7 +44,7 @@ export default {
       },
       {
         name: 'donattyUrl',
-        label: 'URL Донатти',
+        label: 'Ref Донатти',
         type: 'pass',
         placeholder: 'Введите ссылка',
       },
@@ -59,8 +59,15 @@ export default {
       {
         name: 'donatpayUserId',
         label: 'Пользовательский ID',
-        type: 'pass',
+        type: 'number',
         placeholder: 'Введите ID пользователя',
+      },
+      {
+        name: 'donatpayDomain',
+        label: 'Домен',
+        type: 'select',
+        placeholder: 'Домен:',
+        options: ['.eu', '.ru']
       }
     ]
     const otherSettingsCfg = [
@@ -88,6 +95,7 @@ export default {
           {name: "donattyUrl",      value: donatty.value.donattyUrl},
           {name: "donatpayToken",   value: donatpay.value.donatpayToken},
           {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
+          {name: "donatpayDomain",  value: donatpay.value.donatpayDomain},
           {name: "rollPrice",       value: String(otherSettings.value.rollPrice)}
         ]
       }
@@ -110,6 +118,9 @@ export default {
                 break;
               case 'donatpayUserId':
                 donatpay.value.donatpayUserId = setting.value;
+                break;
+              case 'donatpayDomain':
+                donatpay.value.donatpayDomain = setting.value;
                 break;
               case 'rollPrice':
                 otherSettings.value.rollPrice = setting.value;
