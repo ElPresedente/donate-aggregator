@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 	"go-back/database"
+	"log"
+	"os"
 
 	//"go-back/logic"
 
@@ -18,11 +20,24 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
-	database.InitDataBases()
-	defer database.CloseDataBases()
+	database.InitDatabases()
+	defer database.CloseDatabases()
 
+	logEnabled, err := database.CredentialsDB.GetENVValue("logEnabled")
+
+	var logFile *os.File
+
+	if err == nil && logEnabled == "true" {
+		logFile, err = os.OpenFile("output.log", os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatalf("Ошибка открытия файла: %v", err)
+		} else {
+			log.SetOutput(logFile)
+			defer logFile.Close()
+		}
+	}
 	// Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:  "Donate Agreagator",
 		Width:  1024,
 		Height: 768,
