@@ -143,70 +143,35 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 					return
 				}
 
-				if outer.Action != "DATA" {
-					return
-				}
-
-				var wrapper struct {
-					StreamEventType string  `json:"streamEventType"`
-					StreamEventData string  `json:"streamEventData"`
-					Subscriber      string  `json:"subscriber"`
-					Message         string  `json:"message"`
-					Amount          float64 `json:"amount"`
-					Currency        string  `json:"currency"`
-				}
-				if err := json.Unmarshal(outer.Data, &wrapper); err != nil {
-					log.Printf("❌ Ошибка парсинга wrapper: %v", err)
-					return
-				}
-
-				var streamData struct {
-					DisplayName string  `json:"displayName"`
-					Amount      float64 `json:"amount"`
-					Currency    string  `json:"currency"`
-					Message     string  `json:"message"`
-					Date        string  `json:"date"`
-				}
-				if wrapper.StreamEventData != "" {
-					if err := json.Unmarshal([]byte(wrapper.StreamEventData), &streamData); err != nil {
-						log.Printf("❌ Ошибка парсинга streamEventData: %v", err)
+				switch outer.Action {
+				case "DATA":
+					donation, err := dc.createDonateForDATA(outer.Data)
+					if err != nil {
+						log.Printf("Ошибка создания доната: %v", err)
 						return
 					}
-				}
 
-				donation := DonationEvent{
-					SourceID:  "donatty",
-					User:      streamData.DisplayName,
-					Amount:    wrapper.Amount,
-					Message:   wrapper.Message,
-					Timestamp: time.Now(),
-				}
-
-				if donation.Amount == 0 {
-					donation.Amount = streamData.Amount
-				}
-				if donation.Message == "" {
-					donation.Message = streamData.Message
-				}
-				if streamData.Date != "" {
-					date, err := time.Parse(time.RFC3339, streamData.Date)
-					if err != nil {
-						log.Printf("❌ Ошибка парсинга даты: %v", err)
-					} else {
-						donation.Date = date
+					select {
+					case dc.eventChan <- donation:
+					case <-ctx.Done():
+						return
 					}
-				}
-				fmt.Printf("\n🎁 Донат через DONATTY:\n")
-				fmt.Printf("👤 От: %s\n", donation.User)
-				fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-				fmt.Printf("💸 Сумма: %.2f\n", donation.Amount)
-				fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
-				fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
-				fmt.Printf("----------------------------------------\n")
+				case "PROXY":
+					donations, err := dc.createDonatesForPROXY(outer.Data)
+					if err != nil {
+						log.Printf("Ошибка создания доната: %v", err)
+						return
+					}
 
-				select {
-				case dc.eventChan <- donation:
-				case <-ctx.Done():
+					for _, donation := range donations {
+						select {
+						case dc.eventChan <- donation:
+						case <-ctx.Done():
+							return
+						}
+					}
+
+				default:
 					return
 				}
 			})
@@ -218,6 +183,145 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 			}
 		}
 	}
+}
+
+func (dc *DonattyCollector) createDonateForDATA(data json.RawMessage) (DonationEvent, error) {
+	var wrapper struct {
+		StreamEventType string  `json:"streamEventType"`
+		StreamEventData string  `json:"streamEventData"`
+		Subscriber      string  `json:"subscriber"`
+		Message         string  `json:"message"`
+		Amount          float64 `json:"amount"`
+		Currency        string  `json:"currency"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return DonationEvent{}, fmt.Errorf("Ошибка парсинга wrapper: %v", err)
+	}
+
+	var streamData struct {
+		DisplayName string  `json:"displayName"`
+		Amount      float64 `json:"amount"`
+		Currency    string  `json:"currency"`
+		Message     string  `json:"message"`
+		Date        string  `json:"date"`
+	}
+	if wrapper.StreamEventData != "" {
+		if err := json.Unmarshal([]byte(wrapper.StreamEventData), &streamData); err != nil {
+			return DonationEvent{}, fmt.Errorf("Ошибка парсинга streamEventData: %v", err)
+		}
+	}
+
+	donation := DonationEvent{
+		SourceID:  "donatty",
+		User:      streamData.DisplayName,
+		Amount:    wrapper.Amount,
+		Message:   wrapper.Message,
+		Timestamp: time.Now(),
+	}
+
+	if donation.Amount == 0 {
+		donation.Amount = streamData.Amount
+	}
+	if donation.Message == "" {
+		donation.Message = streamData.Message
+	}
+	if streamData.Date != "" {
+		date, err := time.Parse(time.RFC3339, streamData.Date)
+		if err != nil {
+			log.Printf("❌ Ошибка парсинга даты: %v", err)
+		} else {
+			donation.Date = date
+		}
+	}
+
+	fmt.Printf("\nДонат через DONATTY:\n")
+	fmt.Printf("От: %s\n", donation.User)
+	fmt.Printf("Сообщение: %s\n", donation.Message)
+	fmt.Printf("Сумма: %.2f\n", donation.Amount)
+	fmt.Printf("Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
+	fmt.Printf("Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
+	fmt.Printf("----------------------------------------\n")
+
+	return donation, nil
+}
+
+func (dc *DonattyCollector) createDonatesForPROXY(data json.RawMessage) ([]DonationEvent, error) {
+	DonationEvents := []DonationEvent{}
+
+	var eventsData struct {
+		Events []json.RawMessage `json:"events"`
+	}
+	if err := json.Unmarshal(data, &eventsData); err != nil {
+		return DonationEvents, fmt.Errorf("Ошибка парсинга eventsData: %v", err)
+	}
+
+	for _, event := range eventsData.Events {
+		var eventData struct {
+			WidgetId string          `json:"widgetId"`
+			Event    json.RawMessage `json:"event"`
+		}
+
+		if err := json.Unmarshal(event, &eventData); err != nil {
+			return DonationEvents, fmt.Errorf("Ошибка парсинга eventData: %v", err)
+		}
+
+		var outer struct {
+			Action string          `json:"action"`
+			Data   json.RawMessage `json:"data"`
+		}
+
+		if err := json.Unmarshal(eventData.Event, &outer); err != nil {
+			return DonationEvents, fmt.Errorf("Ошибка парсинга события: %v", err)
+		}
+
+		switch outer.Action {
+		case "DATA":
+			donation, err := dc.createDonateForDATA(outer.Data)
+			if err != nil {
+				return DonationEvents, fmt.Errorf("Ошибка при создании доната: %v", err)
+			}
+
+			DonationEvents = append(DonationEvents, donation)
+		default:
+			return DonationEvents, fmt.Errorf("Ошибка парсинга события: такого события не существует %v", outer.Action)
+		}
+
+	}
+
+	return DonationEvents, nil
+}
+
+func (dc *DonattyCollector) createDonateForPROXY(data json.RawMessage) (DonationEvent, error) {
+	var wrapper struct {
+		Subscriber string          `json:"subscriber"`
+		Message    string          `json:"message"`
+		Amount     float64         `json:"amount"`
+		Currency   string          `json:"currency"`
+		Goal       json.RawMessage `json:"goal"`
+		mute       json.RawMessage `json:"mute"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return DonationEvent{}, fmt.Errorf("Ошибка парсинга wrapper: %v", err)
+	}
+
+	donation := DonationEvent{
+		SourceID:  "donatty",
+		User:      wrapper.Subscriber,
+		Amount:    wrapper.Amount,
+		Message:   wrapper.Message,
+		Timestamp: time.Now(),
+		Date:      time.Now(),
+	}
+
+	fmt.Printf("\nДонат через DONATTY:\n")
+	fmt.Printf("От: %s\n", donation.User)
+	fmt.Printf("Сообщение: %s\n", donation.Message)
+	fmt.Printf("Сумма: %.2f\n", donation.Amount)
+	fmt.Printf("Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
+	fmt.Printf("Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
+	fmt.Printf("----------------------------------------\n")
+
+	return donation, nil
 }
 
 // Stop останавливает коллектор
