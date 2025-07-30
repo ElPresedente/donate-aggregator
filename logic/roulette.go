@@ -146,8 +146,8 @@ func (r *Roulette) Reload(logic *Logic) {
 	r.isWorking = false
 	r.queue = []DonateEvent{}
 	logic.DispatchLogicEvent(LogicEvent{
-		name: RouletteDonateQueueLengthUpdate,
-		data: len(r.queue),
+		name: RouletteBalanceUpdate,
+		data: r.actualAmount,
 	})
 	logic.DispatchLogicEvent(LogicEvent{
 		name: RouletteDonateQueueLengthUpdate,

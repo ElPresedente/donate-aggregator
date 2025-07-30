@@ -48,6 +48,18 @@ export default {
         type: 'pass',
         placeholder: 'Введите ссылка',
       },
+      {
+        name: 'donattyLink',
+        label: 'Ссылка на виджет/группу',
+        type: 'link',
+        placeholder: 'https://widgets.donatty.com/group/?ref=.......&token=.......',
+        domain: 'widgets.donatty.com',
+        params: ['ref', 'token'],
+        callback: (params) => {
+          donatty.value.donattyUrl = params.ref;
+          donatty.value.donattyToken = params.token;
+        },
+      }
     ]
     const donatpayCfg = [
       {

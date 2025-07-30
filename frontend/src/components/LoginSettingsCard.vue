@@ -13,6 +13,9 @@
           :name="input.name"
           :index="index"
           :options="input.options"
+          :domain="input.domain"
+          :params="input.params"
+          :callback="input.callback"
           @toggle-password="togglePassword(index)"
           :visible="showPassword[index]"
         />
@@ -27,10 +30,11 @@ import PasswordInput from './inputs/PasswordInput.vue';
 import NumberInput from './inputs/NumberInput.vue';
 import SelectInput from './inputs/SelectInput.vue';
 import CheckboxInput from './inputs/CheckboxInput.vue';
+import LinkInput from './inputs/LinkInput.vue';
 
 export default {
   name: 'LoginSettingsCard',
-  components: { PasswordInput, NumberInput, SelectInput, CheckboxInput },
+  components: { PasswordInput, NumberInput, SelectInput, CheckboxInput, LinkInput },
   props: {
     title: String,
     inputsConfig: {
@@ -42,7 +46,7 @@ export default {
       default: () => ({}),
     },
   },
-  setup(props) {
+  setup(props, { emit }) {
     const showPassword = ref(props.inputsConfig.map(() => false));
 
     const togglePassword = (index) => {
@@ -55,6 +59,7 @@ export default {
         case 'number': return NumberInput;
         case 'select': return SelectInput;
         case 'checkbox': return CheckboxInput;
+        case 'link': return LinkInput;
         default: return 'input';
       }
     };

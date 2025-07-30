@@ -293,12 +293,10 @@ func (dc *DonattyCollector) createDonatesForPROXY(data json.RawMessage) ([]Donat
 
 func (dc *DonattyCollector) createDonateForPROXY(data json.RawMessage) (DonationEvent, error) {
 	var wrapper struct {
-		Subscriber string          `json:"subscriber"`
-		Message    string          `json:"message"`
-		Amount     float64         `json:"amount"`
-		Currency   string          `json:"currency"`
-		Goal       json.RawMessage `json:"goal"`
-		mute       json.RawMessage `json:"mute"`
+		Subscriber string  `json:"subscriber"`
+		Message    string  `json:"message"`
+		Amount     float64 `json:"amount"`
+		Currency   string  `json:"currency"`
 	}
 	if err := json.Unmarshal(data, &wrapper); err != nil {
 		return DonationEvent{}, fmt.Errorf("Ошибка парсинга wrapper: %v", err)

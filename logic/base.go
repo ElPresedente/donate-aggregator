@@ -107,6 +107,7 @@ func (l *Logic) ReloadRoulette() {
 	l.roulette.Reload(l)
 	l.roulette.rouletteLoop(l)
 	l.WidgetEventHandler.WidgetEventHandler("reloadRoulette", "")
+
 }
 
 func (l *Logic) EraseRouletteQueue() {
