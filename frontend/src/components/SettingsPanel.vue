@@ -46,7 +46,7 @@ export default {
         name: 'donattyUrl',
         label: 'Ref Донатти',
         type: 'pass',
-        placeholder: 'Введите ссылка',
+        placeholder: 'Введите ref',
       },
       {
         name: 'donattyLink',

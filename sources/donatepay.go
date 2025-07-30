@@ -19,12 +19,16 @@ import (
 var api_donatepay_uri_ru string = "https://donatepay.ru/api/v2"
 var api_donatepay_uri_eu string = "https://donatepay.eu/api/v2"
 
+var api_donatepay_websocket_ru string = "wss://centrifugo.donatepay.ru/connection/websocket"
+var api_donatepay_websocket_eu string = "wss://centrifugo.donatepay.eu/connection/websocket"
+
 // DonatePayCollector реализует коллектор для DonatePay
 type DonatePayCollector struct {
 	ctx            context.Context
 	accessToken    string
 	userID         string
 	api_uri        string
+	websocket_uri  string
 	reconnectDelay time.Duration
 	client         *centrifuge.Client
 	eventChan      chan<- DonationEvent
@@ -42,11 +46,14 @@ func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch c
 		log.Printf("Ошибка при создании коллектора донатпей:", err)
 	}
 	api_uri := "UNKNOWN DOMAIN"
+	websocket_uri := "UNKNOWN DOMAIN"
 	switch domain {
 	case ".ru":
 		api_uri = api_donatepay_uri_ru
+		websocket_uri = api_donatepay_websocket_ru
 	case ".eu":
 		api_uri = api_donatepay_uri_eu
+		websocket_uri = api_donatepay_websocket_eu
 	}
 
 	return &DonatePayCollector{
@@ -54,6 +61,7 @@ func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch c
 		accessToken:    accessToken,
 		userID:         userID,
 		api_uri:        api_uri,
+		websocket_uri:  websocket_uri,
 		reconnectDelay: 5 * time.Second,
 		eventChan:      ch,
 		stop:           make(chan struct{}),
@@ -220,7 +228,7 @@ func (dc *DonatePayCollector) Start(ctx context.Context) error {
 			log.Println("🔌 Настройка DonatePay Centrifugo...")
 			config := centrifuge.DefaultConfig()
 			config.Name = "go"
-			client := centrifuge.NewJsonClient("wss://centrifugo.donatepay.ru/connection/websocket", config)
+			client := centrifuge.NewJsonClient(dc.websocket_uri, config)
 			client.SetToken(token)
 			dc.client = client
 
