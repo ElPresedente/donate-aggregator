@@ -213,7 +213,7 @@ func (dc *DonattyCollector) createDonateForDATA(data json.RawMessage) (DonationE
 
 	donation := DonationEvent{
 		SourceID:  "donatty",
-		User:      streamData.DisplayName,
+		User:      wrapper.Subscriber,
 		Amount:    wrapper.Amount,
 		Message:   wrapper.Message,
 		Timestamp: time.Now(),
