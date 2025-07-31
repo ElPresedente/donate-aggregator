@@ -109,22 +109,11 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Fix upload_url
-        id: fix_upload_url
-        run: |
-          clean_url=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed 's/{.*}//')
-          echo "url=$clean_url" >> $GITHUB_OUTPUT
-
-      - name: Upload Release Assets
+      - name: Upload Release Assets (gh)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPLOAD_URL: ${{ steps.fix_upload_url.outputs.url }}
         run: |
           for file in build/bin/*; do
-            echo "Uploading $file"
-            curl \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary @"$file" \
-              "${UPLOAD_URL}?name=$(basename $file)"
+            gh release upload "v${{ steps.get_version.outputs.version }}" "$file" --clobber
           done
+        
