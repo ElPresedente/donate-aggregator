@@ -58,7 +58,12 @@ jobs:
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-      # Сборка проекта
+      # Собираем фронтенд
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
+      
+        # Сборка проекта
       - name: Build project
         run: wails build -platform windows/amd64
 
