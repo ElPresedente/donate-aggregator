@@ -82,50 +82,47 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
-      # Проверяем код
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # Устанавливаем jq для чтения wails.json
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+    # Устанавливаем jq для чтения wails.json
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
 
-      # Извлекаем версию из wails.json
-      - name: Get version from wails.json
-        id: get_version
-        run: echo "version=$(jq -r '.info.productVersion' wails.json)" >> $GITHUB_OUTPUT
+    # Извлекаем версию из wails.json
+    - name: Get version from wails.json
+      id: get_version
+      run: echo "version=$(jq -r '.info.productVersion' wails.json)" >> $GITHUB_OUTPUT
 
-      # Скачиваем артефакты из предыдущей сборки
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: donate-aggregator
-          path: build/bin/
+    # Скачиваем артефакты из предыдущей сборки
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: donate-aggregator
+        path: build/bin/
 
-      # Отладка: Проверяем содержимое build/bin после скачивания
-      - name: Debug downloaded artifacts
-        run: ls -la build/bin/
-        working-directory: .
+    # Создаем GitHub Release
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: Release v${{ steps.get_version.outputs.version }}
+        draft: false
+        prerelease: false
 
-      # Создаем GitHub Release
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_metadata.outputs.version }}
-          release_name: Release v${{ steps.get_metadata.outputs.version }}
-          draft: false
-          prerelease: false
-
-      # Загружаем артефакт в релиз
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/bin/${{ steps.get_metadata.outputs.binary_name }}
-          asset_name: donate-aggregator-linux-amd64-v${{ steps.get_metadata.outputs.version }}
-          asset_content_type: application/octet-stream
+    # Загружаем все файлы по одному
+    - name: Upload Release Assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        for file in build/bin/*; do
+          echo "Uploading $file"
+          curl \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"$file" \
+            "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
+        done
