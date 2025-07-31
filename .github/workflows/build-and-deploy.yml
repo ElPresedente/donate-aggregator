@@ -82,47 +82,49 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # Устанавливаем jq для чтения wails.json
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-    # Извлекаем версию из wails.json
-    - name: Get version from wails.json
-      id: get_version
-      run: echo "version=$(jq -r '.info.productVersion' wails.json)" >> $GITHUB_OUTPUT
+      - name: Get version from wails.json
+        id: get_version
+        run: echo "version=$(jq -r '.info.productVersion' wails.json)" >> $GITHUB_OUTPUT
 
-    # Скачиваем артефакты из предыдущей сборки
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: donate-aggregator
-        path: build/bin/
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: donate-aggregator
+          path: build/bin/
 
-    # Создаем GitHub Release
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.get_version.outputs.version }}
-        release_name: Release v${{ steps.get_version.outputs.version }}
-        draft: false
-        prerelease: false
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: Release v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
 
-    # Загружаем все файлы по одному
-    - name: Upload Release Assets
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        for file in build/bin/*; do
-        echo "Uploading $file"
-        curl \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: multipart/form-data" \
-            -F "file=@$file" \
-            "${UPLOAD_URL}?name=$(basename $file)"
-        done
+      - name: Fix upload_url
+        id: fix_upload_url
+        run: |
+          clean_url=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed 's/{.*}//')
+          echo "url=$clean_url" >> $GITHUB_OUTPUT
+
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPLOAD_URL: ${{ steps.fix_upload_url.outputs.url }}
+        run: |
+          for file in build/bin/*; do
+            echo "Uploading $file"
+            curl \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file" \
+              "${UPLOAD_URL}?name=$(basename $file)"
+          done
