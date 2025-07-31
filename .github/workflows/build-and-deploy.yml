@@ -1,0 +1,125 @@
+name: Build and Deploy Donate Aggregator
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Проверяем код из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Устанавливаем Go
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21' # Укажи версию Go, используемую в проекте
+
+      # Кэшируем Go модули
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+
+      # Устанавливаем Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Укажи версию Node.js, подходящую для проекта
+
+      # Кэшируем npm зависимости
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      # Устанавливаем зависимости фронтенда
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      # Тестируем фронтенд (если тесты есть)
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./frontend
+        if: always()
+
+      # Устанавливаем Wails CLI
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      # Тестируем Go код
+      - name: Run Go tests
+        run: go test ./...
+
+      # Сборка проекта
+      - name: Build project
+        run: wails build -platform linux/amd64 # Укажи нужную платформу
+
+      # Сохраняем артефакты сборки
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: donate-aggregator
+          path: build/bin/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+      # Проверяем код
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Устанавливаем jq для чтения wails.json
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # Извлекаем версию из wails.json
+      - name: Get version from wails.json
+        id: get_version
+        run: echo "version=$(jq -r '.info.productVersion' wails.json)" >> $GITHUB_OUTPUT
+
+      # Скачиваем артефакты из предыдущей сборки
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: donate-aggregator
+          path: build/bin/
+
+      # Создаем GitHub Release с версией из wails.json
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: Release v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      # Загружаем артефакт в релиз
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/bin/donate-aggregator
+          asset_name: donate-aggregator-linux-amd64-v${{ steps.get_version.outputs.version }}
+          asset_content_type: application/octet-stream
