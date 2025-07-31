@@ -119,10 +119,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         for file in build/bin/*; do
-          echo "Uploading $file"
-          curl \
+        echo "Uploading $file"
+        curl \
             -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @"$file" \
-            "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
+            -H "Content-Type: multipart/form-data" \
+            -F "file=@$file" \
+            "${UPLOAD_URL}?name=$(basename $file)"
         done
