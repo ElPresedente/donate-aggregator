@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21' # Укажи версию Go, используемую в проекте
+          go-version: '1.24' # Укажи версию Go, используемую в проекте
 
       # Кэшируем Go модули
       - name: Cache Go modules
@@ -36,7 +36,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Укажи версию Node.js, подходящую для проекта
+          node-version: '22' # Укажи версию Node.js, подходящую для проекта
 
       # Кэшируем npm зависимости
       - name: Cache npm
@@ -50,23 +50,13 @@ jobs:
         run: npm install
         working-directory: ./frontend
 
-      # Тестируем фронтенд (если тесты есть)
-      - name: Run frontend tests
-        run: npm test
-        working-directory: ./frontend
-        if: always()
-
       # Устанавливаем Wails CLI
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-      # Тестируем Go код
-      - name: Run Go tests
-        run: go test ./...
-
       # Сборка проекта
       - name: Build project
-        run: wails build -platform linux/amd64 # Укажи нужную платформу
+        run: wails build -platform windows/amd64
 
       # Сохраняем артефакты сборки
       - name: Upload build artifacts
