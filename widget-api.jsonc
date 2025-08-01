@@ -19,4 +19,30 @@
     "request": "reset",
 }
 
+//chat
 
+//app -> w
+{
+    "request": "message",
+    "user_name": "",
+    "badges": [
+        {
+            "title": "",
+            "image_ref_1x": "",
+            "image_ref_2x": "",
+            "image_ref_4x": "",
+        }
+    ],
+    "message":[
+        {
+            "type": "text",
+            "text": ""
+        },
+        {
+            "type": "emote",
+            "image_ref_1x": "",
+            "image_ref_2x": "",
+            "image_ref_4x": "",
+        }
+    ]
+}
