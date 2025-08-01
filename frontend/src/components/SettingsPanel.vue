@@ -90,6 +90,12 @@ export default {
         placeholder: 'Введите цену',
       },
       {
+        name: 'rollPriceIncrease',
+        label: 'Увеличение цены прокрутки рулетки в рублях',
+        type: 'number',
+        placeholder: 'Введите цену',
+      },
+      {
         name: 'logEnabled',
         label: 'Записывать лог программы в файл',
         type: 'checkbox',
@@ -108,13 +114,14 @@ export default {
     const handleSave = () => {
       const settingsToSave = {
         settings:  [
-          {name: "donattyToken",    value: donatty.value.donattyToken},
-          {name: "donattyUrl",      value: donatty.value.donattyUrl},
-          {name: "donatpayToken",   value: donatpay.value.donatpayToken},
-          {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
-          {name: "donatpayDomain",  value: donatpay.value.donatpayDomain},
-          {name: "rollPrice",       value: String(otherSettings.value.rollPrice)},
-          {name: "logEnabled",      value: String(otherSettings.value.logEnabled)}
+          {name: "donattyToken",     value: donatty.value.donattyToken},
+          {name: "donattyUrl",       value: donatty.value.donattyUrl},
+          {name: "donatpayToken",    value: donatpay.value.donatpayToken},
+          {name: "donatpayUserId",   value: donatpay.value.donatpayUserId},
+          {name: "donatpayDomain",   value: donatpay.value.donatpayDomain},
+          {name: "rollPrice",        value: String(otherSettings.value.rollPrice)},
+          {name: "rollPriceIncrease",value: String(otherSettings.value.rollPriceIncrease)},
+          {name: "logEnabled",       value: String(otherSettings.value.logEnabled)}
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
@@ -142,6 +149,9 @@ export default {
                 break;
               case 'rollPrice':
                 otherSettings.value.rollPrice = setting.value;
+                break;
+              case 'rollPriceIncrease':
+                otherSettings.value.rollPriceIncrease = setting.value;
                 break;
               case 'logEnabled':
                 otherSettings.value.logEnabled = setting.value;

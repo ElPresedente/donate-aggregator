@@ -29,11 +29,12 @@ type RouletteSettings struct {
 }
 
 type Roulette struct {
-	actualAmount float64
-	rollPrice    int
-	lastRoll     time.Time
-	timeout      time.Duration
-	lastDonate   DonateEvent
+	actualAmount      float64
+	rollPrice         int
+	rollPriceIncrease int
+	lastRoll          time.Time
+	timeout           time.Duration
+	lastDonate        DonateEvent
 
 	queue     []DonateEvent
 	stop      chan struct{}
@@ -44,11 +45,12 @@ type Roulette struct {
 
 func NewRouletteProcessor() Roulette {
 	return Roulette{
-		rollPrice: 100,
-		timeout:   1 * time.Second,
-		stop:      make(chan struct{}),
-		settings:  RouletteSettings{},
-		isWorking: true,
+		rollPrice:         100,
+		rollPriceIncrease: 0,
+		timeout:           1 * time.Second,
+		stop:              make(chan struct{}),
+		settings:          RouletteSettings{},
+		isWorking:         true,
 	}
 }
 
@@ -59,20 +61,30 @@ func (r *Roulette) ManualSpin(l *Logic) {
 
 func (r *Roulette) UpdateDataFromDB() {
 	dbRollPrice, err := database.CredentialsDB.GetENVValue("rollPrice")
-
 	if err != nil {
 		log.Printf("❌ Ошибка получения стоимости прокрута: %s", err)
 	}
-
-	dbRollPriceInt, err := strconv.Atoi(dbRollPrice)
+	dbRollIncreasePrice, err := database.CredentialsDB.GetENVValue("rollPriceIncrease")
 
 	if err != nil {
+		log.Printf("❌ Ошибка получения размера увеличения стоимости прокрута: %s", err)
+	}
+
+	dbRollPriceInt, err := strconv.Atoi(dbRollPrice)
+	if err != nil {
 		log.Printf("❌ Ошибка приведения типа стоимости прокрута: %s", err)
+	}
+	dbRollIncreasePriceInt, err := strconv.Atoi(dbRollIncreasePrice)
+
+	if err != nil {
+		log.Printf("❌ Ошибка приведения типа размера увеличения стоимости прокрута: %s", err)
 	}
 
 	if dbRollPriceInt > 0 {
 		r.rollPrice = dbRollPriceInt
 	}
+
+	r.rollPriceIncrease = dbRollIncreasePriceInt
 
 	categories, err := database.RouletteDB.GetRouletteGroups()
 
@@ -126,6 +138,8 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 				}
 				responses.Spins = append(responses.Spins, spinResult)
 				r.actualAmount -= float64(r.rollPrice)
+				//r.rollPrice каждый раз берется заного из БД, поэтому её можно "портить" (если я всё правильно понял)
+				r.rollPrice += r.rollPriceIncrease
 			}
 			logic.DispatchLogicEvent(LogicEvent{
 				name: RouletteSpin,
