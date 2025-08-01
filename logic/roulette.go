@@ -5,6 +5,7 @@ import (
 	"go-back/l2db"
 	"go-back/sources"
 	"log"
+	"math"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -128,19 +129,23 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 			responses := l2db.ResponseData{
 				User: r.lastDonate.User,
 			}
-			for r.actualAmount >= float64(r.rollPrice) {
-				winnerCategory := chooseCategory(r.settings.categories)
-				winnerSector := chooseCategorySector(winnerCategory.sectors)
 
-				spinResult := l2db.SpinData{
-					WinnerCategory: winnerCategory.name,
-					WinnerSector:   winnerSector.name,
-				}
+			baseRollPrice := float64(r.rollPrice)
+
+			for r.actualAmount >= float64(r.rollPrice) {
+				spinResult := r.generateSpin()
 				responses.Spins = append(responses.Spins, spinResult)
 				r.actualAmount -= float64(r.rollPrice)
 				//r.rollPrice каждый раз берется заного из БД, поэтому её можно "портить" (если я всё правильно понял)
 				r.rollPrice += r.rollPriceIncrease
 			}
+
+			if r.actualAmount >= baseRollPrice {
+				spinResult := r.generateSpin()
+				responses.Spins = append(responses.Spins, spinResult)
+				r.actualAmount = math.Mod(r.actualAmount, baseRollPrice)
+			}
+
 			logic.DispatchLogicEvent(LogicEvent{
 				name: RouletteSpin,
 				data: responses,
@@ -153,6 +158,18 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 			return
 		}
 	}
+}
+
+func (r *Roulette) generateSpin() l2db.SpinData {
+	winnerCategory := chooseCategory(r.settings.categories)
+	winnerSector := chooseCategorySector(winnerCategory.sectors)
+
+	spinResult := l2db.SpinData{
+		WinnerCategory: winnerCategory.name,
+		WinnerSector:   winnerSector.name,
+	}
+
+	return spinResult
 }
 
 func (r *Roulette) Reload(logic *Logic) {
