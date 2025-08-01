@@ -55,11 +55,13 @@ import { useRouter } from 'vue-router';
 import { onMounted, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 import { useConnectionStore } from '../stores/connectionStore';
+import { useToastStore } from '../stores/toastStore'
 
 export default {
   name: 'ControlPanel',
   setup(){
     const connectionStore = useConnectionStore();
+    const toast = useToastStore();
     const ConnectionStatus = Object.freeze({
       CONNECTED: 'connected',
       DISCONNECTED: 'disconnected',
@@ -87,6 +89,9 @@ export default {
         connectionStore.subscribedStatus = true
       }
     });
+    function showExample() {
+      toast.showToast('Пример уведомления', 'success', 4000)
+    }
     onUnmounted(() => {
       //unsubscribes.forEach(unsub => unsub());
     });
@@ -96,6 +101,7 @@ export default {
     const rouletteOn = () => {
       connectionStore.isOnButtonDisabled = true;
       FrontendDispatcher("startAllCollector", "");
+      showExample()
     };
     const rouletteOff = () => {
       connectionStore.isOnButtonDisabled = false;

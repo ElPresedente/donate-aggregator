@@ -125,6 +125,7 @@ export default {
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
+      showExampleNotification()
       // Отправка на сервер
     }
     onMounted(() =>{
@@ -176,7 +177,7 @@ export default {
       donatpay,
       otherSettings,
       updateFormData,
-      handleSave
+      handleSave,
     };
   },
   components: { SettingsCard },
