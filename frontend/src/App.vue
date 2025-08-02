@@ -40,6 +40,7 @@ onMounted(() => {
     })
     window.runtime.EventsOn('logUpdated', (newData) => {
       try{
+        const parsedData = JSON.parse( newData )
         parsedData.spins.forEach(element => {
           if (logStore.rouletteHistory.length > numLogs-1)
           {

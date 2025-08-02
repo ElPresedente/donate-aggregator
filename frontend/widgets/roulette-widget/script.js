@@ -23,6 +23,9 @@ let isSpinning = false;
 let globalSectorIdCounter = 0;
 let ws;
 
+const tickSound = new Audio("https://files.donationalerts.com/system/widgets/roulette/sounds/spin/Fix.mp3"); // можно заменить на локальный
+tickSound.volume = 0.3;
+
 const sectorWidth = 220;
 const sectorHeight = 150;
 const repeats = 50;
@@ -111,6 +114,32 @@ function spinTo(sectorId) {
 
     track.style.transition = `transform ${rouletteTimeScroll}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
     track.style.transform = `translateX(-${totalOffset}px)`;
+
+    const startTime = performance.now();
+    const totalDistance = totalOffset;
+    const easing = cubicBezier(0.25, 0.1, 0.25, 1); // как в CSS
+
+   let lastPlayedOffset = -sectorWidth;
+
+    function tickLoop(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / rouletteTimeScroll, 1);
+      const easedProgress = easing(progress);
+
+      const currentOffset = totalDistance * easedProgress;
+
+      if (currentOffset - lastPlayedOffset >= sectorWidth) {
+        lastPlayedOffset = currentOffset;
+        tickSound.currentTime = 0;
+        tickSound.play().catch(() => {});
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(tickLoop);
+      }
+    }
+
+    requestAnimationFrame(tickLoop);
     
     setTimeout(() => {
       const coinSpanId = `coin-${sectorId}-${targetRepeats}`;
@@ -239,5 +268,51 @@ function appendToTrack(text, sectorId, categoryKey = null) {
   }
 
   track.style.width = `${track.children.length * sectorWidth}px`;
+}
+
+function cubicBezier(p1x, p1y, p2x, p2y) {
+  // Бернулли-полиномы для bezier-кривой
+  const cx = 3 * p1x;
+  const bx = 3 * (p2x - p1x) - cx;
+  const ax = 1 - cx - bx;
+
+  const cy = 3 * p1y;
+  const by = 3 * (p2y - p1y) - cy;
+  const ay = 1 - cy - by;
+
+  function bezierX(t) {
+    return ((ax * t + bx) * t + cx) * t;
+  }
+
+  function bezierY(t) {
+    return ((ay * t + by) * t + cy) * t;
+  }
+
+  // Ньютоно-Рафсон для поиска t по x (так как input – progress)
+  function solve(x, epsilon = 1e-5) {
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const x2 = bezierX(t) - x;
+      if (Math.abs(x2) < epsilon) return bezierY(t);
+      const dX = (3 * ax * t + 2 * bx) * t + cx;
+      if (Math.abs(dX) < epsilon) break;
+      t -= x2 / dX;
+    }
+
+    // Фоллбэк бинарным поиском
+    let t0 = 0, t1 = 1;
+    t = x;
+    while (t0 < t1) {
+      const x2 = bezierX(t);
+      if (Math.abs(x2 - x) < epsilon) return bezierY(t);
+      if (x > x2) t0 = t;
+      else t1 = t;
+      t = (t1 - t0) * 0.5 + t0;
+    }
+
+    return bezierY(t);
+  }
+
+  return solve;
 }
 
