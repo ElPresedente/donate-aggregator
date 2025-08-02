@@ -1,22 +1,23 @@
 <template>
   <section class="card stretch">
     <header class="card-header">История рулетки</header>
-    <ul class="card-list" id="log-list">
-      <li v-for="(item, index) in rouletteHistory" :key="index" class="log-item">
-        <span class="log-time">{{ item.time }}</span>
-        <span class="log-content">
-          <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
-          <!--<strong style="color: rgb(255, 0, 251);">{{ item.user }}</strong> получает награду <strong style="color: rgb(255, 0, 251);">{{ item.data }}</strong>-->
-        </span>
-      </li> 
-    </ul>
+    <div class="scroll-container">
+      <ul class="card-list" id="log-list">
+        <li v-for="(item, index) in rouletteHistory" :key="index" class="log-item">
+          <span class="log-time">{{ item.time }}</span>
+          <span class="log-content">
+            <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
+          </span>
+        </li> 
+      </ul>
+    </div>
   </section>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
-const numLogs = 10;
+const numLogs = 100;
 
 export default {
   name: 'LogList',
@@ -57,19 +58,6 @@ export default {
     };
   }
 };
-  //В теории вот так надо будет подписываться на ивенты с го для обновления интерфейса
-  /*
-  mounted() {
-    window.wails.runtime.events.on('logUpdate', (data) => {
-      this.history = data;
-    });
-  },
-  onUnmounted() {
-    // Отписка от события при уничтожении компонента
-    window.wails.runtime.events.off('logUpdate');
-  }
-    
-};*/
 
 </script>
 <style scoped>
@@ -94,6 +82,17 @@ export default {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.scroll-container {
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 10px;
+  background: transparent;
 }
 
 .card-list li {
