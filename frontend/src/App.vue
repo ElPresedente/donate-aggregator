@@ -3,10 +3,14 @@ import Toast from './components/actions/Toast.vue'
 import { onMounted, ref } from 'vue'
 import { useToastStore } from './stores/toastStore'
 import { useConnectionStore } from './stores/connectionStore';
+import { useLogStore } from './stores/logStore';
+import { FrontendDispatcher } from '../wailsjs/go/main/App'
 
 const toastStore = useToastStore()
 const toastInstance = ref(null)
 const connectionStore = useConnectionStore();
+const logStore = useLogStore();
+const numLogs = 100;
 
 onMounted(() => {
   toastStore.setRef(toastInstance.value)
@@ -30,6 +34,25 @@ onMounted(() => {
     window.runtime.EventsOn('toastExec', (data) => {
       toastStore.showToast(data.message, data.type, 3000)
     })
+    window.runtime.EventsOn('logNumData', (newData) => {
+      if(newData != null)
+        logStore.rouletteHistory = newData;
+    })
+    window.runtime.EventsOn('logUpdated', (newData) => {
+      try{
+        parsedData.spins.forEach(element => {
+          if (logStore.rouletteHistory.length > numLogs-1)
+          {
+            logStore.rouletteHistory.pop()
+          }
+          logStore.rouletteHistory.unshift({ time: parsedData.time, user: parsedData.user, value: element.sector })
+        });
+      } 
+      catch( error ){
+        console.error( error )
+      }
+    })
+    FrontendDispatcher("getNumLogs", String(numLogs));
     connectionStore.subscribedStatus = true
   }
 })
