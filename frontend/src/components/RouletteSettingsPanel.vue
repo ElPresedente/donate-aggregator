@@ -32,7 +32,6 @@ export default {
     onMounted(() => {
       unsubscribes.push(
         window.runtime.EventsOn('groupsData', (data) => {
-          console.log('📦 Группы:', data)
           categories.value = data 
         })
       );

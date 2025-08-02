@@ -68,44 +68,25 @@ export default {
       RECONNECTING: 'reconnecting',
     });
     const router = useRouter();
-    let unsubscribes = [];
     onMounted(() => {
-      if( !connectionStore.subscribedStatus ){
-        window.runtime.EventsOn('donattyConnectionUpdated', (connection) => {
-          connectionStore.donattyConnected = connection;
-        })
-        window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
-          connectionStore.donatepayConnected = connection;
-        })
-        window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
-          connectionStore.rouletteConnected = connection;
-        })
-        window.runtime.EventsOn('currentAmountUpdate', (amount) => {
-          connectionStore.currentAmount = amount;
-        })
-        window.runtime.EventsOn('donateQueueLengthUpdate', (amount) => {
-          connectionStore.donateQueueLength = amount;
-        })
-        connectionStore.subscribedStatus = true
-      }
+
     });
-    function showExample() {
-      toast.showToast('Пример уведомления', 'success', 4000)
-    }
     onUnmounted(() => {
       //unsubscribes.forEach(unsub => unsub());
     });
     const rollRoulette = () => {
       FrontendDispatcher("manualRouletteSpin", "");
+      toast.showToast('Крутим рулетку', 'info', 3000)
     };
     const rouletteOn = () => {
       connectionStore.isOnButtonDisabled = true;
       FrontendDispatcher("startAllCollector", "");
-      showExample()
+      toast.showToast('Коллекторы включены', 'success', 3000)
     };
     const rouletteOff = () => {
       connectionStore.isOnButtonDisabled = false;
       FrontendDispatcher("stopAllCollector", "");
+      toast.showToast('Коллекторы выключены', 'success', 3000)
     };
     const reconnectDonatty = () => {
       FrontendDispatcher("reconnectDonatty", "")

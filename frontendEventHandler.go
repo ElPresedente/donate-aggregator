@@ -264,6 +264,12 @@ func updateSettings(a *App, data string) {
 	if a.collManager.IsActive() {
 		reconnectAllCollector(a)
 	}
+
+	toastData := map[string]interface{}{
+		"message": "Данные сохранены",
+		"type":    "success",
+	}
+	runtime.EventsEmit(a.ctx, "toastExec", toastData)
 }
 
 func startCollector(data string, a *App) {

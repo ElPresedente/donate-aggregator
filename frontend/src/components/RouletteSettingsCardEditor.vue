@@ -37,7 +37,6 @@ export default {
     onMounted(() => {
       unsubscribes.push(
         window.runtime.EventsOn('itemsByGroupIdData', (data) => {
-          console.log('📦 Итемы:', data)
           if(data)
             localItems.value = data // ← обновляем реактивно
         })
@@ -64,52 +63,20 @@ export default {
         localItems.value[idx].status = 'delete';
 
       } else {
-        // Для новых элементов (без id) удаляем сразу
         localItems.value.splice(idx, 1);
       }
     }
     const saveChanges = () => {
-      // Удаляем строки с пустым data и status != 'delete'
       const itemsToSave = localItems.value.filter(
         item => item.data.trim() !== ''
       );
-      console.log(itemsToSave);
       const data = {
         id: index,
         items: itemsToSave
       };
       FrontendDispatcher("itemsToSave", JSON.stringify(data));
     }
-
-    // Вывод аргумента в консоль
-    //console.log('Index из параметра маршрута:', localItems);
-
-    const save = () => {
-      document.getElementsByClassName()
-      //Игнорируем все пустые строки
-
-      //Два варианта для сохранения в бд
-      // 1. Удалаем по айдишнику таблицы все строки, после чего добавляем все новые циклом
-      // 2. Формируем словарь вида "id: новое значение строки" и обновляем данные по циклу
-      
-      //Сохранение в бд
-      
-      router.go(-1);
-    }
-
-    const updateItem = (idx, value) => {
-      console.log(idx, value);
-    };
-
-    const add = () => {
-      
-      localItems.value.push(''); // Добавление пустой строки
-    };
-
-    const deleteItemOld = (idx) => {
-      localItems.value.splice(idx, 1); // Удаление элемента
-    };
-
+    
     const goBack = () => router.go(-1);
     return { 
       localItems,
