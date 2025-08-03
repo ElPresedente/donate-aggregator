@@ -38,6 +38,7 @@ const showRouletteTimeDelay = 2000;
 const container = document.getElementById("roulette-container");
 const donationQueue = [];
 
+let previousOffset = 0; //для рассчета звуков при пересечении секторов
 
 let isAnimated = false;
 
@@ -116,20 +117,21 @@ function spinTo(sectorId) {
     track.style.transform = `translateX(-${totalOffset}px)`;
 
     const startTime = performance.now();
-    const totalDistance = totalOffset;
-    const easing = cubicBezier(0.25, 0.1, 0.25, 1); // как в CSS
+    const distanceDelta = totalOffset - previousOffset; // ✅ только разница
+    let lastTickedSector = Math.floor(previousOffset / sectorWidth); // ✅ начинаем с текущего сектора
 
-   let lastPlayedOffset = -sectorWidth;
+    const easing = cubicBezier(0.25, 0.1, 0.25, 1);
 
     function tickLoop(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / rouletteTimeScroll, 1);
       const easedProgress = easing(progress);
 
-      const currentOffset = totalDistance * easedProgress;
+      const currentOffset = previousOffset + distanceDelta * easedProgress;
+      const currentSector = Math.floor(currentOffset / sectorWidth);
 
-      if (currentOffset - lastPlayedOffset >= sectorWidth) {
-        lastPlayedOffset = currentOffset;
+      if (currentSector !== lastTickedSector) {
+        lastTickedSector = currentSector;
         tickSound.currentTime = 0;
         tickSound.play().catch(() => {});
       }
@@ -140,6 +142,7 @@ function spinTo(sectorId) {
     }
 
     requestAnimationFrame(tickLoop);
+    previousOffset = totalOffset; // ✅ сохраняем для следующего spinTo
     
     setTimeout(() => {
       const coinSpanId = `coin-${sectorId}-${targetRepeats}`;
