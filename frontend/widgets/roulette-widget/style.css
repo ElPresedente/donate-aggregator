@@ -47,6 +47,21 @@ div{
   pointer-events: none;
 }
 
+.pointer.kick {
+  animation: pointerKick 400ms ease-out;
+}
+
+@keyframes pointerKick {
+  0%   { transform: translateX(-50%) rotate(0deg); }
+  20%  { transform: translateX(-50%) rotate(16deg); }
+  40%  { transform: translateX(-50%) rotate(20deg); }
+  55%  { transform: translateX(-50%) rotate(20deg); }
+  60%  { transform: translateX(-50%) rotate(20deg); }
+  70%  { transform: translateX(-50%) rotate(8deg); }
+  85%  { transform: translateX(-50%) rotate(-10deg); }
+  100% { transform: translateX(-50%) rotate(0deg); }
+}
+
 .roulette-wrapper {
   position: relative;
   width: 1100px;

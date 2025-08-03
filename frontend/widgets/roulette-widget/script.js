@@ -134,6 +134,13 @@ function spinTo(sectorId) {
         lastTickedSector = currentSector;
         tickSound.currentTime = 0;
         tickSound.play().catch(() => {});
+
+        const pointer = document.querySelector('.pointer');
+        if (pointer) {
+          pointer.classList.remove('kick'); // сброс, если не успел закончиться
+          void pointer.offsetWidth; // force reflow
+          pointer.classList.add('kick');
+        }
       }
 
       if (progress < 1) {
@@ -220,6 +227,7 @@ function resetTrack(){
   track.style.transform = "translateX(0)";
   track.style.transition = "none";
   globalSectorIdCounter = 0;
+  previousOffset = 0;
 }
 
 function getWeightedRandomIndex() {
