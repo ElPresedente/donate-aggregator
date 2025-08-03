@@ -47,10 +47,6 @@ onMounted(() => {
       try{
         const parsedData = JSON.parse( newData )
         parsedData.spins.forEach(element => {
-          if (logStore.rouletteHistory.length > numLogs-1)
-          {
-            logStore.rouletteHistory.pop()
-          }
           logStore.rouletteHistory.unshift({ time: parsedData.time, user: parsedData.user, value: element.sector })
         });
       } 
