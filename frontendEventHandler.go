@@ -52,9 +52,16 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		manualRouletteSpin(a)
 	case "getNumLogs":
 		getNumLogs(a.ctx, argJSON)
+	case "newStream":
+		newStream(a)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func newStream(a *App) {
+	database.LogDB.ClearDatabase()
+	runtime.EventsEmit(a.ctx, "logNumData", map[string]any{})
 }
 
 func getNumLogs(ctx context.Context, data string) {

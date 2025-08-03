@@ -21,6 +21,15 @@ type RouletteLog struct {
 	Time string `json:"time"`
 }
 
+func (c *LogDatabase) ClearDatabase() {
+	clearQuery := "DELETE FROM RouletteLog;"
+
+	_, err := c.db.Exec(clearQuery)
+	if err != nil {
+		log.Printf("❌ Ошибка очистки таблицы в LB: %s", err)
+	}
+}
+
 func (c *LogDatabase) Init() {
 	var err error
 	c.db, err = sql.Open("sqlite", "./LogDB.db")

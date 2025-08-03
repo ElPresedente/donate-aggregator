@@ -37,6 +37,7 @@
         <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
         <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
         <button class="btn gold" @click="rollRoulette" :disabled="connectionStore.rouletteConnected !== ConnectionStatus.CONNECTED">Крутить</button>
+        <button class="btn gold" @click="newStream" >Новый стрим</button>
       </div>
     </div>
     <div class="card-block settings-buttons">
@@ -74,6 +75,10 @@ export default {
     onUnmounted(() => {
       //unsubscribes.forEach(unsub => unsub());
     });
+    const newStream = () => {
+      FrontendDispatcher("newStream", "")
+      toast.showToast('Сбрасываем данные прошлого стрима', 'info', 3000)
+    };
     const rollRoulette = () => {
       FrontendDispatcher("manualRouletteSpin", "");
       toast.showToast('Крутим рулетку', 'info', 3000)
@@ -109,6 +114,7 @@ export default {
     return {
       ConnectionStatus,
       connectionStore,
+      newStream,
       rollRoulette, 
       rouletteOn, 
       rouletteOff, 
