@@ -78,11 +78,10 @@ func (c *LogDatabase) InsertSpins(data l2db.ResponseData) {
 	}
 }
 
-// Подумать над названием функции
-func (c *LogDatabase) GetLastNLogs(limit int) ([]RouletteLog, error) {
-	query := "SELECT user, item, time FROM RouletteLog ORDER BY id DESC LIMIT ?"
+func (c *LogDatabase) GetLogs() ([]RouletteLog, error) {
+	query := "SELECT user, item, time FROM RouletteLog ORDER BY id DESC"
 
-	rows, err := c.db.Query(query, limit)
+	rows, err := c.db.Query(query)
 	if err != nil {
 		return nil, err
 	}

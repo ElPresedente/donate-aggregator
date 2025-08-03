@@ -10,7 +10,6 @@ const toastStore = useToastStore()
 const toastInstance = ref(null)
 const connectionStore = useConnectionStore();
 const logStore = useLogStore();
-const numLogs = 100;
 
 onMounted(() => {
   toastStore.setRef(toastInstance.value)
@@ -59,7 +58,7 @@ onMounted(() => {
         console.error( error )
       }
     })
-    FrontendDispatcher("getNumLogs", String(numLogs));
+    FrontendDispatcher("getLogs", "");
     connectionStore.subscribedStatus = true
   }
 })

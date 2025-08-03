@@ -50,8 +50,8 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		reloadRoulette(a)
 	case "manualRouletteSpin":
 		manualRouletteSpin(a)
-	case "getNumLogs":
-		getNumLogs(a.ctx, argJSON)
+	case "getLogs":
+		getLogs(a.ctx)
 	case "newStream":
 		newStream(a)
 	default:
@@ -64,13 +64,8 @@ func newStream(a *App) {
 	runtime.EventsEmit(a.ctx, "logNumData", map[string]any{})
 }
 
-func getNumLogs(ctx context.Context, data string) {
-	var num int
-	if err := json.Unmarshal([]byte(data), &num); err != nil {
-		log.Println("❌ Ошибка парсинга JSON:", err)
-		return
-	}
-	items, err := database.LogDB.GetLastNLogs(num)
+func getLogs(ctx context.Context) {
+	items, err := database.LogDB.GetLogs()
 	if err != nil {
 		log.Println("❌ Ошибка при получении предметов:", err)
 		return
