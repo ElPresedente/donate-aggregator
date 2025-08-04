@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.2
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/centrifugal/centrifuge-go v0.8.4
 	github.com/gorilla/websocket v1.5.3
 	github.com/wailsapp/wails/v2 v2.10.1
@@ -55,7 +56,7 @@ require (
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.33.0
 	golang.org/x/text v0.22.0 // indirect
 )
 

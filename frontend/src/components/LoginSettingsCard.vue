@@ -31,10 +31,11 @@ import NumberInput from './inputs/NumberInput.vue';
 import SelectInput from './inputs/SelectInput.vue';
 import CheckboxInput from './inputs/CheckboxInput.vue';
 import LinkInput from './inputs/LinkInput.vue';
+import LinkButton from './inputs/LinkButton.vue';
 
 export default {
   name: 'LoginSettingsCard',
-  components: { PasswordInput, NumberInput, SelectInput, CheckboxInput, LinkInput },
+  components: { PasswordInput, NumberInput, SelectInput, CheckboxInput, LinkInput, LinkButton },
   props: {
     title: String,
     inputsConfig: {
@@ -60,6 +61,7 @@ export default {
         case 'select': return SelectInput;
         case 'checkbox': return CheckboxInput;
         case 'link': return LinkInput;
+        case 'button': return LinkButton;
         default: return 'input';
       }
     };

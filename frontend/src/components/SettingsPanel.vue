@@ -14,9 +14,7 @@
     />
     <SettingsCard
       title="Twitch"
-      :inputsConfig="donatpayCfg"
-      :formData="donatpay"
-      @update:formData="updateFormData('donatpay', $event)"
+      :inputsConfig="twitchCfg"
     />
     <SettingsCard
       title="Другие настройки"
@@ -87,6 +85,15 @@ export default {
         placeholder: 'Домен:',
         options: ['.eu', '.ru']
       }
+    ]
+    const twitchCfg = [
+      {
+        name: 'Twitch',
+        type: 'button',
+        callback: () => {
+          console.log("Похуй, работает")
+        },
+      },
     ]
     const otherSettingsCfg = [
       {
@@ -178,6 +185,7 @@ export default {
       goBack,
       donattyCfg,
       donatpayCfg,
+      twitchCfg,
       otherSettingsCfg,
       donatty,
       donatpay,
