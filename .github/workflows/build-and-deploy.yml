@@ -59,7 +59,11 @@ jobs:
       # Устанавливаем Wails CLI
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
-
+        
+      - name: Generate twitch_client_credentials.txt
+        run: |
+          echo "${{ secrets.TWITCH_APP_CREDENTIALS }}" > sources/twitch_client_credentials.txt
+      
       # Собираем фронтенд
       - name: Build frontend
         run: npm run build
