@@ -13,6 +13,12 @@
       @update:formData="updateFormData('donatpay', $event)"
     />
     <SettingsCard
+      title="Twitch"
+      :inputsConfig="donatpayCfg"
+      :formData="donatpay"
+      @update:formData="updateFormData('donatpay', $event)"
+    />
+    <SettingsCard
       title="Другие настройки"
       :inputsConfig="otherSettingsCfg"
       :formData="otherSettings"
