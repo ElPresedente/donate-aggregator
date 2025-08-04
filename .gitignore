@@ -5,3 +5,4 @@ frontend/dist
 *.db
 *.sql
 output.log
+updater/updater.exe
