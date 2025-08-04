@@ -62,7 +62,7 @@ jobs:
         
       - name: Generate twitch_client_credentials.txt
         run: |
-          echo "${{ secrets.TWITCH_APP_CREDENTIALS }}" > sources/twitch_client_credentials.txt
+          echo "${{ secrets.TWITCH_APP_CREDENTIALS }}" > services/twitch_client_credentials.txt
       
       # Собираем фронтенд
       - name: Build frontend

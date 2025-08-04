@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"go-back/database"
+	"go-back/services"
 	"log"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -54,9 +55,15 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		getLogs(a.ctx)
 	case "newStream":
 		newStream(a)
+	case "twitchLoginProcedure":
+		twitchLoginProcedure()
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func twitchLoginProcedure() {
+	services.TwitchLogin()
 }
 
 func newStream(a *App) {

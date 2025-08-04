@@ -91,7 +91,7 @@ export default {
         name: 'Twitch',
         type: 'button',
         callback: () => {
-          console.log("Похуй, работает")
+          FrontendDispatcher("twitchLoginProcedure", "")
         },
       },
     ]

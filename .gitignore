@@ -7,4 +7,4 @@ frontend/dist
 output.log
 updater/updater.exe
 
-sources/twitch_client_credentials.txt
+services/twitch_client_credentials.txt
