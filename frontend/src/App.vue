@@ -41,7 +41,6 @@ onMounted(() => {
           logStore.rouletteHistory.push(element)
         });
       }
-        logStore.rouletteHistory = newData;
     })
     window.runtime.EventsOn('logUpdated', (newData) => {
       try{

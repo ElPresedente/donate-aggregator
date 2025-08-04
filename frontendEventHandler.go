@@ -68,6 +68,7 @@ func twitchLoginProcedure() {
 
 func newStream(a *App) {
 	database.LogDB.ClearDatabase()
+	a.logic.ReloadRoulette()
 	runtime.EventsEmit(a.ctx, "logNumData", map[string]any{})
 }
 
