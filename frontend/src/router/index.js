@@ -3,6 +3,8 @@ import Window from '../components/Window.vue';
 import SettingsPanel from '../components/SettingsPanel.vue';
 import RouletteSettingsPanel from '../components/RouletteSettingsPanel.vue';
 import RouletteSettingsCardEditor from '../components/RouletteSettingsCardEditor.vue';
+import WidgetsSettingsPanel from '../components/WidgetsSettingsPanel.vue';
+
 
 const routes = [
   { path: '/', component: Window },
@@ -11,6 +13,7 @@ const routes = [
   //{ path: '/edit-category/:items', name: 'edit-category', component: RouletteSettingsCardEditor },
   //После подключения бд будем передавать индекс и делать по нему запрос
   { path: '/edit-category/:index', name: 'edit-category', component: RouletteSettingsCardEditor },
+  { path: '/widget-settings', name: 'widget-settings', component: WidgetsSettingsPanel },
 ];
 
 const router = createRouter({

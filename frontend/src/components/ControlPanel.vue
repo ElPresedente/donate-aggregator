@@ -47,8 +47,8 @@
     </div>
     <div class="card-block settings-buttons">
       <button class="btn gold" @click="newStream" >Новый стрим</button>
-      <button class="btn gray" @click="showSettings">Настройка подключения</button>
-      <button class="btn gray" @click="showRouletteSettings">Настройка рулетки</button>
+      <button class="btn gray" @click="showSettings">Настройки подключений</button>
+      <button class="btn gray" @click="showWidgetSettings">Настройки виджетов</button>
     </div>
   </section>
 </template>
@@ -114,8 +114,8 @@ export default {
     const showSettings = () => {
       router.push('/settings');
     };
-    const showRouletteSettings = () => {
-      router.push('/roulette-settings');
+    const showWidgetSettings = () => {
+      router.push('/widget-settings');
     };
     return {
       ConnectionStatus,
@@ -128,7 +128,7 @@ export default {
       reconnectDonatepay,
       reloadRoulette,
       showSettings, 
-      showRouletteSettings
+      showWidgetSettings
     }
   }
 };
