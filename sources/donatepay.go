@@ -31,7 +31,7 @@ type DonatePayCollector struct {
 	websocket_uri  string
 	reconnectDelay time.Duration
 	client         *centrifuge.Client
-	eventChan      chan<- DonationEvent
+	eventChan      chan<- CollectorEvent
 	stop           chan struct{}
 }
 
@@ -40,7 +40,7 @@ func (dc *DonatePayCollector) setGUIState(state string) {
 }
 
 // NewDonatePayCollector создаёт новый коллектор для DonatePay
-func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch chan<- DonationEvent) *DonatePayCollector {
+func NewDonatePayCollector(ctx context.Context, accessToken, userID string, ch chan<- CollectorEvent) *DonatePayCollector {
 	domain, err := database.CredentialsDB.GetENVValue("donatpayDomain")
 	if err != nil {
 		log.Printf("Ошибка при создании коллектора донатпей:", err)
@@ -109,7 +109,7 @@ func (c ConnetionEventHandler) OnUnsubscribe(sub *centrifuge.Subscription, event
 // PublishHandler обрабатывает сообщения о донатах
 type PublishHandler struct {
 	ctx context.Context
-	ch  chan<- DonationEvent
+	ch  chan<- CollectorEvent
 }
 
 // OnPublish обрабатывает публикации в канале
@@ -188,14 +188,20 @@ func (h PublishHandler) OnPublish(sub *centrifuge.Subscription, e centrifuge.Pub
 	fmt.Printf("\n🎁 Донат через DONATEPAY:\n")
 	fmt.Printf("👤 От: %s\n", donation.User)
 	fmt.Printf("💬 Сообщение: %s\n", donation.Message)
-	fmt.Printf("💸 Сумма: %.2f\n", donation.Amount /*, donation.Currency*/)
+	fmt.Printf("💸 Сумма: %.2f\n", donation.Amount)
 	fmt.Printf("📅 Дата: %s\n", donation.Date.Format("2006-01-02 15:04:05"))
 	fmt.Printf("🕒 Время (локальное): %s\n", donation.Timestamp.Format("15:04:05"))
 	fmt.Printf("----------------------------------------\n")
 
+	event, err := NewCollectorEvent("DonationEvent", &donation)
+	if err != nil {
+		log.Printf("Ошибка создания доната: %v", err)
+		return
+	}
+
 	// Отправка события в канал
 	select {
-	case h.ch <- donation:
+	case h.ch <- event:
 	case <-h.ctx.Done():
 		return
 	}

@@ -29,7 +29,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.logic.AppCtx = ctx
 	// Создаём канал для событий
-	eventCh := make(chan sources.DonationEvent, 100)
+	eventCh := make(chan sources.CollectorEvent, 100)
 	a.collManager = sources.NewCollectorManager(ctx, eventCh)
 
 	go a.widgetHub.Start(":8080")

@@ -15,7 +15,7 @@ type CollectorManager struct {
 	mu         sync.Mutex
 	ctx        context.Context
 	collectors map[string]*managedCollector
-	eventCh    chan DonationEvent
+	eventCh    chan CollectorEvent
 }
 
 type managedCollector struct {
@@ -23,7 +23,7 @@ type managedCollector struct {
 	cancel    context.CancelFunc
 }
 
-func NewCollectorManager(ctx context.Context, eventCh chan DonationEvent) *CollectorManager {
+func NewCollectorManager(ctx context.Context, eventCh chan CollectorEvent) *CollectorManager {
 	return &CollectorManager{
 		ctx:        ctx,
 		collectors: make(map[string]*managedCollector),

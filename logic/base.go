@@ -47,8 +47,12 @@ func (l *Logic) ManualRouletteSpin() {
 	l.roulette.ManualSpin(l)
 }
 
-func (l *Logic) Process(donate sources.DonationEvent) {
-	l.roulette.Process(&donate, l)
+func (l *Logic) Process(event sources.CollectorEvent) {
+	switch event.EventType.GetTypeName() {
+	case "DonationEvent":
+		l.roulette.Process(event.Event.(*DonateEvent), l)
+	}
+
 }
 
 func (l *Logic) DispatchLogicEvent(le LogicEvent) {

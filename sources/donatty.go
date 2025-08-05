@@ -33,7 +33,7 @@ type DonattyCollector struct {
 	ref            string
 	reconnectDelay time.Duration
 	client         *http.Client
-	eventChan      chan<- DonationEvent
+	eventChan      chan<- CollectorEvent
 	stop           chan struct{}
 	sseCancel      context.CancelFunc
 }
@@ -43,7 +43,7 @@ func (dc *DonattyCollector) setGUIState(state string) {
 }
 
 // NewDonattyCollector создаёт новый коллектор для Donatty
-func NewDonattyCollector(ctx context.Context, token_str, ref string, ch chan<- DonationEvent) *DonattyCollector {
+func NewDonattyCollector(ctx context.Context, token_str, ref string, ch chan<- CollectorEvent) *DonattyCollector {
 	return &DonattyCollector{
 		ctx:            ctx,
 		mainToken:      token_str,
@@ -151,8 +151,14 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 						return
 					}
 
+					event, err := NewCollectorEvent("DonationEvent", &donation)
+					if err != nil {
+						log.Printf("Ошибка создания доната: %v", err)
+						return
+					}
+
 					select {
-					case dc.eventChan <- donation:
+					case dc.eventChan <- event:
 					case <-ctx.Done():
 						return
 					}
@@ -164,8 +170,14 @@ func (dc *DonattyCollector) Start(ctx context.Context) error {
 					}
 
 					for _, donation := range donations {
+						event, err := NewCollectorEvent("DonationEvent", &donation)
+						if err != nil {
+							log.Printf("Ошибка создания доната: %v", err)
+							return
+						}
+
 						select {
-						case dc.eventChan <- donation:
+						case dc.eventChan <- event:
 						case <-ctx.Done():
 							return
 						}
