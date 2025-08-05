@@ -34,7 +34,7 @@ import LinkInput from './inputs/LinkInput.vue';
 import LinkButton from './inputs/LinkButton.vue';
 
 export default {
-  name: 'LoginSettingsCard',
+  name: 'SettingsCard',
   components: { PasswordInput, NumberInput, SelectInput, CheckboxInput, LinkInput, LinkButton },
   props: {
     title: String,

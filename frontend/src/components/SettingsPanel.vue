@@ -31,7 +31,7 @@
 
 <script>
 import { useRouter } from 'vue-router';
-import SettingsCard from './LoginSettingsCard.vue'
+import SettingsCard from './SettingsCard.vue'
 import { onMounted, ref, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 export default {

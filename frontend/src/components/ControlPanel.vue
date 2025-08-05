@@ -1,52 +1,54 @@
 <template>
   <section class="card stretch" id="right-panel">
     <div class="card-block" id="main-controls">
-      <header class="card-header">Управление рулеткой</header>
-      <div class="status">
-        <div class="status-row">
-          <span v-if="connectionStore.donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
-          <span v-if="connectionStore.donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
-          <span v-if="connectionStore.donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка подключения...</span>
-          <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
-        </div>
-        
-        <div class="status-row">
-          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
-          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
-          <span v-if="connectionStore.donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка подключения...</span>
-          <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
-        </div>
+      <header class="card-header">Управление приложением</header>
+      <ControlPanelSection title="Сервисы">
+        <div class="status">
+          <div class="status-row">
+            <span v-if="connectionStore.donattyConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatty: Подключено</span>
+            <span v-if="connectionStore.donattyConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatty: Не подключено</span>
+            <span v-if="connectionStore.donattyConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatty: Попытка подключения...</span>
+            <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatty">🔄</button>
+          </div>
+          
+          <div class="status-row">
+            <span v-if="connectionStore.donatepayConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Donatepay: Подключено</span>
+            <span v-if="connectionStore.donatepayConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Donatepay: Не подключено</span>
+            <span v-if="connectionStore.donatepayConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Donatepay: Попытка подключения...</span>
+            <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
+          </div>
 
-        <div class="status-row">
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет рулетки: Подключено</span>
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет рулетки: Не подключено</span>
-          <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет рулетки: Попытка подключения...</span>
-          <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
+          <div class="controls">
+            <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
+            <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
+          </div>
         </div>
-
-        <br></br>
-
-        <div class="status-row">
-          <span>💲 Накоплено в рулетке: &nbsp;</span>
-          <span id="current-amount">{{ connectionStore.currentAmount }}</span> <!--БЛЯ вынеси нахуй стили-->
-          <span>  Донатов в очереди: &nbsp;</span>
-          <span id="donate-queue-length">{{ connectionStore.donateQueueLength }}</span> <!--БЛЯ вынеси нахуй стили-->
+      </ControlPanelSection>
+      <ControlPanelSection title="Рулетка">
+        <div class="status">
+          <div class="status-row">
+            <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет рулетки: Подключено</span>
+            <span v-if="connectionStore.rouletteConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет рулетки: Не подключено</span>
+            <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет рулетки: Попытка подключения...</span>
+            <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
+          </div>
+          <br></br>
+          <div class="status-row">
+            <span>💲 Накоплено в рулетке: &nbsp;</span>
+            <span id="current-amount">{{ connectionStore.currentAmount }}</span> <!--БЛЯ вынеси нахуй стили-->
+            <span>  Донатов в очереди: &nbsp;</span>
+            <span id="donate-queue-length">{{ connectionStore.donateQueueLength }}</span> <!--БЛЯ вынеси нахуй стили-->
+          </div>
+          <div class="controls">
+            <button class="btn gold" @click="rollRoulette" :disabled="connectionStore.rouletteConnected !== ConnectionStatus.CONNECTED">Крутить</button>
+          </div>
         </div>
-      </div>
-      <div class="controls">
-        <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
-        <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
-        <button class="btn gold" @click="rollRoulette" :disabled="connectionStore.rouletteConnected !== ConnectionStatus.CONNECTED">Крутить</button>
-        <button class="btn gold" @click="newStream" >Новый стрим</button>
-      </div>
+      </ControlPanelSection>
     </div>
     <div class="card-block settings-buttons">
-      <button class="btn gray" @click="showSettings">
-        Настройка подключения
-      </button>
-      <button class="btn gray" @click="showRouletteSettings">
-        Настройка рулетки
-      </button>
+      <button class="btn gold" @click="newStream" >Новый стрим</button>
+      <button class="btn gray" @click="showSettings">Настройка подключения</button>
+      <button class="btn gray" @click="showRouletteSettings">Настройка рулетки</button>
     </div>
   </section>
 </template>
@@ -57,9 +59,13 @@ import { onMounted, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 import { useConnectionStore } from '../stores/connectionStore';
 import { useToastStore } from '../stores/toastStore'
+import ControlPanelSection from './ControlPanelSection.vue';
 
 export default {
   name: 'ControlPanel',
+  components: {
+    ControlPanelSection,
+  },
   setup(){
     const connectionStore = useConnectionStore();
     const toast = useToastStore();
@@ -122,7 +128,7 @@ export default {
       reconnectDonatepay,
       reloadRoulette,
       showSettings, 
-      showRouletteSettings 
+      showRouletteSettings
     }
   }
 };
@@ -143,7 +149,7 @@ export default {
 
 .card-header {
   font-size: 1.2rem;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   font-weight: bold;
 }
 
