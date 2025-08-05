@@ -55,7 +55,7 @@ type BadgeSetData struct {
 	badges map[string]BadgeData // id to badge
 }
 
-var cachedEmojis map[string]EmoteData //id to emote
+var cachedEmotes map[string]EmoteData //id to emote
 
 var cachedBadges map[string]BadgeSetData //id to set
 
@@ -98,7 +98,7 @@ func TwitchNewToken() (string, error) {
 
 	Token = tokenResp.AccessToken
 
-	if len(cachedEmojis) == 0 {
+	if len(cachedEmotes) == 0 {
 		requestEmotes()
 	}
 	if len(cachedBadges) == 0 {
@@ -197,11 +197,24 @@ func newEmote() EmoteData {
 	return data
 }
 
+func newBadgeSet() BadgeSetData {
+	var data BadgeSetData
+	data.badges = make(map[string]BadgeData)
+
+	return data
+}
+
+func newBadge() BadgeData {
+	var data BadgeData
+	data.image_url = make(map[int]string)
+
+	return data
+}
+
 func requestEmotes() error {
 	const (
-		globalUrl        = "https://api.twitch.tv/helix/chat/emotes/global"
-		channelUrl       = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=%d"
-		broadcasterIdStr = "broadcaster_id"
+		globalUrl  = "https://api.twitch.tv/helix/chat/emotes/global"
+		channelUrl = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=%d"
 	)
 	if Token == "" {
 		return fmt.Errorf("токен доступа отсутствует")
@@ -260,7 +273,7 @@ func requestEmotes() error {
 		return err
 	}
 
-	cachedEmojis = make(map[string]EmoteData)
+	cachedEmotes = make(map[string]EmoteData)
 
 	for _, data := range result.Data {
 		newEmote := newEmote()
@@ -276,7 +289,7 @@ func requestEmotes() error {
 		for _, theme := range data.ThemeMode {
 			newEmote.Theme[theme] = true
 		}
-		cachedEmojis[data.ID] = newEmote
+		cachedEmotes[data.ID] = newEmote
 	}
 
 	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
@@ -315,13 +328,127 @@ func requestEmotes() error {
 		for _, theme := range data.ThemeMode {
 			newEmote.Theme[theme] = true
 		}
-		cachedEmojis[data.ID] = newEmote
+		cachedEmotes[data.ID] = newEmote
 	}
 	return nil
 }
 
-func requestBadges() {
+func requestBadges() error {
+	const (
+		globalUrl  = "https://api.twitch.tv/helix/chat/badges/global"
+		channelUrl = "https://api.twitch.tv/helix/chat/badges?broadcaster_id=%d"
+	)
+	if Token == "" {
+		return fmt.Errorf("токен доступа отсутствует")
+	}
 
+	if broadcasterId == 0 {
+		err := requestBroadcasterId()
+		if err != nil {
+			return err
+		}
+	}
+
+	type VersionJson struct {
+		ID          string  `json:"id"`
+		ImageURL1x  string  `json:"image_url_1x"`
+		ImageURL2x  string  `json:"image_url_2x"`
+		ImageURL4x  string  `json:"image_url_4x"`
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		ClickAction string  `json:"click_action"`
+		ClickURL    *string `json:"click_url"` // Use pointer for nullable field
+	}
+
+	type BadgeSetJson struct {
+		SetID    string        `json:"set_id"`
+		Versions []VersionJson `json:"versions"`
+	}
+
+	type BadgeDataJson struct {
+		Data []BadgeSetJson `json:"data"`
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", clientID)
+
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	var result BadgeDataJson
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Println(string(body))
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return err
+	}
+
+	cachedBadges = make(map[string]BadgeSetData)
+
+	// for _, data := range result.Data {
+	// 	newEmote := newEmote()
+	// 	newEmote.Id = data.ID
+	// 	newEmote.Text = data.Name
+
+	// 	for _, format := range data.Format {
+	// 		newEmote.Format[format] = true
+	// 	}
+	// 	for _, scale := range data.Scale {
+	// 		newEmote.Scale[scale] = true
+	// 	}
+	// 	for _, theme := range data.ThemeMode {
+	// 		newEmote.Theme[theme] = true
+	// 	}
+	// 	cachedEmojis[data.ID] = newEmote
+	// }
+
+	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", clientID)
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	var result2 BadgeDataJson
+
+	body, _ = io.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &result2)
+	if err != nil {
+		return err
+	}
+
+	for _, data := range result2.Data {
+		newBadgeSet := newBadgeSet()
+		newBadgeSet.id = data.SetID
+
+		for _, badge := range data.Versions {
+			newBadge := newBadge()
+			newBadge.id = badge.ID
+			newBadge.description = badge.Description
+		}
+		cachedBadges[data.SetID] = newBadgeSet
+	}
+	return nil
 }
 
 // Структура ответа Twitch
