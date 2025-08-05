@@ -63,7 +63,7 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 }
 
 func twitchLoginProcedure() {
-	services.TwitchLogin()
+	services.TwitchNewToken()
 }
 
 func newStream(a *App) {

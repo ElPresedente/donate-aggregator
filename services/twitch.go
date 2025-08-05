@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,9 +22,10 @@ import (
 var secrets string
 
 var (
-	clientID     string
-	clientSecret string
-	Token        string = ""
+	clientID      string
+	clientSecret  string
+	Token         string = ""
+	broadcasterId int    = 0
 )
 
 const (
@@ -33,17 +35,12 @@ const (
 	redirectUrl = "http://localhost:3000"
 )
 
-func getEmoteUrl(id, format, theme, scale string) string {
-	const emotesTemplateUrl string = "https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/%s/%s"
-	return fmt.Sprintf(emotesTemplateUrl, id, format, theme, scale)
-}
-
 type EmoteData struct {
-	id     string
-	text   string
-	format map[string]bool //присутствуют ли стандартные static/animated
-	scale  map[int]bool    //присутствуют ли стандартные 1.0 2.0 3.0
-	theme  map[string]bool //присутствуют ли стандартные light/dark
+	Id     string
+	Text   string
+	Format map[string]bool //присутствуют ли стандартные static/animated
+	Scale  map[string]bool //присутствуют ли стандартные 1.0 2.0 3.0
+	Theme  map[string]bool //присутствуют ли стандартные light/dark
 }
 
 type BadgeData struct {
@@ -62,6 +59,57 @@ var cachedEmojis map[string]EmoteData //id to emote
 
 var cachedBadges map[string]BadgeSetData //id to set
 
+func TwitchNewToken() (string, error) {
+	setupVars()
+	if res, err := database.CredentialsDB.CheckENVExists("twitchRefreshToken"); err == nil && !res {
+		err = twitchLogin()
+		if err != nil {
+			return Token, nil
+		}
+		return "", err
+	}
+	refreshToken, err := database.CredentialsDB.GetENVValue("twitchRefreshToken")
+	if err != nil {
+		log.Println(err)
+	}
+
+	data := url.Values{}
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
+	data.Set("refresh_token", refreshToken)
+	data.Set("grant_type", "refresh_token")
+
+	resp, err := http.Post(tokenUrl, "application/x-www-form-urlencoded", bytes.NewBufferString(data.Encode()))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("twitch API error: %s", string(body))
+	}
+
+	var tokenResp TokenResponse
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
+		return "", err
+	}
+
+	Token = tokenResp.AccessToken
+
+	if len(cachedEmojis) == 0 {
+		requestEmotes()
+	}
+	if len(cachedBadges) == 0 {
+		requestBadges()
+	}
+
+	return tokenResp.AccessToken, nil
+}
+
+//===============implementation===============
+
 func setupVars() {
 	lines := strings.Split(strings.TrimSpace(secrets), "\n")
 
@@ -75,6 +123,205 @@ func setupVars() {
 	if clientID[len(clientID)-1] == '\r' {
 		clientID = clientID[:len(clientID)-1]
 	}
+}
+
+func requestBroadcasterId() error {
+	const (
+		userUrl = "https://api.twitch.tv/helix/users?login=moonseere"
+	)
+	if Token == "" {
+		return fmt.Errorf("токен доступа отсутствует")
+	}
+
+	req, err := http.NewRequest("GET", userUrl, nil)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", clientID)
+
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	type User struct {
+		ID              string `json:"id"`
+		Login           string `json:"login"`
+		DisplayName     string `json:"display_name"`
+		Type            string `json:"type"`
+		BroadcasterType string `json:"broadcaster_type"`
+		Description     string `json:"description"`
+		ProfileImageURL string `json:"profile_image_url"`
+		OfflineImageURL string `json:"offline_image_url"`
+		ViewCount       int    `json:"view_count"`
+		CreatedAt       string `json:"created_at"`
+	}
+
+	type Response struct {
+		Data []User `json:"data"`
+	}
+
+	var result Response
+	body, _ := io.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return err
+	}
+
+	broadcasterId, err = strconv.Atoi(result.Data[0].ID)
+	return err
+}
+
+func newEmote() EmoteData {
+	var data EmoteData
+	data.Format = make(map[string]bool)
+	data.Format["static"] = false
+	data.Format["animated"] = false
+
+	data.Scale = make(map[string]bool)
+	data.Scale["1.0"] = false
+	data.Scale["2.0"] = false
+	data.Scale["3.0"] = false
+
+	data.Theme = make(map[string]bool)
+	data.Theme["light"] = false
+	data.Theme["dark"] = false
+
+	return data
+}
+
+func requestEmotes() error {
+	const (
+		globalUrl        = "https://api.twitch.tv/helix/chat/emotes/global"
+		channelUrl       = "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=%d"
+		broadcasterIdStr = "broadcaster_id"
+	)
+	if Token == "" {
+		return fmt.Errorf("токен доступа отсутствует")
+	}
+
+	if broadcasterId == 0 {
+		err := requestBroadcasterId()
+		if err != nil {
+			return err
+		}
+	}
+
+	type Images struct {
+		URL1x string `json:"url_1x"`
+		URL2x string `json:"url_2x"`
+		URL4x string `json:"url_4x"`
+	}
+
+	type Emote struct {
+		ID        string   `json:"id"`
+		Name      string   `json:"name"`
+		Images    Images   `json:"images"`
+		Format    []string `json:"format"`
+		Scale     []string `json:"scale"`
+		ThemeMode []string `json:"theme_mode"`
+	}
+
+	type Response struct {
+		Data []Emote `json:"data"`
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", clientID)
+
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	var result Response
+
+	body, _ := io.ReadAll(resp.Body)
+	log.Println(string(body))
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return err
+	}
+
+	cachedEmojis = make(map[string]EmoteData)
+
+	for _, data := range result.Data {
+		newEmote := newEmote()
+		newEmote.Id = data.ID
+		newEmote.Text = data.Name
+
+		for _, format := range data.Format {
+			newEmote.Format[format] = true
+		}
+		for _, scale := range data.Scale {
+			newEmote.Scale[scale] = true
+		}
+		for _, theme := range data.ThemeMode {
+			newEmote.Theme[theme] = true
+		}
+		cachedEmojis[data.ID] = newEmote
+	}
+
+	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", clientID)
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	var result2 Response
+
+	body, _ = io.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &result2)
+	if err != nil {
+		return err
+	}
+
+	for _, data := range result2.Data {
+		newEmote := newEmote()
+		newEmote.Id = data.ID
+		newEmote.Text = data.Name
+
+		for _, format := range data.Format {
+			newEmote.Format[format] = true
+		}
+		for _, scale := range data.Scale {
+			newEmote.Scale[scale] = true
+		}
+		for _, theme := range data.ThemeMode {
+			newEmote.Theme[theme] = true
+		}
+		cachedEmojis[data.ID] = newEmote
+	}
+	return nil
+}
+
+func requestBadges() {
+
 }
 
 // Структура ответа Twitch
@@ -113,8 +360,7 @@ func exchangeCodeForToken(code string) (*TokenResponse, error) {
 	return &tokenResp, nil
 }
 
-func TwitchLogin() {
-	setupVars()
+func twitchLogin() error {
 	codeChan := make(chan string)
 
 	mux := http.NewServeMux()
@@ -146,57 +392,28 @@ func TwitchLogin() {
 
 	err := browser.OpenURL(authURL)
 	if err != nil {
-		log.Fatalln("Ошибка в отрытии ссылки на авторизацию")
-		return
+		return fmt.Errorf("ошибка в отрытии ссылки на авторизацию")
 	}
 	var code string
 	select {
 	case code = <-codeChan:
 	case <-time.After(90 * time.Second):
-		log.Println("timeout")
-		return
+		return fmt.Errorf("timeout")
 	}
 
 	token, err := exchangeCodeForToken(code)
 	if err != nil {
-		log.Println("Error exchanging code:", err)
-		return
+		return fmt.Errorf("error exchanging code: %s", err)
 	}
 
 	log.Println("User access token:", token.AccessToken)
 
 	database.CredentialsDB.UpdateENVValue("twitchRefreshToken", token.RefreshToken)
 	Token = token.AccessToken
+	return nil
 }
 
-func TwitchNewToken() (string, error) {
-	refreshToken, err := database.CredentialsDB.GetENVValue("twitchRefreshToken")
-	if err != nil {
-		log.Println(err)
-	}
-
-	data := url.Values{}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
-	data.Set("refresh_token", refreshToken)
-	data.Set("grant_type", "refresh_token")
-
-	resp, err := http.Post(tokenUrl, "application/x-www-form-urlencoded", bytes.NewBufferString(data.Encode()))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("twitch API error: %s", string(body))
-	}
-
-	var tokenResp TokenResponse
-	err = json.Unmarshal(body, &tokenResp)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenResp.AccessToken, nil
+func getEmoteUrl(id, format, theme, scale string) string {
+	const emotesTemplateUrl string = "https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/%s/%s"
+	return fmt.Sprintf(emotesTemplateUrl, id, format, theme, scale)
 }
