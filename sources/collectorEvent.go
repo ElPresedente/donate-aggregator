@@ -10,7 +10,7 @@ type CollectorEvent struct {
 func NewCollectorEvent(eventTypeName string, eventRef any) (CollectorEvent, error) {
 	eventType, err := NewEventType(eventTypeName)
 	if err != nil {
-		return CollectorEvent{}, fmt.Errorf("Ошибка создания доната: %v", err)
+		return CollectorEvent{}, fmt.Errorf("ошибка создания доната: %v", err)
 	}
 
 	event := CollectorEvent{

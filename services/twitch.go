@@ -22,10 +22,10 @@ import (
 var secrets string
 
 var (
-	clientID      string
+	ClientID      string
 	clientSecret  string
 	Token         string = ""
-	broadcasterId int    = 0
+	BroadcasterId int    = 0
 )
 
 const (
@@ -59,6 +59,10 @@ var cachedEmotes map[string]EmoteData //id to emote
 
 var cachedBadges map[string]BadgeSetData //id to set
 
+func TwitchHasAuth() (bool, error) {
+	return database.CredentialsDB.CheckENVExists("twitchRefreshToken")
+}
+
 func TwitchNewToken() (string, error) {
 	setupVars()
 	if res, err := database.CredentialsDB.CheckENVExists("twitchRefreshToken"); err == nil && !res {
@@ -74,7 +78,7 @@ func TwitchNewToken() (string, error) {
 	}
 
 	data := url.Values{}
-	data.Set("client_id", clientID)
+	data.Set("client_id", ClientID)
 	data.Set("client_secret", clientSecret)
 	data.Set("refresh_token", refreshToken)
 	data.Set("grant_type", "refresh_token")
@@ -117,11 +121,11 @@ func setupVars() {
 	if len(lines) != 2 {
 		panic("Ошибка: файл twitch_client_credentials.txt должен содержать ровно 2 строки")
 	}
-	clientID = lines[0]
+	ClientID = lines[0]
 	clientSecret = lines[1]
 
-	if clientID[len(clientID)-1] == '\r' {
-		clientID = clientID[:len(clientID)-1]
+	if ClientID[len(ClientID)-1] == '\r' {
+		ClientID = ClientID[:len(ClientID)-1]
 	}
 }
 
@@ -140,7 +144,7 @@ func requestBroadcasterId() error {
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
-	req.Header.Set("Client-Id", clientID)
+	req.Header.Set("Client-Id", ClientID)
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -175,7 +179,7 @@ func requestBroadcasterId() error {
 		return err
 	}
 
-	broadcasterId, err = strconv.Atoi(result.Data[0].ID)
+	BroadcasterId, err = strconv.Atoi(result.Data[0].ID)
 	return err
 }
 
@@ -220,7 +224,7 @@ func requestEmotes() error {
 		return fmt.Errorf("токен доступа отсутствует")
 	}
 
-	if broadcasterId == 0 {
+	if BroadcasterId == 0 {
 		err := requestBroadcasterId()
 		if err != nil {
 			return err
@@ -246,14 +250,14 @@ func requestEmotes() error {
 		Data []Emote `json:"data"`
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf(channelUrl, BroadcasterId), nil)
 
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
-	req.Header.Set("Client-Id", clientID)
+	req.Header.Set("Client-Id", ClientID)
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -292,14 +296,14 @@ func requestEmotes() error {
 		cachedEmotes[data.ID] = newEmote
 	}
 
-	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, BroadcasterId), nil)
 
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
-	req.Header.Set("Client-Id", clientID)
+	req.Header.Set("Client-Id", ClientID)
 
 	resp, err = client.Do(req)
 	if err != nil {
@@ -342,7 +346,7 @@ func requestBadges() error {
 		return fmt.Errorf("токен доступа отсутствует")
 	}
 
-	if broadcasterId == 0 {
+	if BroadcasterId == 0 {
 		err := requestBroadcasterId()
 		if err != nil {
 			return err
@@ -369,14 +373,14 @@ func requestBadges() error {
 		Data []BadgeSetJson `json:"data"`
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+	req, err := http.NewRequest("GET", globalUrl, nil)
 
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
-	req.Header.Set("Client-Id", clientID)
+	req.Header.Set("Client-Id", ClientID)
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -398,31 +402,30 @@ func requestBadges() error {
 
 	cachedBadges = make(map[string]BadgeSetData)
 
-	// for _, data := range result.Data {
-	// 	newEmote := newEmote()
-	// 	newEmote.Id = data.ID
-	// 	newEmote.Text = data.Name
+	for _, data := range result.Data {
+		newBadgeSet := newBadgeSet()
+		newBadgeSet.id = data.SetID
 
-	// 	for _, format := range data.Format {
-	// 		newEmote.Format[format] = true
-	// 	}
-	// 	for _, scale := range data.Scale {
-	// 		newEmote.Scale[scale] = true
-	// 	}
-	// 	for _, theme := range data.ThemeMode {
-	// 		newEmote.Theme[theme] = true
-	// 	}
-	// 	cachedEmojis[data.ID] = newEmote
-	// }
+		for _, badge := range data.Versions {
+			newBadge := newBadge()
+			newBadge.id = badge.ID
+			newBadge.description = badge.Description
+			newBadge.title = badge.Title
+			newBadge.image_url[1] = badge.ImageURL1x
+			newBadge.image_url[2] = badge.ImageURL2x
+			newBadge.image_url[3] = badge.ImageURL4x
+		}
+		cachedBadges[data.SetID] = newBadgeSet
+	}
 
-	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, broadcasterId), nil)
+	req, err = http.NewRequest("GET", fmt.Sprintf(channelUrl, BroadcasterId), nil)
 
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
-	req.Header.Set("Client-Id", clientID)
+	req.Header.Set("Client-Id", ClientID)
 
 	resp, err = client.Do(req)
 	if err != nil {
@@ -461,7 +464,7 @@ type TokenResponse struct {
 
 func exchangeCodeForToken(code string) (*TokenResponse, error) {
 	data := url.Values{}
-	data.Set("client_id", clientID)
+	data.Set("client_id", ClientID)
 	data.Set("client_secret", clientSecret)
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
@@ -515,7 +518,7 @@ func twitchLogin() error {
 	defer httpServer.Shutdown(ctx)
 	scopesParam := strings.ReplaceAll(scopes, " ", "+")
 	authURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s",
-		authUrl, clientID, redirectUrl, scopesParam)
+		authUrl, ClientID, redirectUrl, scopesParam)
 
 	err := browser.OpenURL(authURL)
 	if err != nil {
