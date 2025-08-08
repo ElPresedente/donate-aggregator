@@ -112,7 +112,76 @@ func TwitchNewToken() (string, error) {
 	return tokenResp.AccessToken, nil
 }
 
+func TwitchSubscribeChatMessages(sessionId string) error {
+	return twitchSubscribe(sessionId, "channel.chat.message", map[string]string{
+		"broadcaster_user_id": strconv.Itoa(BroadcasterId),
+		"user_id":             strconv.Itoa(BroadcasterId),
+	})
+}
+
+func TwitchSubscribeRewardRedemption(sessionId string) error {
+	return twitchSubscribe(sessionId, "channel.channel_points_custom_reward_redemption.add", map[string]string{
+		"broadcaster_user_id": strconv.Itoa(BroadcasterId),
+	})
+}
+
 //===============implementation===============
+
+type eventSubRequest struct {
+	Type      string            `json:"type"`
+	Version   string            `json:"version"`
+	Condition map[string]string `json:"condition"`
+	Transport map[string]string `json:"transport"`
+}
+
+func twitchSubscribe(sessionId, eventType string, condition map[string]string) error {
+	if Token == "" {
+		return fmt.Errorf("токен доступа отсутствует")
+	}
+
+	reqBody := eventSubRequest{
+		Type:      eventType,
+		Version:   "1",
+		Condition: condition,
+		Transport: map[string]string{
+			"method":     "websocket",
+			"session_id": sessionId,
+		},
+	}
+
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	const url = "https://api.twitch.tv/helix/eventsub/subscriptions"
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", Token))
+	req.Header.Set("Client-Id", ClientID)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("twitch subscribe error: %s", string(respBody))
+	}
+
+	return nil
+}
 
 func setupVars() {
 	lines := strings.Split(strings.TrimSpace(secrets), "\n")
