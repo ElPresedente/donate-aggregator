@@ -15,15 +15,15 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 
 	switch endpoint {
 	// Получение предметов по ID группы
-	case "getItemsByGroupId":
-		getItemsByGroupId(a.ctx, argJSON)
+	case "getSectorsByCategoryId":
+		getSectorsByCategoryId(a.ctx, argJSON)
 
-	case "itemsToSave":
-		itemsToSave(a.ctx, argJSON)
+	case "sectorsToSave":
+		sectorsToSave(a.ctx, argJSON)
 
 	// Получение всех групп и их итемов
-	case "getGroups":
-		getGroups(a.ctx)
+	case "getSectors":
+		getSectors(a.ctx)
 
 	case "getSettings":
 		getSettings(a.ctx)
@@ -69,7 +69,7 @@ func twitchLoginProcedure() {
 func newStream(a *App) {
 	database.LogDB.ClearDatabase()
 	a.logic.ReloadRoulette()
-	runtime.EventsEmit(a.ctx, "logNumData", map[string]any{})
+	runtime.EventsEmit(a.ctx, "logData", map[string]any{})
 }
 
 func getLogs(ctx context.Context) {
@@ -86,7 +86,7 @@ func getLogs(ctx context.Context) {
 			"value": item.Item,
 		})
 	}
-	runtime.EventsEmit(ctx, "logNumData", formattedItems)
+	runtime.EventsEmit(ctx, "logData", formattedItems)
 }
 
 func manualRouletteSpin(a *App) {
@@ -109,122 +109,122 @@ func reloadRoulette(a *App) {
 	a.logic.ReloadRoulette()
 }
 
-func getItemsByGroupId(ctx context.Context, data string) {
+func getSectorsByCategoryId(ctx context.Context, data string) {
 	var payload struct {
-		GroupID int `json:"group_id"`
+		CategoryID int `json:"category_id"`
 	}
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		log.Println("❌ Ошибка парсинга JSON:", err)
 		return
 	}
-	items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
+	sectors, err := database.WidgetDB.GetSectorsByCategoryID(payload.CategoryID)
 	if err != nil {
 		log.Println("❌ Ошибка при получении предметов:", err)
 		return
 	}
 
-	var formattedItems []map[string]interface{}
-	for _, item := range items {
-		formattedItems = append(formattedItems, map[string]interface{}{
-			"id":     item.ID,
-			"data":   item.Name,
+	var formattedSectors []map[string]interface{}
+	for _, sector := range sectors {
+		formattedSectors = append(formattedSectors, map[string]interface{}{
+			"id":     sector.ID,
+			"data":   sector.Name,
 			"status": nil,
 		})
 	}
-	runtime.EventsEmit(ctx, "itemsByGroupIdData", formattedItems)
+	runtime.EventsEmit(ctx, "SectorsByCategoryIdData", formattedSectors)
 }
 
-func itemsToSave(ctx context.Context, data string) {
+func sectorsToSave(ctx context.Context, data string) {
 	var payload struct {
-		GroupID int `json:"id"` //Если потом произойдет логичный ренейм в групID, то тут тоже поменять
-		Items   []struct {
+		CategoryID int `json:"id"`
+		Sectors    []struct {
 			ID     int     `json:"id"`
 			Data   string  `json:"data"`
 			Status *string `json:"status"` // может быть null
-		} `json:"items"`
+		} `json:"sectors"`
 	}
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
-		log.Println("❌ Ошибка парсинга JSON itemsToSave:", err)
+		log.Println("❌ Ошибка парсинга JSON sectorsToSave:", err)
 		return
 	}
 	log.Println(payload)
 
-	for _, item := range payload.Items {
+	for _, sector := range payload.Sectors {
 		switch {
-		case item.Status == nil:
+		case sector.Status == nil:
 			continue
 
-		case *item.Status == "add":
-			err := database.RouletteDB.AddItem(payload.GroupID, item.Data)
+		case *sector.Status == "add":
+			err := database.WidgetDB.AddSector(payload.CategoryID, sector.Data)
 			if err != nil {
 				log.Printf("❌ Ошибка добавления: %v", err)
 			}
 
-		case *item.Status == "edit":
-			err := database.RouletteDB.UpdateItem(item.ID, item.Data)
+		case *sector.Status == "edit":
+			err := database.WidgetDB.UpdateSector(sector.ID, sector.Data)
 			if err != nil {
 				log.Printf("❌ Ошибка обновления: %v", err)
 			}
 
-		case *item.Status == "delete":
-			err := database.RouletteDB.DeleteItem(item.ID)
+		case *sector.Status == "delete":
+			err := database.WidgetDB.DeleteSector(sector.ID)
 			if err != nil {
 				log.Printf("❌ Ошибка удаления: %v", err)
 			}
 
 		default:
-			log.Printf("⚠️ Неизвестный статус '%v' для элемента ID %d", *item.Status, item.ID)
+			log.Printf("⚠️ Неизвестный статус '%v' для элемента ID %d", *sector.Status, sector.ID)
 		}
 	}
 
-	items, err := database.RouletteDB.GetItemsByGroupID(payload.GroupID)
+	sectors, err := database.WidgetDB.GetSectorsByCategoryID(payload.CategoryID)
 	if err != nil {
 		log.Println("❌ Ошибка при повторном получении предметов:", err)
 		return
 	}
 
-	var formattedItems []map[string]interface{}
-	for _, item := range items {
-		formattedItems = append(formattedItems, map[string]interface{}{
-			"id":     item.ID,
-			"data":   item.Name,
+	var formattedSectors []map[string]interface{}
+	for _, sector := range sectors {
+		formattedSectors = append(formattedSectors, map[string]interface{}{
+			"id":     sector.ID,
+			"data":   sector.Name,
 			"status": nil,
 		})
 	}
-	runtime.EventsEmit(ctx, "itemsByGroupIdData", formattedItems)
+	runtime.EventsEmit(ctx, "sectorsByCategoryIdData", formattedSectors)
 }
 
-func getGroups(ctx context.Context) {
-	groups, err := database.RouletteDB.GetRouletteGroups()
+func getSectors(ctx context.Context) {
+	sectors, err := database.WidgetDB.GetRouletteCategorys()
 	if err != nil {
 		log.Println("❌ Ошибка при получении предметов:", err)
 		return
 	}
 	result := make([]map[string]interface{}, 0)
 
-	for _, group := range groups {
-		items, err := database.RouletteDB.GetItemsByGroupID(group.ID)
+	for _, sector := range sectors {
+		sectors, err := database.WidgetDB.GetSectorsByCategoryID(sector.ID)
 		if err != nil {
-			log.Printf("❌ Ошибка при получении предметов для группы %d: %s", group.ID, err)
+			log.Printf("❌ Ошибка при получении предметов для группы %d: %s", sector.ID, err)
 			continue // пропускаем группу, если что-то пошло не так
 		}
 
-		itemNames := make([]string, 0, len(items))
-		for _, item := range items {
-			itemNames = append(itemNames, item.Name)
+		sectorNames := make([]string, 0, len(sectors))
+		for _, sector := range sectors {
+			sectorNames = append(sectorNames, sector.Name)
 		}
 
-		groupData := map[string]interface{}{
-			"title":      group.Name,
-			"items":      itemNames,
-			"percentage": group.Percentage,
-			"color":      group.Color,
+		sectorData := map[string]interface{}{
+			"title":      sector.Name,
+			"sectors":    sectorNames,
+			"percentage": sector.Percentage,
+			"color":      sector.Color,
 		}
-		result = append(result, groupData)
+		result = append(result, sectorData)
 		log.Println("✅ Группы:", result)
 		// Отправляем на фронт
-		runtime.EventsEmit(ctx, "groupsData", result)
+		runtime.EventsEmit(ctx, "sectorsData", result)
 	}
 }
 

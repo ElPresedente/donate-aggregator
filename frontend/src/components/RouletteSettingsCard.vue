@@ -8,8 +8,8 @@
     </div>
     
     <ul>
-      <template v-if="items.length > 0">
-        <li v-for="item in items" :key="item">{{ item }}</li>
+      <template v-if="sectors.length > 0">
+        <li v-for="item in sectors" :key="item">{{ item }}</li>
       </template>
       <template v-else>
         <li>...</li>
@@ -26,7 +26,7 @@ export default {
   name: 'Card',
   props: {
     title: String,
-    items: Array,
+    sectors: Array,
     percentage: Number,
     color: {
       type: String,

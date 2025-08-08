@@ -17,6 +17,7 @@ export default {
     ControlPanel
   },
   setup() {
+    
   },
   data() {
     return {

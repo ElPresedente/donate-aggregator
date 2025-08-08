@@ -36,12 +36,12 @@ export default {
     const localItems = ref([]);
     onMounted(() => {
       unsubscribes.push(
-        window.runtime.EventsOn('itemsByGroupIdData', (data) => {
+        window.runtime.EventsOn('SectorsByCategoryIdData', (data) => {
           if(data)
             localItems.value = data // ← обновляем реактивно
         })
       );
-      FrontendDispatcher("getItemsByGroupId", JSON.stringify({group_id: index }));
+      FrontendDispatcher("getSectorsByCategoryId", JSON.stringify({category_id: index }));
     });
     onUnmounted(() => {
       unsubscribes.forEach(unsub => unsub());
@@ -67,14 +67,14 @@ export default {
       }
     }
     const saveChanges = () => {
-      const itemsToSave = localItems.value.filter(
+      const sectorsToSave = localItems.value.filter(
         item => item.data.trim() !== ''
       );
       const data = {
         id: index,
-        items: itemsToSave
+        sectors: sectorsToSave
       };
-      FrontendDispatcher("itemsToSave", JSON.stringify(data));
+      FrontendDispatcher("sectorsToSave", JSON.stringify(data));
     }
     
     const goBack = () => router.go(-1);

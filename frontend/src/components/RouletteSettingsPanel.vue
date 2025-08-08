@@ -4,7 +4,7 @@
       v-for="(category, index) in categories"
       :key="index"
       :title="category.title"
-      :items="category.items"
+      :sectors="category.sectors"
       :percentage="category.percentage"
       :color="category.color"
       :index="index"
@@ -31,11 +31,11 @@ export default {
     const categories = ref([])
     onMounted(() => {
       unsubscribes.push(
-        window.runtime.EventsOn('groupsData', (data) => {
+        window.runtime.EventsOn('sectorsData', (data) => {
           categories.value = data 
         })
       );
-      FrontendDispatcher("getGroups", "");
+      FrontendDispatcher("getSectors", "");
     });
     onUnmounted(() => {
       unsubscribes.forEach(unsub => unsub());

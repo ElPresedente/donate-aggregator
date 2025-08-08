@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	_ "embed"
 	"log"
 	"strings"
@@ -40,15 +41,16 @@ func migrateFrom007To008() {
 		}
 		values[key] = val
 	}
+
 	// Пример вставки
 	/*
 		for key, val := range values {
-			err := RouletteDB.InsertENVValue(key, val)
+			err := WidgetDB.InsertENVValue(key, val)
 			if err != nil {
-				log.Printf("❌ Не удалось вставить %s в RouletteDB: %v", key, err)
+				log.Printf("❌ Не удалось вставить %s в WidgetDB: %v", key, err)
 				continue
 			}
-			log.Printf("✅ Перенесено %s в RouletteDB", key)
+			log.Printf("✅ Перенесено %s в WidgetDB", key)
 		}
 	*/
 
@@ -61,5 +63,50 @@ func migrateFrom007To008() {
 		log.Printf("🧹 Удалено %s из CredentialsDB", key)
 	}
 
-	log.Println("✅ Значения rollPrice и rollPriceIncrease успешно перенесены в RouletteDB.")
+	log.Println("✅ Значения rollPrice и rollPriceIncrease успешно перенесены в WidgetDB.")
+}
+
+func (wd *WidgetsDatabase) InitNewBase007To008() {
+	var err error
+	wd.db, err = sql.Open("sqlite", "./Widgets.db")
+	if err != nil {
+		log.Printf("❌ Ошибка подключения к базе WidgetsDB: %s", err)
+	}
+
+	if err = wd.db.Ping(); err != nil {
+		log.Fatal("❌Ошибка пинга БД:", err)
+	}
+
+	_, err = wd.db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		log.Fatal("Ошибка включения foreign_keys:", err)
+	}
+
+	//КОРОЧЕ ДОПИЛИТЬ ЧТОБЫ ИНСЕРТЫ ДЕЛАЛИСЬ ОДИН РАЗ ПРИ СОЗДАНИИ
+	createTableQuery := `
+	CREATE TABLE IF NOT EXISTS RouletteSettings (
+        name TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS RouletteCategory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        chance REAL NOT NULL,
+		color TEXT NOT NULL
+    );
+	
+	CREATE TABLE IF NOT EXISTS RouletteSector (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+		group_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+		FOREIGN KEY (group_id) REFERENCES RouletteSectorGroup(id)
+    );
+	`
+
+	_, err = wd.db.Exec(createTableQuery)
+	if err != nil {
+		log.Printf("❌ Ошибка создания таблиц в WidgetsDB: %s", err)
+	}
+	//WidgetDB.seedDefaultGroups()
 }

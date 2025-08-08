@@ -87,7 +87,7 @@ func (r *Roulette) UpdateDataFromDB() {
 
 	r.rollPriceIncrease = dbRollIncreasePriceInt
 
-	categories, err := database.RouletteDB.GetRouletteGroups()
+	categories, err := database.WidgetDB.GetRouletteCategorys()
 
 	if err != nil {
 		log.Printf("❌ Ошибка получения категорий: %s", err)
@@ -98,7 +98,7 @@ func (r *Roulette) UpdateDataFromDB() {
 		newCategory.name = category.Name
 		newCategory.probability = int(category.Percentage * 100)
 
-		sectors, err := database.RouletteDB.GetItemsByGroupID(category.ID)
+		sectors, err := database.WidgetDB.GetSectorsByCategoryID(category.ID)
 		if err != nil {
 			log.Printf("❌ Ошибка получения секторов: %s", err)
 		}

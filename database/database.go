@@ -5,17 +5,17 @@ import (
 )
 
 var CredentialsDB CredentialsDatabase
-var RouletteDB RouletteDatabase
+var WidgetDB WidgetsDatabase
 var LogDB LogDatabase
 
 func InitDatabases() {
 	CredentialsDB.Init()
-	RouletteDB.Init()
+	WidgetDB.Init()
 	LogDB.Init()
 }
 
 func CloseDatabases() {
 	CredentialsDB.db.Close()
-	RouletteDB.db.Close()
+	WidgetDB.db.Close()
 	LogDB.db.Close()
 }

@@ -33,7 +33,7 @@ onMounted(() => {
     window.runtime.EventsOn('toastExec', (data) => {
       toastStore.showToast(data.message, data.type, 3000)
     })
-    window.runtime.EventsOn('logNumData', (newData) => {
+    window.runtime.EventsOn('logData', (newData) => {
       console.log(newData)
       if(newData != null){
         logStore.rouletteHistory = [];
