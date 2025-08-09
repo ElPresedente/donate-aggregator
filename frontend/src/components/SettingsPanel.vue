@@ -97,18 +97,6 @@ export default {
     ]
     const otherSettingsCfg = [
       {
-        name: 'rollPrice',
-        label: 'Цена прокрутки рулетки в рублях',
-        type: 'number',
-        placeholder: 'Введите цену',
-      },
-      {
-        name: 'rollPriceIncrease',
-        label: 'Увеличение цены прокрутки рулетки в рублях',
-        type: 'number',
-        placeholder: 'Введите цену',
-      },
-      {
         name: 'logEnabled',
         label: 'Записывать лог программы в файл',
         type: 'checkbox',
@@ -116,7 +104,7 @@ export default {
     ]
     const donatty = ref([{donattyToken: '', donattyUrl: ''}])
     const donatpay = ref([{donatpayToken: '', donatpayUserId: ''}])
-    const otherSettings = ref([{rollPrice: ''}])
+    const otherSettings = ref([])
 
     const updateFormData = (target, newData) => {
       if (target === 'donatty')         donatty.value = newData
@@ -132,8 +120,6 @@ export default {
           {name: "donatpayToken",    value: donatpay.value.donatpayToken},
           {name: "donatpayUserId",   value: donatpay.value.donatpayUserId},
           {name: "donatpayDomain",   value: donatpay.value.donatpayDomain},
-          {name: "rollPrice",        value: String(otherSettings.value.rollPrice)},
-          {name: "rollPriceIncrease",value: String(otherSettings.value.rollPriceIncrease)},
           {name: "logEnabled",       value: String(otherSettings.value.logEnabled)}
         ]
       }
@@ -160,12 +146,6 @@ export default {
                 break;
               case 'donatpayDomain':
                 donatpay.value.donatpayDomain = setting.value;
-                break;
-              case 'rollPrice':
-                otherSettings.value.rollPrice = setting.value;
-                break;
-              case 'rollPriceIncrease':
-                otherSettings.value.rollPriceIncrease = setting.value;
                 break;
               case 'logEnabled':
                 otherSettings.value.logEnabled = setting.value;
