@@ -138,12 +138,12 @@ export default {
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
-      showExampleNotification()
+      showExampleNotification() //Что это блять за функция?
       // Отправка на сервер
     }
     onMounted(() =>{
       unsubscribes.push(
-        window.runtime.EventsOn('SettingsData', (data) => {
+        window.runtime.EventsOn('settingsData', (data) => {
           data.forEach(setting => {
             switch (setting.name) {
               case 'donattyToken':

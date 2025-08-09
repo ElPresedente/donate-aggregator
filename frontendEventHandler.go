@@ -22,8 +22,8 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		sectorsToSave(a.ctx, argJSON)
 
 	// Получение всех групп и их итемов
-	case "getSectors":
-		getSectors(a.ctx)
+	case "getRouletteSectors":
+		getRouletteSectors(a.ctx)
 
 	case "getSettings":
 		getSettings(a.ctx)
@@ -131,7 +131,7 @@ func getSectorsByCategoryId(ctx context.Context, data string) {
 			"status": nil,
 		})
 	}
-	runtime.EventsEmit(ctx, "SectorsByCategoryIdData", formattedSectors)
+	runtime.EventsEmit(ctx, "sectorsByCategoryIdData", formattedSectors)
 }
 
 func sectorsToSave(ctx context.Context, data string) {
@@ -195,7 +195,7 @@ func sectorsToSave(ctx context.Context, data string) {
 	runtime.EventsEmit(ctx, "sectorsByCategoryIdData", formattedSectors)
 }
 
-func getSectors(ctx context.Context) {
+func getRouletteSectors(ctx context.Context) {
 	sectors, err := database.WidgetDB.GetRouletteCategorys()
 	if err != nil {
 		log.Println("❌ Ошибка при получении предметов:", err)
@@ -243,7 +243,7 @@ func getSettings(ctx context.Context) {
 		}
 		result = append(result, settingsData)
 	}
-	runtime.EventsEmit(ctx, "SettingsData", result)
+	runtime.EventsEmit(ctx, "settingsData", result)
 }
 
 func updateSettings(a *App, data string) {

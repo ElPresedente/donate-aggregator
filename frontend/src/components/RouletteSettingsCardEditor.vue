@@ -36,7 +36,7 @@ export default {
     const localItems = ref([]);
     onMounted(() => {
       unsubscribes.push(
-        window.runtime.EventsOn('SectorsByCategoryIdData', (data) => {
+        window.runtime.EventsOn('sectorsByCategoryIdData', (data) => {
           if(data)
             localItems.value = data // ← обновляем реактивно
         })
