@@ -78,7 +78,7 @@ func (wd *WidgetsDatabase) initDefaultData() {
 	WidgetDB.initDefaultCategorys()
 }
 
-func (wd *WidgetsDatabase) checkSettingsExist(names []string) (map[string]bool, error) {
+func (wd *WidgetsDatabase) CheckSettingsExist(names []string) (map[string]bool, error) {
 	exists := make(map[string]bool)
 	for _, name := range names {
 		var count int
@@ -94,7 +94,7 @@ func (wd *WidgetsDatabase) checkSettingsExist(names []string) (map[string]bool, 
 
 func (wd *WidgetsDatabase) initDefaultSettings() {
 	names := []string{"rollPrice", "rollPriceIncrease"}
-	exists, err := wd.checkSettingsExist(names)
+	exists, err := wd.CheckSettingsExist(names)
 
 	if err != nil {
 		log.Fatal(err)

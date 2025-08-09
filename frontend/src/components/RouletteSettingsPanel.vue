@@ -64,11 +64,11 @@ export default {
     const handleSave = () => {
       const settingsToSave = {
         settings:  [
-          {name: "rollPrice",        value: String(otherSettings.value.rollPrice)},
-          {name: "rollPriceIncrease",value: String(otherSettings.value.rollPriceIncrease)},
+          {name: "rollPrice",        value: String(rouletteSettings.value.rollPrice)},
+          {name: "rollPriceIncrease",value: String(rouletteSettings.value.rollPriceIncrease)},
         ]
       }
-      FrontendDispatcher("updateRouletteSettings", JSON.stringify(settingsToSave)); //НЕТ ВО ФРОНТЕНД ДИСПЕТЧЕРЕ
+      FrontendDispatcher("updateRouletteSettings", JSON.stringify(settingsToSave));
     }
     onMounted(() => {
       unsubscribes.push(
@@ -76,14 +76,14 @@ export default {
           categories.value = data 
         })
       );
-      window.runtime.EventsOn('rouletteSettingsData', (data) => { //НЕТ ВО ФРОНТЕНД ДИСПЕТЧЕРЕ
+      window.runtime.EventsOn('rouletteSettingsData', (data) => {
         data.forEach(setting => {
           switch (setting.name) {
             case 'rollPrice':
-              otherSettings.value.rollPrice = setting.value;
+              rouletteSettings.value.rollPrice = setting.value;
               break;
             case 'rollPriceIncrease':
-              otherSettings.value.rollPriceIncrease = setting.value;
+              rouletteSettings.value.rollPriceIncrease = setting.value;
               break;
             default:
               console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);
@@ -97,6 +97,7 @@ export default {
       unsubscribes.forEach(unsub => unsub());
     });
     return { 
+      handleSave,
       rouletteSettings,
       categories,
       rouletteSettingsCfg,

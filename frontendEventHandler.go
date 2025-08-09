@@ -25,6 +25,12 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	case "getRouletteSectors":
 		getRouletteSectors(a.ctx)
 
+	case "updateRouletteSettings":
+		updateRouletteSettings(a, argJSON)
+
+	case "getRouletteSettings":
+		getRouletteSettings(a.ctx)
+
 	case "getSettings":
 		getSettings(a.ctx)
 
@@ -193,6 +199,65 @@ func sectorsToSave(ctx context.Context, data string) {
 		})
 	}
 	runtime.EventsEmit(ctx, "sectorsByCategoryIdData", formattedSectors)
+}
+
+func getRouletteSettings(ctx context.Context) {
+	rouletteSettings, err := database.WidgetDB.GetRouletteSettings()
+	if err != nil {
+		log.Println("❌ Ошибка при получении настроек:", err)
+		return
+	}
+	result := make([]map[string]interface{}, 0)
+
+	for _, setting := range rouletteSettings {
+		rouletteSettingsData := map[string]interface{}{
+			"name":  setting.Name,
+			"value": setting.Value,
+		}
+		result = append(result, rouletteSettingsData)
+	}
+	runtime.EventsEmit(ctx, "rouletteSettingsData", result)
+}
+
+func updateRouletteSettings(a *App, data string) {
+	var payload struct {
+		RouletteSettings []struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		} `json:"settings"`
+	}
+
+	if err := json.Unmarshal([]byte(data), &payload); err != nil {
+		log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
+		return
+	}
+	names := make([]string, len(payload.RouletteSettings))
+	for i, setting := range payload.RouletteSettings {
+		names[i] = setting.Name
+	}
+
+	existsMap, err := database.WidgetDB.CheckSettingsExist(names)
+	if err != nil {
+		log.Printf("❌ Ошибка проверки существования настроек: %v", err)
+		return
+	}
+
+	for _, setting := range payload.RouletteSettings {
+		if existsMap[setting.Name] {
+			database.WidgetDB.UpdateRouletteSettingValue(setting.Name, setting.Value)
+		} else {
+			database.WidgetDB.InsertRouletteSettingValue(setting.Name, setting.Value)
+		}
+	}
+	if a.collManager.IsActive() {
+		reconnectAllCollector(a) //ВОТ ТУТ ФУНКЦИЯ НА РЕКОНЕКТ РУЛЕТКИ
+	}
+
+	toastData := map[string]interface{}{
+		"message": "Данные сохранены",
+		"type":    "success",
+	}
+	runtime.EventsEmit(a.ctx, "toastExec", toastData)
 }
 
 func getRouletteSectors(ctx context.Context) {

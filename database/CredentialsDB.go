@@ -23,7 +23,6 @@ type ENVVariable struct {
 //	donattyUrl		- URL donatty
 //	donatpayToken	- токен donatpay
 //	donatpayUserId	- UserId donatpay
-//	rollPrice 		- цена прокрута рулетки
 
 func (c *CredentialsDatabase) Init() {
 	var err error
@@ -66,7 +65,7 @@ func (c *CredentialsDatabase) checkRecordsExist(names []string) (map[string]bool
 }
 
 func (c *CredentialsDatabase) InitDefaultVariable() {
-	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "donatpayDomain", "twitchRefreshToken", "rollPrice", "rollPriceIncrease", "logEnabled"}
+	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "donatpayDomain", "twitchRefreshToken", "logEnabled"}
 	exists, err := c.checkRecordsExist(names)
 
 	if err != nil {
@@ -80,8 +79,6 @@ func (c *CredentialsDatabase) InitDefaultVariable() {
 		"donatpayUserId":     "",
 		"donatpayDomain":     ".eu",
 		"twitchRefreshToken": "",
-		"rollPrice":          "100",
-		"rollPriceIncrease":  "0",
 		"logEnabled":         "false",
 	}
 

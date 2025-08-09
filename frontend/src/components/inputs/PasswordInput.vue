@@ -5,6 +5,7 @@
       :placeholder="placeholder"
       :id="id"
       :name="name"
+      autocomplete="off"
       class="custom-input"
       v-model="inputValue"
     />

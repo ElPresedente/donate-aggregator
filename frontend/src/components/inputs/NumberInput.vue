@@ -5,6 +5,7 @@
     @input="onInput"
     @keypress="onKeyPress"
     @paste="onPaste"
+    autocomplete="off"
     class="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
     :placeholder="placeholder"
   />

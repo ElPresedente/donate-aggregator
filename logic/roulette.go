@@ -61,11 +61,11 @@ func (r *Roulette) ManualSpin(l *Logic) {
 }
 
 func (r *Roulette) UpdateDataFromDB() {
-	dbRollPrice, err := database.CredentialsDB.GetENVValue("rollPrice")
+	dbRollPrice, err := database.WidgetDB.GetRouletteSettingValue("rollPrice")
 	if err != nil {
 		log.Printf("❌ Ошибка получения стоимости прокрута: %s", err)
 	}
-	dbRollIncreasePrice, err := database.CredentialsDB.GetENVValue("rollPriceIncrease")
+	dbRollIncreasePrice, err := database.WidgetDB.GetRouletteSettingValue("rollPriceIncrease")
 
 	if err != nil {
 		log.Printf("❌ Ошибка получения размера увеличения стоимости прокрута: %s", err)
