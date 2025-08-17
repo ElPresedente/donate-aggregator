@@ -60,12 +60,31 @@ var cachedEmotes map[string]EmoteData //id to emote
 var cachedBadges map[string]BadgeSetData //id to set
 
 func TwitchHasAuth() (bool, error) {
-	return database.CredentialsDB.CheckENVExists("twitchRefreshToken")
+	res, err := database.CredentialsDB.CheckENVExists("twitchRefreshToken")
+	if err != nil {
+		return false, err
+	}
+	if !res {
+		return res, nil
+	}
+	token, err := database.CredentialsDB.GetENVValue("twitchRefreshToken")
+	if err != nil {
+		return false, err
+	}
+	return token != "", nil
+}
+
+func TwitchAuthIfNot() error {
+	if res, err := TwitchHasAuth(); err != nil || !res {
+		return fmt.Errorf("twitch no auth")
+	}
+	_, err := TwitchNewToken()
+	return err
 }
 
 func TwitchNewToken() (string, error) {
 	setupVars()
-	if res, err := database.CredentialsDB.CheckENVExists("twitchRefreshToken"); err == nil && !res {
+	if res, err := TwitchHasAuth(); err == nil && !res {
 		err = twitchLogin()
 		if err != nil {
 			return Token, nil
@@ -200,7 +219,7 @@ func setupVars() {
 
 func requestBroadcasterId() error {
 	const (
-		userUrl = "https://api.twitch.tv/helix/users?login=moonseere"
+		userUrl = "https://api.twitch.tv/helix/users"
 	)
 	if Token == "" {
 		return fmt.Errorf("токен доступа отсутствует")
@@ -249,6 +268,7 @@ func requestBroadcasterId() error {
 	}
 
 	BroadcasterId, err = strconv.Atoi(result.Data[0].ID)
+	log.Printf("Twitch user: %s", result.Data[0].Login)
 	return err
 }
 
@@ -340,7 +360,7 @@ func requestEmotes() error {
 	var result Response
 
 	body, _ := io.ReadAll(resp.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return err
@@ -463,7 +483,7 @@ func requestBadges() error {
 	var result BadgeDataJson
 
 	body, _ := io.ReadAll(resp.Body)
-	log.Println(string(body))
+	//log.Println(string(body))
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return err

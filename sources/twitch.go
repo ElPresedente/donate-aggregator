@@ -28,7 +28,18 @@ func NewTwitchCollector(ctx context.Context) *TwitchCollector {
 	}
 }
 
-func (tc *TwitchCollector) Start() {
+func (tc *TwitchCollector) GetCollectorType() string {
+	return "Twitch"
+}
+
+func (tc *TwitchCollector) Start(ctx context.Context) error {
+	if res, err := services.TwitchHasAuth(); err == nil && !res {
+		return fmt.Errorf("no twitch auth")
+	}
+	err := services.TwitchAuthIfNot()
+	if err != nil {
+		return err
+	}
 	for {
 		err := tc.connectAndRun()
 		if err != nil {
@@ -36,19 +47,23 @@ func (tc *TwitchCollector) Start() {
 		}
 
 		select {
+		case <-ctx.Done():
+			log.Println("twitch коллектор отключен (контекст)")
+			return ctx.Err()
 		case <-tc.stop:
-			return
+			return nil
 		case <-time.After(tc.reconnectDelay):
 			// retry
 		}
 	}
 }
 
-func (tc *TwitchCollector) Stop() {
+func (tc *TwitchCollector) Stop() error {
 	close(tc.stop)
 	if tc.conn != nil {
-		tc.conn.Close()
+		return tc.conn.Close()
 	}
+	return nil
 }
 
 func (tc *TwitchCollector) connectAndRun() error {
@@ -79,9 +94,9 @@ func (tc *TwitchCollector) connectAndRun() error {
 				log.Println("twitch: session id:", tc.sessionID)
 
 				// подписка на события через services
-				if err := services.TwitchSubscribeChatMessages(tc.sessionID); err != nil {
-					log.Println("twitch: subscribe chat error:", err)
-				}
+				// if err := services.TwitchSubscribeChatMessages(tc.sessionID); err != nil {
+				// 	log.Println("twitch: subscribe chat error:", err)
+				// }
 				if err := services.TwitchSubscribeRewardRedemption(tc.sessionID); err != nil {
 					log.Println("twitch: subscribe rewards error:", err)
 				}
@@ -123,7 +138,12 @@ func (tc *TwitchCollector) handleChatMessage(event json.RawMessage) {
 }
 
 func (tc *TwitchCollector) handleRewardRedemption(event json.RawMessage) {
-
+	log.Printf("json: %s", event)
+	var parsedEvent rewardEvent
+	if err := json.Unmarshal(event, &parsedEvent); err != nil {
+		log.Printf("Error parsing event JSON: %v", err)
+		return
+	}
 }
 
 // ==== Базовые структуры ====
@@ -143,4 +163,57 @@ type socketSessionHello struct {
 	Session struct {
 		Id string `json:"id"`
 	} `json:"session"`
+}
+
+// Message represents the top-level structure of the JSON.
+type rewardMessage struct {
+	Subscription rewardSubscription `json:"subscription"`
+	Event        rewardEvent        `json:"event"`
+}
+
+// Subscription contains details about the subscription.
+type rewardSubscription struct {
+	ID        string          `json:"id"`
+	Status    string          `json:"status"`
+	Type      string          `json:"type"`
+	Version   string          `json:"version"`
+	Condition rewardCondition `json:"condition"`
+	Transport rewardTransport `json:"transport"`
+	CreatedAt string          `json:"created_at"`
+	Cost      int             `json:"cost"`
+}
+
+// Condition holds the condition fields.
+type rewardCondition struct {
+	BroadcasterUserID string `json:"broadcaster_user_id"`
+	RewardID          string `json:"reward_id"`
+}
+
+// Transport holds the transport details.
+type rewardTransport struct {
+	Method    string `json:"method"`
+	SessionID string `json:"session_id"`
+}
+
+// Event represents the event data.
+type rewardEvent struct {
+	BroadcasterUserID    string       `json:"broadcaster_user_id"`
+	BroadcasterUserLogin string       `json:"broadcaster_user_login"`
+	BroadcasterUserName  string       `json:"broadcaster_user_name"`
+	ID                   string       `json:"id"`
+	UserID               string       `json:"user_id"`
+	UserLogin            string       `json:"user_login"`
+	UserName             string       `json:"user_name"`
+	UserInput            string       `json:"user_input"`
+	Status               string       `json:"status"`
+	RedeemedAt           string       `json:"redeemed_at"`
+	Reward               rewardReward `json:"reward"`
+}
+
+// Reward contains reward details.
+type rewardReward struct {
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Prompt string `json:"prompt"`
+	Cost   int    `json:"cost"`
 }

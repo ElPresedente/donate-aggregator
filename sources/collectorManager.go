@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-var CollectorType []string = []string{"Donatty", "DonatePay"}
+var CollectorType []string = []string{"Donatty", "DonatePay", "Twitch"}
 
 type CollectorManager struct {
 	mu         sync.Mutex
@@ -45,6 +45,8 @@ func (m *CollectorManager) NewManagedCollector(ctx context.Context, cancel conte
 		token, _ := database.CredentialsDB.GetENVValue("donatpayToken")
 		userId, _ := database.CredentialsDB.GetENVValue("donatpayUserId")
 		collector = NewDonatePayCollector(m.ctx, token, userId, m.eventCh)
+	case "Twitch":
+		collector = NewTwitchCollector(m.ctx)
 	default:
 		return fmt.Errorf("❌ Ошибка создания коллектора. Коллектор с именем %s не найден", name)
 	}
