@@ -13,6 +13,7 @@ import (
 )
 
 type DonateEvent = sources.DonationEvent
+type RouletteEvent = sources.RouletteEvent
 
 type RouletteCategorySector struct {
 	// probability int // (отдельные шансы для элемента внутри????)
@@ -37,11 +38,12 @@ type Roulette struct {
 	timeout           time.Duration
 	lastDonate        DonateEvent
 
-	queue     []DonateEvent
-	stop      chan struct{}
-	mu        sync.Mutex
-	settings  RouletteSettings
-	isWorking bool
+	queue       []DonateEvent
+	eventsQueue []RouletteEvent
+	stop        chan struct{}
+	mu          sync.Mutex
+	settings    RouletteSettings
+	isWorking   bool
 }
 
 func NewRouletteProcessor() Roulette {
@@ -53,11 +55,6 @@ func NewRouletteProcessor() Roulette {
 		settings:          RouletteSettings{},
 		isWorking:         true,
 	}
-}
-
-func (r *Roulette) ManualSpin(l *Logic) {
-	fake := DonateEvent{SourceID: "manual", User: "Пользователь", Amount: float64(r.rollPrice), Message: "", Timestamp: time.Now(), Date: time.Now()}
-	r.Process(&fake, l)
 }
 
 func (r *Roulette) UpdateDataFromDB() {
@@ -117,6 +114,25 @@ func (r *Roulette) UpdateDataFromDB() {
 
 func (r *Roulette) rouletteLoop(logic *Logic) {
 	r.UpdateDataFromDB()
+
+	if len(r.eventsQueue) > 0 {
+		lastEvent := r.eventsQueue[0]
+		r.DequeueEvent(logic)
+		responses := l2db.ResponseData{
+			User: lastEvent.Name,
+		}
+		for range lastEvent.SpinsAmount {
+			spinResult := r.generateSpin()
+			responses.Spins = append(responses.Spins, spinResult)
+		}
+		logic.DispatchLogicEvent(LogicEvent{
+			name: RouletteSpin,
+			data: responses,
+		})
+		r.isWorking = true
+		return
+	}
+
 	for len(r.queue) > 0 {
 		r.lastDonate = r.queue[0]
 		r.actualAmount += r.lastDonate.Amount
@@ -160,6 +176,18 @@ func (r *Roulette) rouletteLoop(logic *Logic) {
 	}
 }
 
+func (r *Roulette) ProcessSpin(spins *RouletteEvent, logic *Logic) {
+	r.UpdateDataFromDB()
+
+	r.EnqueueEvent(spins, logic)
+
+	if r.isWorking {
+		return
+	}
+
+	r.rouletteLoop(logic)
+}
+
 func (r *Roulette) generateSpin() l2db.SpinData {
 	winnerCategory := chooseCategory(r.settings.categories)
 	winnerSector := chooseCategorySector(winnerCategory.sectors)
@@ -176,6 +204,7 @@ func (r *Roulette) Reload(logic *Logic) {
 	r.actualAmount = 0
 	r.isWorking = false
 	r.queue = []DonateEvent{}
+	r.eventsQueue = []RouletteEvent{}
 	logic.DispatchLogicEvent(LogicEvent{
 		name: RouletteBalanceUpdate,
 		data: r.actualAmount,
@@ -186,7 +215,7 @@ func (r *Roulette) Reload(logic *Logic) {
 	})
 }
 
-func (r *Roulette) Process(event *DonateEvent, logic *Logic) {
+func (r *Roulette) ProcessDonate(event *DonateEvent, logic *Logic) {
 	r.EnqueueDonate(event, logic)
 
 	if r.isWorking {
@@ -216,6 +245,20 @@ func (r *Roulette) DequeueDonate(logic *Logic) {
 		name: RouletteDonateQueueLengthUpdate,
 		data: len(r.queue),
 	})
+}
+
+func (r *Roulette) EnqueueEvent(event *RouletteEvent, logic *Logic) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.eventsQueue = append(r.eventsQueue, *event)
+}
+
+func (r *Roulette) DequeueEvent(logic *Logic) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.eventsQueue = r.eventsQueue[1:]
 }
 
 func chooseCategory(categories []RouletteCategory) RouletteCategory {

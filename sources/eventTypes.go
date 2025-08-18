@@ -8,6 +8,7 @@ type EventType struct {
 
 var baseEventTypeNames = map[string]struct{}{
 	"DonationEvent": {},
+	"RouletteEvent": {},
 }
 
 func NewEventType(typeName string) (EventType, error) {

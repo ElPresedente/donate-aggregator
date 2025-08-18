@@ -44,13 +44,18 @@ func (l *Logic) LogicEventHandler(request string, data string) {
 }
 
 func (l *Logic) ManualRouletteSpin() {
-	l.roulette.ManualSpin(l)
+	var spin sources.RouletteEvent
+	spin.Name = "Пользователь"
+	spin.SpinsAmount = 1
+	l.roulette.ProcessSpin(&spin, l)
 }
 
 func (l *Logic) Process(event sources.CollectorEvent) {
 	switch event.EventType.GetTypeName() {
 	case "DonationEvent":
-		l.roulette.Process(event.Event.(*DonateEvent), l)
+		l.roulette.ProcessDonate(event.Event.(*DonateEvent), l)
+	case "RouletteSpinEvent":
+		l.roulette.ProcessSpin(event.Event.(*RouletteEvent), l)
 	}
 
 }
