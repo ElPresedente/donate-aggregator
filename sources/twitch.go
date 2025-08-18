@@ -18,13 +18,15 @@ type TwitchCollector struct {
 	stop           chan struct{}
 	ctx            context.Context
 	sessionID      string
+	eventChan      chan<- CollectorEvent
 }
 
-func NewTwitchCollector(ctx context.Context) *TwitchCollector {
+func NewTwitchCollector(ctx context.Context, ch chan<- CollectorEvent) *TwitchCollector {
 	return &TwitchCollector{
 		reconnectDelay: 5 * time.Second,
 		stop:           make(chan struct{}),
 		ctx:            ctx,
+		eventChan:      ch,
 	}
 }
 
@@ -105,6 +107,7 @@ func (tc *TwitchCollector) connectAndRun() error {
 			return fmt.Errorf("twitch: session reconnect")
 		case "notification":
 			tc.handleEvent(base.Payload)
+		case "session_keepalive":
 		default:
 			log.Println("twitch: unknown type:", base.Metadata.Type)
 		}
@@ -112,6 +115,7 @@ func (tc *TwitchCollector) connectAndRun() error {
 }
 
 func (tc *TwitchCollector) handleEvent(payload json.RawMessage) {
+	log.Printf("TWITCH PAYLOAD: %s", payload)
 	var msg struct {
 		Subscription struct {
 			Type string `json:"type"`
@@ -142,6 +146,25 @@ func (tc *TwitchCollector) handleRewardRedemption(event json.RawMessage) {
 	var parsedEvent rewardEvent
 	if err := json.Unmarshal(event, &parsedEvent); err != nil {
 		log.Printf("Error parsing event JSON: %v", err)
+		return
+	}
+
+	if parsedEvent.Reward.ID != "" && parsedEvent.Reward.Title != "Растя-я-яжка" {
+		return
+	}
+
+	roulette := RouletteEvent{
+		Name:        parsedEvent.UserName,
+		SpinsAmount: 1,
+	}
+	resultEvent, err := NewCollectorEvent("RouletteEvent", &roulette)
+	if err != nil {
+		log.Printf("Ошибка создания ивента крутки: %v", err)
+		return
+	}
+	select {
+	case tc.eventChan <- resultEvent:
+	case <-tc.ctx.Done():
 		return
 	}
 }

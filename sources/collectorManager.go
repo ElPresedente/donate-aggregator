@@ -46,7 +46,7 @@ func (m *CollectorManager) NewManagedCollector(ctx context.Context, cancel conte
 		userId, _ := database.CredentialsDB.GetENVValue("donatpayUserId")
 		collector = NewDonatePayCollector(m.ctx, token, userId, m.eventCh)
 	case "Twitch":
-		collector = NewTwitchCollector(m.ctx)
+		collector = NewTwitchCollector(m.ctx, m.eventCh)
 	default:
 		return fmt.Errorf("❌ Ошибка создания коллектора. Коллектор с именем %s не найден", name)
 	}

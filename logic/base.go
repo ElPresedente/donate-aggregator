@@ -54,7 +54,7 @@ func (l *Logic) Process(event sources.CollectorEvent) {
 	switch event.EventType.GetTypeName() {
 	case "DonationEvent":
 		l.roulette.ProcessDonate(event.Event.(*DonateEvent), l)
-	case "RouletteSpinEvent":
+	case "RouletteEvent":
 		l.roulette.ProcessSpin(event.Event.(*RouletteEvent), l)
 	}
 
