@@ -10,6 +10,7 @@ import (
 	"go-back/services"
 
 	"github.com/gorilla/websocket"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type TwitchCollector struct {
@@ -69,7 +70,9 @@ func (tc *TwitchCollector) Stop() error {
 }
 
 func (tc *TwitchCollector) connectAndRun() error {
+	tc.setGUIState(Disonnected)
 	conn, _, err := websocket.DefaultDialer.Dial("wss://eventsub.wss.twitch.tv/ws", nil)
+	tc.setGUIState(Connecting)
 	if err != nil {
 		return err
 	}
@@ -102,8 +105,10 @@ func (tc *TwitchCollector) connectAndRun() error {
 				if err := services.TwitchSubscribeRewardRedemption(tc.sessionID); err != nil {
 					log.Println("twitch: subscribe rewards error:", err)
 				}
+				tc.setGUIState(Connected)
 			}
 		case "session_reconnect":
+			tc.setGUIState(Disonnected)
 			return fmt.Errorf("twitch: session reconnect")
 		case "notification":
 			tc.handleEvent(base.Payload)
@@ -167,6 +172,10 @@ func (tc *TwitchCollector) handleRewardRedemption(event json.RawMessage) {
 	case <-tc.ctx.Done():
 		return
 	}
+}
+
+func (tc *TwitchCollector) setGUIState(state string) {
+	runtime.EventsEmit(tc.ctx, "twitchConnectionUpdated", state)
 }
 
 // ==== Базовые структуры ====

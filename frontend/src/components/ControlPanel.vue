@@ -18,6 +18,13 @@
             <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectDonatepay">🔄</button>
           </div>
 
+          <div class="status-row">
+            <span v-if="connectionStore.twitchConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Twitch: Подключено</span>
+            <span v-if="connectionStore.twitchConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Twitch: Не подключено</span>
+            <span v-if="connectionStore.twitchConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Twitch: Попытка подключения...</span>
+            <button v-if="connectionStore.isOnButtonDisabled" class="reload-btn" @click="reconnectTwitch">🔄</button>
+          </div>
+
           <div class="controls">
             <button id="onButton" class="btn green" @click="rouletteOn" :disabled="connectionStore.isOnButtonDisabled">Включить</button>
             <button id="offButton" class="btn red" @click="rouletteOff" :disabled="!connectionStore.isOnButtonDisabled">Выключить</button>
@@ -105,6 +112,9 @@ export default {
     const reconnectDonatepay = () => {
       FrontendDispatcher("reconnectDonatepay", "")
     };
+    const reconnectTwitch = () => {
+      FrontendDispatcher("reconnectTwitch", "")
+    };
     const reloadRoulette = () => {
       FrontendDispatcher("reloadRoulette", "")
     };
@@ -127,6 +137,7 @@ export default {
       rouletteOff, 
       reconnectDonatty,
       reconnectDonatepay,
+      reconnectTwitch,
       reloadRoulette,
       showSettings, 
       showWidgetSettings

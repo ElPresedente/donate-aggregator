@@ -21,6 +21,9 @@ onMounted(() => {
     window.runtime.EventsOn('donatepayConnectionUpdated', (connection) => {
       connectionStore.donatepayConnected = connection;
     })
+    window.runtime.EventsOn('twitchConnectionUpdated', (connection) => {
+      connectionStore.twitchConnected = connection;
+    })
     window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
       connectionStore.rouletteConnected = connection;
     })
