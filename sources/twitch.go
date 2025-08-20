@@ -154,7 +154,7 @@ func (tc *TwitchCollector) handleRewardRedemption(event json.RawMessage) {
 		return
 	}
 
-	if parsedEvent.Reward.ID != "" && parsedEvent.Reward.Title != "Растя-я-яжка" {
+	if parsedEvent.Reward.ID != "36217d7c-01aa-406b-8aeb-bd6f424f713d" {
 		return
 	}
 
