@@ -1,0 +1,11 @@
+{
+  "debugEnabled": {
+    "type": "dropdown",
+    "label": "Включить сообщения отладки в консоль",
+    "value": false,
+    "options": {
+      "true": true,
+      "false": false
+    }
+  }
+}

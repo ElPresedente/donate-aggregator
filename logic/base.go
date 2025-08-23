@@ -40,6 +40,12 @@ func (l *Logic) LogicEventHandler(request string, data string) {
 	case "rouletteDisconnected":
 		log.Println("Roulette widget disconnected")
 		runtime.EventsEmit(l.AppCtx, "rouletteConnectionUpdated", "disconnected")
+	case "rewardDisconnected":
+		log.Println("Reward widget disconnected")
+		runtime.EventsEmit(l.AppCtx, "rewardConnectionUpdated", "disconnected")
+	case "rewardConnected":
+		log.Println("Reward widget connected")
+		runtime.EventsEmit(l.AppCtx, "rewardConnectionUpdated", "connected")
 	}
 }
 

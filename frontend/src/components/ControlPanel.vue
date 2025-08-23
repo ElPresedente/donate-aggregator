@@ -39,6 +39,11 @@
             <span v-if="connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет рулетки: Попытка подключения...</span>
             <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
           </div>
+          <div class="status-row">
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет наград: Подключено</span>
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет наград: Не подключено</span>
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет наград: Попытка подключения...</span>
+          </div>
           <br></br>
           <div class="status-row">
             <span>💲 Накоплено в рулетке: &nbsp;</span>

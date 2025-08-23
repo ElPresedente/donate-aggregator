@@ -23,6 +23,7 @@ type WidgetsHub struct {
 	widgets           map[Widget]bool
 
 	rouletteWidgets int
+	rewardWidgets   int
 }
 
 func (wh *WidgetsHub) WidgetEventHandler(request string, data string) {
@@ -41,6 +42,7 @@ func NewWidgetsHub() WidgetsHub {
 		LogicEventHandler: nil,
 		widgets:           map[Widget]bool{},
 		rouletteWidgets:   0,
+		rewardWidgets:     0,
 	}
 }
 
@@ -67,12 +69,21 @@ func (wh *WidgetsHub) ConnectionHandler(w http.ResponseWriter, r *http.Request) 
 		{
 			currentWidget = wh.NewRouletteWidget(conn, wh.LogicEventHandler)
 		}
+	case "reward":
+		{
+			currentWidget = wh.NewRewardWidget(conn, wh.LogicEventHandler)
+		}
 	default:
 		{
 			log.Fatalf("Unknown widget type %s", widgetType)
 			return
 		}
 	}
+
+	if currentWidget == nil {
+		panic("forgot to create widget")
+	}
+
 	wh.widgets[currentWidget] = true
 
 	for {

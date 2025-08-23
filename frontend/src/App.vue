@@ -27,6 +27,9 @@ onMounted(() => {
     window.runtime.EventsOn('rouletteConnectionUpdated', (connection) => {
       connectionStore.rouletteConnected = connection;
     })
+    window.runtime.EventsOn('rewardConnectionUpdated', (connection) => {
+      connectionStore.rewardConnected = connection;
+    })
     window.runtime.EventsOn('currentAmountUpdate', (amount) => {
       connectionStore.currentAmount = amount;
     })

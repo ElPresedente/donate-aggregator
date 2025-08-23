@@ -2,12 +2,25 @@
   <section class="card stretch">
     <header class="card-header">История рулетки</header>
     <div class="scroll-container">
-      <ul class="card-list" id="log-list">
+      <ul class="card-list">
+        <li v-for="(item, index) in logStore.pinnedHistory" :key="index" class="log-item">
+          <span class="log-time">{{ item.time }}</span>
+          <span class="log-content">
+            <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
+          </span>
+          <span @click="logStore.unpinPinnedItem(index); updatePinned()" class="pin-button">🔓</span>
+        </li> 
+      </ul>
+      <ul class="card-list">
+        <li class="log-item"></li>
+      </ul>
+      <ul class="card-list">
         <li v-for="(item, index) in logStore.rouletteHistory" :key="index" class="log-item">
           <span class="log-time">{{ item.time }}</span>
           <span class="log-content">
             <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
           </span>
+          <span @click="logStore.pinRouletteItem(index); updatePinned()" class="pin-button">📌</span>
         </li> 
       </ul>
     </div>
@@ -16,19 +29,38 @@
 
 <script>
 import { useLogStore } from '../stores/logStore';
+import { FrontendDispatcher } from '../../wailsjs/go/main/App'
 
 export default {
   name: 'LogList',
   setup() {
     const logStore = useLogStore();
+
+    const updatePinned = () => {
+      if( logStore.pinnedHistory.length == 0 ){
+        FrontendDispatcher("reset-pinned-rewards", "")
+      }
+      else{
+        let resultStr = "Награды рулетки:"
+        logStore.pinnedHistory.forEach((item) => {
+          resultStr += '\n' + item.value 
+        })
+        FrontendDispatcher("update-pinned-rewards", resultStr)
+      }
+    }
     return {
       logStore,
+      updatePinned,
     };
   }
 };
 
 </script>
 <style scoped>
+.pin-button{
+  display: inline-block;
+  cursor: pointer;
+}
 .card {
   width: 50%;
   height: 100%;
