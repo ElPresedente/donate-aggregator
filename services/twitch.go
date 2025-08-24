@@ -195,6 +195,10 @@ func twitchSubscribe(sessionId, eventType string, condition map[string]string) e
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode == http.StatusUnauthorized {
+		TwitchNewToken()
+		return twitchSubscribe(sessionId, eventType, condition)
+	}
 	if resp.StatusCode != http.StatusAccepted {
 		return fmt.Errorf("twitch subscribe error: %s", string(respBody))
 	}
