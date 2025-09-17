@@ -241,7 +241,8 @@ func updateRouletteSettings(a *App, data string) {
 	}
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
-		log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
+		log.Println("❌ Ошибка парсинга JSON updateRouletteSettings:", err)
+		toastRun(a, "Ошибка записи данных рулетки", "error")
 		return
 	}
 	names := make([]string, len(payload.RouletteSettings))
@@ -252,25 +253,31 @@ func updateRouletteSettings(a *App, data string) {
 	existsMap, err := database.WidgetDB.CheckSettingsExist(names)
 	if err != nil {
 		log.Printf("❌ Ошибка проверки существования настроек: %v", err)
+		toastRun(a, "Ошибка записи данных рулетки", "error")
 		return
 	}
 
 	for _, setting := range payload.RouletteSettings {
 		if existsMap[setting.Name] {
-			database.WidgetDB.UpdateRouletteSettingValue(setting.Name, setting.Value)
+			err := database.WidgetDB.UpdateRouletteSettingValue(setting.Name, setting.Value)
+			if err != nil {
+				log.Printf("❌ Ошибка записи данных (%s:%s) в UpdateRouletteSettingValue: %s", setting.Name, setting.Value, err)
+				toastRun(a, "Ошибка записи данных рулетки", "error")
+			}
+			
 		} else {
-			database.WidgetDB.InsertRouletteSettingValue(setting.Name, setting.Value)
+			err := database.WidgetDB.InsertRouletteSettingValue(setting.Name, setting.Value)
+			if err != nil {
+				log.Printf("❌ Ошибка записи данных (%s:%s) в InsertRouletteSettingValue: %s", setting.Name, setting.Value, err)
+				toastRun(a, "Ошибка записи данных рулетки", "error")
+			}
 		}
 	}
 	if a.collManager.IsActive() {
 		reconnectAllCollector(a) //ВОТ ТУТ ФУНКЦИЯ НА РЕКОНЕКТ РУЛЕТКИ
 	}
 
-	toastData := map[string]interface{}{
-		"message": "Данные сохранены",
-		"type":    "success",
-	}
-	runtime.EventsEmit(a.ctx, "toastExec", toastData)
+	toastRun(a, "Настройки рулетки сохранены", "success")
 }
 
 func getRouletteSectors(ctx context.Context) {
@@ -334,30 +341,36 @@ func updateSettings(a *App, data string) {
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
+		toastRun(a, "Ошибка записи настроек", "error")
 		return
 	}
 	for _, setting := range payload.Settings {
 		exists, err := database.CredentialsDB.CheckENVExists(setting.Name)
 		if err != nil {
 			log.Printf("❌ Ошибка проверки существования настройки '%s': %v", setting.Name, err)
+				toastRun(a, "Ошибка записи настроек", "error")
 			continue
 		}
 
 		if exists {
-			database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
+			err := database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
+			if err != nil {
+				log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", setting.Name, setting.Value, err)
+				toastRun(a, "Ошибка записи настроек", "error")
+			}
 		} else {
-			database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
+			err := database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
+			if err != nil {
+				log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", setting.Name, setting.Value, err)
+				toastRun(a, "Ошибка записи настроек", "error")
+			}
 		}
 	}
 	if a.collManager.IsActive() {
 		reconnectAllCollector(a)
 	}
 
-	toastData := map[string]interface{}{
-		"message": "Данные сохранены",
-		"type":    "success",
-	}
-	runtime.EventsEmit(a.ctx, "toastExec", toastData)
+	toastRun(a, "Настройки сохранены", "success")
 }
 
 func startCollector(data string, a *App) {
@@ -400,5 +413,23 @@ func reconnectAllCollector(a *App) {
 
 	a.collManager.StopAllCollector()
 	a.collManager.StartAllCollector()
+}
 
+func toastRun(a *App, message string, msgType string) {
+	if message == "" {
+		message = "!"
+	}
+
+	//info    - синий фон
+	//success - зеленый фон
+	//error   - красный фон
+	if msgType == "" {
+		msgType = "info"
+	}
+
+	toastData := map[string]interface{}{
+		"message": message,
+		"type":    msgType,
+	}
+	runtime.EventsEmit(a.ctx, "toastExec", toastData)
 }

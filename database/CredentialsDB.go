@@ -89,22 +89,18 @@ func (c *CredentialsDatabase) InitDefaultVariable() {
 	}
 }
 
-func (c *CredentialsDatabase) InsertENVValue(name, value string) {
+func (c *CredentialsDatabase) InsertENVValue(name, value string) error {
 	insertQuery := "INSERT INTO EnvVariables (name, value) VALUES (?,?)"
 
 	_, err := c.db.Exec(insertQuery, name, value)
-	if err != nil {
-		log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", name, value, err)
-	}
+	return err
 }
 
-func (c *CredentialsDatabase) UpdateENVValue(name, value string) {
+func (c *CredentialsDatabase) UpdateENVValue(name, value string) error {
 	insertQuery := "UPDATE EnvVariables SET value = ? WHERE name = ?"
 
 	_, err := c.db.Exec(insertQuery, value, name)
-	if err != nil {
-		log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", name, value, err)
-	}
+	return err
 }
 
 func (c *CredentialsDatabase) GetENVValue(name string) (string, error) {

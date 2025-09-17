@@ -230,22 +230,18 @@ func (wd *WidgetsDatabase) GetRouletteCategorys() ([]RouletteCategory, error) {
 	return sectors, nil
 }
 
-func (wd *WidgetsDatabase) InsertRouletteSettingValue(name, value string) {
+func (wd *WidgetsDatabase) InsertRouletteSettingValue(name, value string) error {
 	insertQuery := "INSERT INTO RouletteSettings (name, value) VALUES (?,?)"
 
 	_, err := wd.db.Exec(insertQuery, name, value)
-	if err != nil {
-		log.Printf("❌ Ошибка записи данных (%s:%s) в InsertRouletteSettingValue: %s", name, value, err)
-	}
+	return err
 }
 
-func (wd *WidgetsDatabase) UpdateRouletteSettingValue(name, value string) {
+func (wd *WidgetsDatabase) UpdateRouletteSettingValue(name, value string) error {
 	insertQuery := "UPDATE RouletteSettings SET value = ? WHERE name = ?"
 
 	_, err := wd.db.Exec(insertQuery, value, name)
-	if err != nil {
-		log.Printf("❌ Ошибка записи данных (%s:%s) в UpdateRouletteSettingValue: %s", name, value, err)
-	}
+	return err
 }
 
 func (wd *WidgetsDatabase) GetRouletteSettingValue(name string) (string, error) {

@@ -1,6 +1,11 @@
 <script setup>
 import { ref, defineExpose } from 'vue'
 
+//Так как я ёбыч и не сделал это сразу, вот все типы уведомлений
+//info    - синий фон
+//success - зеленый фон
+//error   - красный фон
+
 const toasts = ref([])
 
 function showToast(message, type = 'info', duration = 3000) {
