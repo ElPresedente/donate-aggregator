@@ -95,21 +95,17 @@ export default {
     });
     const newStream = () => {
       FrontendDispatcher("newStream", "")
-      toast.showToast('Сбрасываем данные прошлого стрима', 'info', 3000)
     };
     const rollRoulette = () => {
       FrontendDispatcher("manualRouletteSpin", "");
-      toast.showToast('Крутим рулетку', 'info', 3000)
     };
     const rouletteOn = () => {
       connectionStore.isOnButtonDisabled = true;
       FrontendDispatcher("startAllCollector", "");
-      toast.showToast('Коллекторы включены', 'success', 3000)
     };
     const rouletteOff = () => {
       connectionStore.isOnButtonDisabled = false;
       FrontendDispatcher("stopAllCollector", "");
-      toast.showToast('Коллекторы выключены', 'success', 3000)
     };
     const reconnectDonatty = () => {
       FrontendDispatcher("reconnectDonatty", "")
