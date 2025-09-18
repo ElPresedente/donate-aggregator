@@ -7,8 +7,7 @@ import (
 	"log"
 	"strings"
 	"sync"
-
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"go-back/functions"
 )
 
 var CollectorType []string = []string{"Donatty", "DonatePay", "Twitch"}
@@ -81,13 +80,14 @@ func (m *CollectorManager) StartCollector(name string) error {
 	go func() {
 		if err := m.collectors[name].collector.Start(ctx); err != nil && ctx.Err() == nil {
 			log.Printf("❌ Ошибка в коллекторе %s: %v", name, err)
+			functions.ToastErrorRun(ctx, fmt.Sprintf("Ошибка в коллекторе %s: %v", name, err))
 		}
 	}()
 
 	log.Printf("✅ Коллектор %s запущен", name)
 
-	//НАСРАЛ? НЕ ЗАБУДЬ УБРАТЬ ЗА СОБОЙ!
-	toastRun(ctx, fmt.Sprintf("Коллектор %s запущен", name), "success")
+	//Возможно лишнее
+	functions.ToastSuccessRun(ctx, fmt.Sprintf("Коллектор %s запущен", name))
 
 	return nil
 }
@@ -150,24 +150,4 @@ func (m *CollectorManager) IsCollectorActive(name string) bool {
 
 func (m *CollectorManager) IsActive() bool {
 	return len(m.collectors) > 0
-}
-
-//Функция-дублёр, такая же во фронтенд диспетчере
-func toastRun(ctx context.Context, message string, msgType string) {
-	if message == "" {
-		message = "!"
-	}
-
-	//info    - синий фон
-	//success - зеленый фон
-	//error   - красный фон
-	if msgType == "" {
-		msgType = "info"
-	}
-
-	toastData := map[string]interface{}{
-		"message": message,
-		"type":    msgType,
-	}
-	runtime.EventsEmit(ctx, "toastExec", toastData)
 }

@@ -6,6 +6,8 @@ import (
 	"go-back/database"
 	"go-back/services"
 	"log"
+	"go-back/functions"
+
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -89,7 +91,7 @@ func newStream(a *App) {
 	database.LogDB.ClearDatabase()
 	a.logic.ReloadRoulette()
 	
-	toastRun(a.ctx, "Сбрасываем данные прошлого стрима", "info")
+	functions.ToastInfoRun(a.ctx, "Сбрасываем данные прошлого стрима")
 	runtime.EventsEmit(a.ctx, "logData", map[string]any{})
 }
 
@@ -112,7 +114,7 @@ func getLogs(ctx context.Context) {
 
 func manualRouletteSpin(a *App) {
 	a.logic.ManualRouletteSpin()
-	toastRun(a.ctx, "Крутим рулетку", "info")
+	functions.ToastInfoRun(a.ctx, "Крутим рулетку")
 }
 
 func reconnectDonatty(a *App) {
@@ -168,6 +170,7 @@ func sectorsToSave(ctx context.Context, data string) {
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		log.Println("❌ Ошибка парсинга JSON sectorsToSave:", err)
+		functions.ToastErrorRun(ctx, "Ошибка сохранения: ошибка парсинга JSON")
 		return
 	}
 	log.Println(payload)
@@ -181,28 +184,33 @@ func sectorsToSave(ctx context.Context, data string) {
 			err := database.WidgetDB.AddSector(payload.CategoryID, sector.Data)
 			if err != nil {
 				log.Printf("❌ Ошибка добавления: %v", err)
+				functions.ToastErrorRun(ctx, "Ошибка сохранения: ошибка при добавлении новой строки")
 			}
 
 		case *sector.Status == "edit":
 			err := database.WidgetDB.UpdateSector(sector.ID, sector.Data)
 			if err != nil {
 				log.Printf("❌ Ошибка обновления: %v", err)
+				functions.ToastErrorRun(ctx, "Ошибка сохранения: ошибка при обновлении строки")
 			}
 
 		case *sector.Status == "delete":
 			err := database.WidgetDB.DeleteSector(sector.ID)
 			if err != nil {
 				log.Printf("❌ Ошибка удаления: %v", err)
+				functions.ToastErrorRun(ctx, "Ошибка сохранения: ошибка при удалении строки")
 			}
 
 		default:
 			log.Printf("⚠️ Неизвестный статус '%v' для элемента ID %d", *sector.Status, sector.ID)
+			functions.ToastErrorRun(ctx, "Ошибка сохранения: неожиданный статус элемента")
 		}
 	}
 
 	sectors, err := database.WidgetDB.GetSectorsByCategoryID(payload.CategoryID)
 	if err != nil {
 		log.Println("❌ Ошибка при повторном получении предметов:", err)
+		functions.ToastErrorRun(ctx, "Ошибка сохранения: ошибка проверки сохранений")
 		return
 	}
 
@@ -214,6 +222,7 @@ func sectorsToSave(ctx context.Context, data string) {
 			"status": nil,
 		})
 	}
+	functions.ToastSuccessRun(ctx, "Данные сохранены")
 	runtime.EventsEmit(ctx, "sectorsByCategoryIdData", formattedSectors)
 }
 
@@ -245,7 +254,7 @@ func updateRouletteSettings(a *App, data string) {
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		log.Println("❌ Ошибка парсинга JSON updateRouletteSettings:", err)
-		toastRun(a.ctx, "Ошибка записи данных рулетки", "error")
+		functions.ToastErrorRun(a.ctx, "Ошибка записи данных рулетки")
 		return
 	}
 	names := make([]string, len(payload.RouletteSettings))
@@ -256,7 +265,7 @@ func updateRouletteSettings(a *App, data string) {
 	existsMap, err := database.WidgetDB.CheckSettingsExist(names)
 	if err != nil {
 		log.Printf("❌ Ошибка проверки существования настроек: %v", err)
-		toastRun(a.ctx, "Ошибка записи данных рулетки", "error")
+		functions.ToastErrorRun(a.ctx, "Ошибка записи данных рулетки")
 		return
 	}
 
@@ -265,14 +274,14 @@ func updateRouletteSettings(a *App, data string) {
 			err := database.WidgetDB.UpdateRouletteSettingValue(setting.Name, setting.Value)
 			if err != nil {
 				log.Printf("❌ Ошибка записи данных (%s:%s) в UpdateRouletteSettingValue: %s", setting.Name, setting.Value, err)
-				toastRun(a.ctx, "Ошибка записи данных рулетки", "error")
+				functions.ToastErrorRun(a.ctx, "Ошибка записи данных рулетки")
 			}
 			
 		} else {
 			err := database.WidgetDB.InsertRouletteSettingValue(setting.Name, setting.Value)
 			if err != nil {
 				log.Printf("❌ Ошибка записи данных (%s:%s) в InsertRouletteSettingValue: %s", setting.Name, setting.Value, err)
-				toastRun(a.ctx, "Ошибка записи данных рулетки", "error")
+				functions.ToastErrorRun(a.ctx, "Ошибка записи данных рулетки")
 			}
 		}
 	}
@@ -280,7 +289,7 @@ func updateRouletteSettings(a *App, data string) {
 		reconnectAllCollector(a) //ВОТ ТУТ ФУНКЦИЯ НА РЕКОНЕКТ РУЛЕТКИ
 	}
 
-	toastRun(a.ctx, "Настройки рулетки сохранены", "success")
+	functions.ToastSuccessRun(a.ctx, "Настройки рулетки сохранены")
 }
 
 func getRouletteSectors(ctx context.Context) {
@@ -344,14 +353,14 @@ func updateSettings(a *App, data string) {
 
 	if err := json.Unmarshal([]byte(data), &payload); err != nil {
 		log.Println("❌ Ошибка парсинга JSON updateSettings:", err)
-		toastRun(a.ctx, "Ошибка записи настроек", "error")
+		functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
 		return
 	}
 	for _, setting := range payload.Settings {
 		exists, err := database.CredentialsDB.CheckENVExists(setting.Name)
 		if err != nil {
 			log.Printf("❌ Ошибка проверки существования настройки '%s': %v", setting.Name, err)
-				toastRun(a.ctx, "Ошибка записи настроек", "error")
+				functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
 			continue
 		}
 
@@ -359,13 +368,13 @@ func updateSettings(a *App, data string) {
 			err := database.CredentialsDB.UpdateENVValue(setting.Name, setting.Value)
 			if err != nil {
 				log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", setting.Name, setting.Value, err)
-				toastRun(a.ctx, "Ошибка записи настроек", "error")
+				functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
 			}
 		} else {
 			err := database.CredentialsDB.InsertENVValue(setting.Name, setting.Value)
 			if err != nil {
 				log.Printf("❌ Ошибка записи данных (%s:%s) в CredentialsDB: %s", setting.Name, setting.Value, err)
-				toastRun(a.ctx, "Ошибка записи настроек", "error")
+				functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
 			}
 		}
 	}
@@ -373,7 +382,7 @@ func updateSettings(a *App, data string) {
 		reconnectAllCollector(a)
 	}
 
-	toastRun(a.ctx, "Настройки сохранены", "success")
+	functions.ToastSuccessRun(a.ctx, "Настройки сохранены")
 }
 
 func startCollector(data string, a *App) {
@@ -398,7 +407,7 @@ func startAllCollector(a *App) {
 	log.Println("🔁 Получен запрос на включение всех коллекторов:")
 
 	a.collManager.StartAllCollector()
-	toastRun(a.ctx, "Коллекторы запущены", "success")
+	functions.ToastSuccessRun(a.ctx, "Коллекторы запущены")
 }
 
 func stopAllCollector(a *App) {
@@ -406,7 +415,7 @@ func stopAllCollector(a *App) {
 	log.Println("🔁 Получен запрос на выключение всех коллекторов:")
 
 	a.collManager.StopAllCollector()
-	toastRun(a.ctx, "Коллекторы выключены", "success")
+	functions.ToastSuccessRun(a.ctx, "Коллекторы выключены")
 }
 
 func reconnectAllCollector(a *App) {
@@ -415,23 +424,4 @@ func reconnectAllCollector(a *App) {
 
 	a.collManager.StopAllCollector()
 	a.collManager.StartAllCollector()
-}
-
-func toastRun(ctx context.Context, message string, msgType string) {
-	if message == "" {
-		message = "!"
-	}
-
-	//info    - синий фон
-	//success - зеленый фон
-	//error   - красный фон
-	if msgType == "" {
-		msgType = "info"
-	}
-
-	toastData := map[string]interface{}{
-		"message": message,
-		"type":    msgType,
-	}
-	runtime.EventsEmit(ctx, "toastExec", toastData)
 }
