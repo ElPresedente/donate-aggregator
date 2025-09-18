@@ -5,6 +5,7 @@ let debugEnabled = false
 
 
 window.addEventListener('onWidgetLoad', function (obj) {
+  const {fieldData} = obj.detail;
   initWidget(obj)
   connectWebSocket()
 });

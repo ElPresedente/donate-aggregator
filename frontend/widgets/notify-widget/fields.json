@@ -7,5 +7,70 @@
       "true": true,
       "false": false
     }
+  },
+  "titleSize": {
+    "type": "number",
+    "label": "Размер ЗАГОЛОВКА (в пикселях)",
+    "value": 20
+  },
+  "titleColor": {
+    "type": "colorpicker",
+    "label": "Цвет ЗАГОЛОВКА",
+    "value": "rgb(255, 255, 255)"
+  },
+  "titleFontName": {
+    "type": "googleFont",
+    "label": "Шрифт ЗАГОЛОВКА",
+    "value": "Roboto"
+  },
+  "textSize": {
+    "type": "number",
+    "label": "Размер основного текста (в пикселях)",
+    "value": 20
+  },
+  "textColor": {
+    "type": "colorpicker",
+    "label": "Цвет основного текста",
+    "value": "rgb(255, 255, 255)"
+  },
+  "textFontName": {
+    "type": "googleFont",
+    "label": "Шрифт ЗАГОЛОВКА",
+    "value": "Roboto"
+  },
+  "widgetAppearance ": {
+    "type": "number",
+    "label": "Время плавного появления виджета (с)",
+    "value": 3
+  },
+  "widgetDisappearance ": {
+    "type": "number",
+    "label": "Время плавного исчезания виджета (с)",
+    "value": 3
+  },
+  "labelsTimeScroll": {
+    "type": "number",
+    "label": "Время между переходами хуйни (с)",
+    "value": 10
+  },
+  "backgroundColor": {
+    "type": "colorpicker",
+    "label": "Цвет фона",
+    "value": "rgb(255, 255, 255)"
+  },
+  "backgroundTransparency": {
+    "type": "number",
+    "label": "Непрозрачность фона в %",
+    "value": "80"
+  },
+  "borderColor": {
+    "type": "colorpicker",
+    "label": "Цвет обводки",
+    "value": "rgb(255, 255, 255)"
+  },
+  "borderTransparency": {
+    "type": "number",
+    "label": "Непрозрачность обводки в %",
+    "value": "80"
   }
 }
