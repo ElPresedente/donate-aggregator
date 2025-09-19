@@ -5,7 +5,6 @@ let debugEnabled = false
 
 
 window.addEventListener('onWidgetLoad', function (obj) {
-  const {fieldData} = obj.detail;
   initWidget(obj)
   connectWebSocket()
 });
@@ -21,6 +20,28 @@ function handleEvent(event){
 function setText(text){
   const elem = document.getElementById('text-container')
   elem.innerText = text
+  
+}
+
+function addTextElem(text){
+  const el = document.createElement("p");
+  el.className = "text-container";
+  //el.style.width = `${sectorWidth}px`;
+  el.style.height = `auto`;
+  el.innerText = text;
+  
+  document.getElementById(main-container).appendChild(el);
+}
+
+function delTextElem(text){
+  const elems = document.getElementsByClassName(text-container);
+  for(const el of elems)
+  {
+    if(el.textContent == text)
+    {
+      el.remove();
+    }
+  }
 }
 
 function reset(){
@@ -58,6 +79,7 @@ function connectWebSocket() {
 
 function initWidget(widgetLoadEventObject){
   const fieldData = widgetLoadEventObject.detail.fieldData;
+  //const {fieldData} = obj.detail;
   debugEnabled = fieldData.debugEnabled
 }
 
