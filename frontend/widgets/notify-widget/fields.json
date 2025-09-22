@@ -8,6 +8,20 @@
       "false": false
     }
   },
+  "testEnabled": {
+    "type": "dropdown",
+    "label": "Включить режим тестирования",
+    "value": false,
+    "options": {
+      "true": true,
+      "false": false
+    }
+  },
+    "testTextType": {
+    "type": "text",
+    "label": "Текст",
+    "value": "Some text"
+  },
   "titleSize": {
     "type": "number",
     "label": "Размер ЗАГОЛОВКА (в пикселях)",
@@ -38,17 +52,17 @@
     "label": "Шрифт ЗАГОЛОВКА",
     "value": "Roboto"
   },
-  "widgetAppearance ": {
+  "widgetAppearanceTime": {
     "type": "number",
     "label": "Время плавного появления виджета (с)",
     "value": 3
   },
-  "widgetDisappearance ": {
+  "widgetDisappearanceTime": {
     "type": "number",
     "label": "Время плавного исчезания виджета (с)",
     "value": 3
   },
-  "labelsTimeScroll": {
+  "labelsScrollTime": {
     "type": "number",
     "label": "Время между переходами хуйни (с)",
     "value": 10
@@ -58,19 +72,14 @@
     "label": "Цвет фона",
     "value": "rgb(255, 255, 255)"
   },
-  "backgroundTransparency": {
+  "borderWidth": {
     "type": "number",
-    "label": "Непрозрачность фона в %",
-    "value": "80"
+    "label": "Ширина обводки",
+    "value": 1
   },
   "borderColor": {
     "type": "colorpicker",
     "label": "Цвет обводки",
     "value": "rgb(255, 255, 255)"
-  },
-  "borderTransparency": {
-    "type": "number",
-    "label": "Непрозрачность обводки в %",
-    "value": "80"
   }
 }
