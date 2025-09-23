@@ -17,10 +17,15 @@
       "false": false
     }
   },
-    "testTextType": {
+  "testTextType": {
     "type": "text",
     "label": "Текст",
     "value": "Some text"
+  },
+  "titleText": {
+    "type": "text",
+    "label": "Текст",
+    "value": ""
   },
   "titleSize": {
     "type": "number",
@@ -37,6 +42,11 @@
     "label": "Шрифт ЗАГОЛОВКА",
     "value": "Roboto"
   },
+  "titleMarginLeft": {
+    "type": "number",
+    "label": "Отступ заголовка от левого края",
+    "value": 20
+  },
   "textSize": {
     "type": "number",
     "label": "Размер основного текста (в пикселях)",
@@ -49,7 +59,7 @@
   },
   "textFontName": {
     "type": "googleFont",
-    "label": "Шрифт ЗАГОЛОВКА",
+    "label": "Шрифт основного текста",
     "value": "Roboto"
   },
   "widgetAppearanceTime": {
@@ -81,5 +91,10 @@
     "type": "colorpicker",
     "label": "Цвет обводки",
     "value": "rgb(255, 255, 255)"
+  }, 
+  "borderRadius": {
+    "type": "number",
+    "label": "Скругление углов (число)",
+    "value": 20
   }
 }

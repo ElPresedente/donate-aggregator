@@ -5,9 +5,11 @@ const socketAddr = ""
 let debugEnabled = false
 let testEnabled = false
 let testTextType = "Some text"
+let titleText = ""
 let titleSize = 20
 let titleColor = "rgb(255, 255, 255)"
 let titleFontName = "Roboto"
+let titleMarginLeft = 20
 let textSize = 20
 let textColor = "rgb(255, 255, 255)"
 let textFontName = "Roboto"
@@ -17,10 +19,13 @@ let labelsScrollTime = 10
 let backgroundColor = "rgb(255, 255, 255)"
 let borderWidth = 1
 let borderColor = "rgb(255, 255, 255)"
+let borderRadius = 20
 
 //VARIABLES
 
 let textArray = []
+let playAnim = false
+let render = false
 
 window.addEventListener('onWidgetLoad', function (obj) {
   initWidget(obj)
@@ -33,22 +38,55 @@ function handleEvent(event){
   switch( event.request ){
     case "set-text": return setText( event.text )
     case "reset": return reset()
+    case "delete": return delText(text)
+  }
+}
+
+function renderWidget(){
+  if(render){
+    document.getElementById("widget").style.display = "block"
+  } else {
+    document.getElementById("widget").style.display = "none"
+  }
+
+  if(playAnim){
+    renderPlayAnim()
+  } else
+  {
+    
   }
 }
 
 function setText(text){
   textArray.push(text)
   addTextElem(text)
+  render = true
+  renderWidget();
 }
 
 function addTextElem(text){
-  const el = document.createElement("p");
-  el.className = "text-container";
+  const el = document.createElement("p")
+  el.className = "text-container"
   //el.style.width = `${sectorWidth}px`;
-  el.style.height = "auto";
-  el.innerText = text;
+  el.style.height = "auto"
+  el.innerText = text
+
+  if(textArray.length>1)
+  {
+    el.style.visibility = "hidden"
+    playAnim = true
+  }
   
   document.getElementById("main-container").appendChild(el);
+}
+
+function delText(text){
+  textArray = textArray.filter(el => el != text)
+  delTextElem(text)
+  if(textArray.length==0){
+    render = false
+  }
+  renderWidget()
 }
 
 function delTextElem(text){
@@ -101,9 +139,11 @@ function initWidget(widgetLoadEventObject){
   debugEnabled            = fieldData.debugEnabled
   testEnabled             = fieldData.testEnabled
   testTextType            = fieldData.testTextType
+  titleText               = fieldData.titleText
   titleSize               = fieldData.titleSize
   titleColor              = fieldData.titleColor
   titleFontName           = fieldData.titleFontName
+  titleMarginLeft         = fieldData.titleMarginLeft
   textSize                = fieldData.textSize
   textColor               = fieldData.textColor
   textFontName            = fieldData.textFontName
@@ -113,6 +153,7 @@ function initWidget(widgetLoadEventObject){
   backgroundColor         = fieldData.backgroundColor
   borderWidth             = fieldData.borderWidth
   borderColor             = fieldData.borderColor
+  borderRadius            = fieldData.borderRadius
 }
 
 function testCheck(){

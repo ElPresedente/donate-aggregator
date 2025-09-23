@@ -1,14 +1,27 @@
 #main-container{
-    width: 200px;
+    width: 98%;
     height: auto;
-    padding: 10px 0;
+    margin: 0 1%;
+    padding: 15px 0;
     text-align: center;
     font-family: {textFontName};
     font-size: {textSize}px;
     color: {textColor};
     background-color: {backgroundColor};
     border-width: {borderWidth}px;
-    border-radius: 20px;
+    border-radius: {borderRadius}px;
     border-style: solid;
     border-color: {borderColor};
+}
+#title{
+    width: 100%;
+    height: auto;
+    margin: 10px 0;
+    margin-left: {titleMarginLeft}px;
+    font-family: {titleFontName};
+    font-size: {titleSize}px;
+    color: {titleColor};
+}
+.text-container{
+    margin: auto;
 }
