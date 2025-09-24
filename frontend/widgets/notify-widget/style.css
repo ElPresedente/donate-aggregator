@@ -25,3 +25,13 @@
 .text-container{
     margin: auto;
 }
+#widget {
+    display: none;
+    transition: opacity 0.5s ease;
+    opacity: 0;
+}
+
+#widget.visible {
+    display: block;
+    opacity: 1;
+}

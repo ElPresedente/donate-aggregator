@@ -24,8 +24,10 @@ let borderRadius = 20
 //VARIABLES
 
 let textArray = []
-let playAnim = false
 let render = false
+
+let textInterval = null;
+let currentTextIndex = 0;
 
 window.addEventListener('onWidgetLoad', function (obj) {
   initWidget(obj)
@@ -38,22 +40,59 @@ function handleEvent(event){
   switch( event.request ){
     case "set-text": return setText( event.text )
     case "reset": return reset()
-    case "delete": return delText(text)
+    case "remove-text": return removeText(text)
   }
 }
 
-function renderWidget(){
-  if(render){
-    document.getElementById("widget").style.display = "block"
-  } else {
-    document.getElementById("widget").style.display = "none"
-  }
-
-  if(playAnim){
-    renderPlayAnim()
-  } else
-  {
+function startTextRotation() {
+    if (textInterval) return;
     
+    textInterval = setInterval(() => {
+        showText(currentTextIndex);
+        currentTextIndex = (currentTextIndex + 1) % textArray.length;
+    }, labelsScrollTime * 1000);
+}
+
+function stopTextRotation() {
+    clearInterval(textInterval);
+    textInterval = null;
+}
+
+function showText(index) {
+    const els = document.getElementsByClassName('text-container');
+    
+    els.forEach((el, i) => {
+        if (i === index) {
+            el.style.opacity = 1;
+            el.style.visibility = 'visible';
+            animateAppear(el);
+        } else {
+            el.style.opacity = 0;
+            el.style.visibility = 'hidden';
+        }
+    });
+}
+
+function animateAppear(element) {
+    element.style.opacity = 0;
+    element.style.visibility = 'visible';
+    
+    setTimeout(() => {
+        element.style.opacity = 1;
+    }, 100);
+}
+
+function renderWidget() {
+  const widget = document.getElementById('widget');
+
+  if (render) {
+    widget.classList.add('visible');
+    if (textArray.length === 1) {
+      showText(0);
+    }
+  } else {
+    widget.classList.remove('visible');
+    stopTextRotation();
   }
 }
 
@@ -71,25 +110,34 @@ function addTextElem(text){
   el.style.height = "auto"
   el.innerText = text
 
-  if(textArray.length>1)
-  {
-    el.style.visibility = "hidden"
-    playAnim = true
+  if (textArray.length > 1) {
+    el.style.opacity = 0;
   }
   
   document.getElementById("main-container").appendChild(el);
-}
 
-function delText(text){
-  textArray = textArray.filter(el => el != text)
-  delTextElem(text)
-  if(textArray.length==0){
-    render = false
+  if (textArray.length === 2) {
+    startTextRotation();
   }
-  renderWidget()
 }
 
-function delTextElem(text){
+function removeText(text){
+  textArray = textArray.filter(el => el != text)
+  removeTextElem(text)
+  currentTextIndex = 0 //костыль, мб нормально потом делать
+
+  if (textArray.length === 1) {
+    stopTextRotation();
+    showText(0);
+  }
+  
+  if (textArray.length === 0) {
+    render = false;
+    renderWidget();
+  }
+}
+
+function romoveTextElem(text){
   const elems = document.getElementsByClassName("text-container");
   for(const el of elems)
   {

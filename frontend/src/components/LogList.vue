@@ -8,19 +8,21 @@
           <span class="log-content">
             <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
           </span>
-          <span @click="logStore.unpinPinnedItem(index); updatePinned()" class="pin-button">🔓</span>
+          <span @click="logStore.unpinPinnedItem(index); resetPinnedItem('ПОКА ЧТО ТУТ ХУЙ')" class="pin-button">🔓</span>
+          <!--ТУТ ПОМЕНЯТЬ ------------------------------------------- ^^^^^^^^^^^^^^^^-->
         </li> 
       </ul>
       <ul class="card-list">
         <li class="log-item"></li>
       </ul>
       <ul class="card-list">
-        <li v-for="(item, index) in logStore.rouletteHistory" :key="index" class="log-item">
+        <li v-for="(item, index) in logStore.rouletteHistory" :key="index" class="log-item" :class="{ hidden: logStore.isPinned(index) }">
           <span class="log-time">{{ item.time }}</span>
           <span class="log-content">
             <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
           </span>
-          <span @click="logStore.pinRouletteItem(index); updatePinned()" class="pin-button">📌</span>
+          <span @click="logStore.pinRouletteItem(index); setPinnedItem('ПОКА ЧТО ТУТ ХУЙ')" class="pin-button">📌</span>
+          <!--ТУТ ПОМЕНЯТЬ ------------------------------------------- ^^^^^^^^^^^^^^^^-->
         </li> 
       </ul>
     </div>
@@ -36,21 +38,32 @@ export default {
   setup() {
     const logStore = useLogStore();
 
-    const updatePinned = () => {
+    const setPinnedItem = (textOrIndexIDK) => {
+      FrontendDispatcher("set-pinned-reward", textOrIndexIDK) //нет обработчика
+    }
+
+    const resetPinnedItem = (textOrIndexIDK) => {
+      FrontendDispatcher("reset-pinned-reward", textOrIndexIDK)//нет обработчика
+    }
+
+    const updatePinned = (textOrIndexIDK) => {
       if( logStore.pinnedHistory.length == 0 ){
-        FrontendDispatcher("reset-pinned-rewards", "")
+        //FrontendDispatcher("reset-pinned-rewards", "")
       }
       else{
+        /*
         let resultStr = "Награды рулетки:"
         logStore.pinnedHistory.forEach((item) => {
           resultStr += '\n' + item.value 
-        })
-        FrontendDispatcher("update-pinned-rewards", resultStr)
+        })*/
+        FrontendDispatcher("update-pinned-rewards", textOrIndexIDK)
       }
     }
     return {
       logStore,
       updatePinned,
+      resetPinnedItem,
+      setPinnedItem,
     };
   }
 };
@@ -125,5 +138,9 @@ export default {
   margin: 0 4px; /* Отступы */
   word-wrap: break-word; /* Перенос длинных слов */
   overflow-wrap: break-word; /* Совместимость */
+}
+
+.hidden {
+  display: none;
 }
 </style>
