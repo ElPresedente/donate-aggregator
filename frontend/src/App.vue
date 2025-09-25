@@ -44,6 +44,7 @@ onMounted(() => {
       if(newData != null){
         logStore.rouletteHistory = [];
         newData.forEach(element => {
+          element.pinned = false
           logStore.rouletteHistory.push(element)
         });
       }
@@ -52,7 +53,7 @@ onMounted(() => {
       try{
         const parsedData = JSON.parse( newData )
         parsedData.spins.forEach(element => {
-          logStore.rouletteHistory.unshift({ time: parsedData.time, user: parsedData.user, value: element.sector })
+          logStore.rouletteHistory.unshift({ time: parsedData.time, user: parsedData.user, value: element.sector, pinned: false })
         });
       } 
       catch( error ){

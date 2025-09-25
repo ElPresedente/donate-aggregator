@@ -22,13 +22,26 @@ func (wh *WidgetsHub) NewRewardWidget(connection *websocket.Conn, lbridge l2wbri
 
 func (rw *RewardWidget) A2WRequest(request string, data string) {
 	switch request {
-	case "reward-set-text":
+	case "reward-set":
+		type logStr struct {
+			Time	string `json:"time"`
+			User	string `json:"user"`
+			Value	string `json:"value"`
+			Pinned 	string `json:"pinned"`
+		}
 		var sendingData struct {
 			Request string `json:"request"`
-			Text    string `json:"text"`
+			Data    logStr `json:"text"`
 		}
+		var logData logStr
+		err := json.Unmarshal([]byte(data), &logData)
+		if err != nil {
+			//fmt.Println("Ошибка декодирования:", err)
+			return
+		}
+
 		sendingData.Request = "set-text"
-		sendingData.Text = data
+		sendingData.Data = logData
 		marshalledData, err := json.Marshal(sendingData)
 		if err != nil {
 			log.Fatalf("json encoding error %v", err)

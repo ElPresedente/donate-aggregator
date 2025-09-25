@@ -66,21 +66,21 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 	case "twitchLoginProcedure":
 		twitchLoginProcedure()
 
-	case "reset-pinned-rewards":
-		resetPinnedRewards(a)
-	case "update-pinned-rewards":
-		updatePinnedMessages(a, argJSON)
+	case "reset-pinned-reward":
+		resetPinnedReward(a, argJSON)
+	case "set-pinned-reward":
+		setPinnedMessage(a, argJSON)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
 }
 
-func resetPinnedRewards(a *App) {
-	a.widgetHub.WidgetEventHandler("reward-reset", "")
+func resetPinnedReward(a *App, message string) {
+	a.widgetHub.WidgetEventHandler("reward-reset", message)
 }
 
-func updatePinnedMessages(a *App, message string) {
-	a.widgetHub.WidgetEventHandler("reward-set-text", message)
+func setPinnedMessage(a *App, message string) {
+	a.widgetHub.WidgetEventHandler("reward-set", message)
 }
 
 func twitchLoginProcedure() {

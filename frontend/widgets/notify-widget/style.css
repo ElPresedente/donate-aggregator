@@ -24,6 +24,8 @@
 }
 .text-container{
     margin: auto;
+    transition: opacity 0.5s ease;
+    visibility: hidden;
 }
 #widget {
     display: none;

@@ -137,7 +137,7 @@ function removeText(text){
   }
 }
 
-function romoveTextElem(text){
+function removeTextElem(text){
   const elems = document.getElementsByClassName("text-container");
   for(const el of elems)
   {

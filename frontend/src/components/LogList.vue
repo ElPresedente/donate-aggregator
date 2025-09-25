@@ -3,26 +3,14 @@
     <header class="card-header">История рулетки</header>
     <div class="scroll-container">
       <ul class="card-list">
-        <li v-for="(item, index) in logStore.pinnedHistory" :key="index" class="log-item">
-          <span class="log-time">{{ item.time }}</span>
+        <li v-for="(log, index) in sortedLogs" :key="index" class="log-item" :class="{ 'pinned': log.pinned }">
+          <span class="log-time" :class="{ 'pinned-time': log.pinned }">{{ log.time }}</span>
           <span class="log-content">
-            <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
+            <strong style="color: rgb(245, 117, 7);">{{ log.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ log.value }}</strong>
           </span>
-          <span @click="logStore.unpinPinnedItem(index); resetPinnedItem('ПОКА ЧТО ТУТ ХУЙ')" class="pin-button">🔓</span>
-          <!--ТУТ ПОМЕНЯТЬ ------------------------------------------- ^^^^^^^^^^^^^^^^-->
-        </li> 
-      </ul>
-      <ul class="card-list">
-        <li class="log-item"></li>
-      </ul>
-      <ul class="card-list">
-        <li v-for="(item, index) in logStore.rouletteHistory" :key="index" class="log-item" :class="{ hidden: logStore.isPinned(index) }">
-          <span class="log-time">{{ item.time }}</span>
-          <span class="log-content">
-            <strong style="color: rgb(245, 117, 7);">{{ item.user }}</strong> получает награду <strong style="color: rgb(245, 117, 7);">{{ item.value }}</strong>
-          </span>
-          <span @click="logStore.pinRouletteItem(index); setPinnedItem('ПОКА ЧТО ТУТ ХУЙ')" class="pin-button">📌</span>
-          <!--ТУТ ПОМЕНЯТЬ ------------------------------------------- ^^^^^^^^^^^^^^^^-->
+          <button @click="togglePin(log)" class="pin-button">
+            {{ log.pinned ? '🔓' : '📌' }}
+          </button>
         </li> 
       </ul>
     </div>
@@ -38,33 +26,39 @@ export default {
   setup() {
     const logStore = useLogStore();
 
+    const togglePin = (log) => {
+      const index = logStore.rouletteHistory.findIndex(l => l === log);
+      if (index === -1) return;
+
+      if(logStore.rouletteHistory){
+        resetPinnedItem("хуй")
+      } else {
+        setPinnedItem("хуй")
+      }
+      logStore.rouletteHistory[index].pinned = !logStore.rouletteHistory[index].pinned;
+    }
+
     const setPinnedItem = (textOrIndexIDK) => {
-      FrontendDispatcher("set-pinned-reward", textOrIndexIDK) //нет обработчика
+      const JSONtextOrIndexIDK = JSON.stringify(textOrIndexIDK)
+      FrontendDispatcher("set-pinned-reward", JSONtextOrIndexIDK) //нет обработчика
     }
 
     const resetPinnedItem = (textOrIndexIDK) => {
-      FrontendDispatcher("reset-pinned-reward", textOrIndexIDK)//нет обработчика
-    }
-
-    const updatePinned = (textOrIndexIDK) => {
-      if( logStore.pinnedHistory.length == 0 ){
-        //FrontendDispatcher("reset-pinned-rewards", "")
-      }
-      else{
-        /*
-        let resultStr = "Награды рулетки:"
-        logStore.pinnedHistory.forEach((item) => {
-          resultStr += '\n' + item.value 
-        })*/
-        FrontendDispatcher("update-pinned-rewards", textOrIndexIDK)
-      }
+      const JSONtextOrIndexIDK = JSON.stringify(textOrIndexIDK)
+      FrontendDispatcher("reset-pinned-reward", JSONtextOrIndexIDK)//нет обработчика
     }
     return {
       logStore,
-      updatePinned,
-      resetPinnedItem,
-      setPinnedItem,
+      togglePin
     };
+  },
+  computed: {
+     sortedLogs() {
+      // Разделяем логи на закрепленные и незакрепленные, сохраняя порядок
+      const pinned = this.logStore.rouletteHistory.filter(log => log.pinned);
+      const unpinned = this.logStore.rouletteHistory.filter(log => !log.pinned);
+      return [...pinned, ...unpinned];
+    }
   }
 };
 
@@ -109,7 +103,7 @@ export default {
 }
 
 .card-list li {
-  padding: 8px 0;
+  padding: 8px 5px;
   border-bottom: 1px solid #2a2a2a;
 }
 
@@ -138,6 +132,24 @@ export default {
   margin: 0 4px; /* Отступы */
   word-wrap: break-word; /* Перенос длинных слов */
   overflow-wrap: break-word; /* Совместимость */
+}
+.pin-button{
+  background-color: transparent;
+  box-shadow: none;
+  border: 1px solid transparent;
+}
+.pin-button:hover{
+  border: 1px solid rgb(245, 117, 7);
+}
+
+.pinned{
+  background: rgba(240, 255, 255, 0.073);
+  border-radius: 5px;
+}
+
+.pinned-time{
+  color:red;
+  font-weight: 900;
 }
 
 .hidden {
