@@ -30,10 +30,10 @@ export default {
       const index = logStore.rouletteHistory.findIndex(l => l === log);
       if (index === -1) return;
 
-      if(logStore.rouletteHistory){
-        resetPinnedItem("хуй")
+      if(logStore.rouletteHistory[index].pinned){
+        resetPinnedItem(logStore.rouletteHistory[index])
       } else {
-        setPinnedItem("хуй")
+        setPinnedItem(logStore.rouletteHistory[index])
       }
       logStore.rouletteHistory[index].pinned = !logStore.rouletteHistory[index].pinned;
     }

@@ -2,6 +2,7 @@ package widget
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-back/l2wbridge"
 	"log"
 
@@ -24,19 +25,19 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 	switch request {
 	case "reward-set":
 		type logStr struct {
-			Time	string `json:"time"`
-			User	string `json:"user"`
-			Value	string `json:"value"`
-			Pinned 	string `json:"pinned"`
+			Time   string `json:"time"`
+			User   string `json:"user"`
+			Value  string `json:"value"`
+			Pinned bool   `json:"pinned"`
 		}
 		var sendingData struct {
 			Request string `json:"request"`
-			Data    logStr `json:"text"`
+			Data    logStr `json:"pin"`
 		}
 		var logData logStr
 		err := json.Unmarshal([]byte(data), &logData)
 		if err != nil {
-			//fmt.Println("Ошибка декодирования:", err)
+			fmt.Println("Ошибка декодирования:", err)
 			return
 		}
 
@@ -49,6 +50,7 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		}
 		rw.connection.WriteMessage(websocket.TextMessage, marshalledData)
 	case "reward-reset":
+		//Это еще не изменено
 		var sendingData struct {
 			Request string `json:"request"`
 		}

@@ -23,7 +23,7 @@ let borderRadius = 20
 
 //VARIABLES
 
-let textArray = []
+let pinsArray = []
 let render = false
 
 let textInterval = null;
@@ -35,10 +35,16 @@ window.addEventListener('onWidgetLoad', function (obj) {
   connectWebSocket()
 });
 
+function error( err ){
+  if( debugEnabled ){
+    console.error(err)
+  }
+}
+
 function handleEvent(event){
   log(event)
   switch( event.request ){
-    case "set-text": return setText( event.text )
+    case "set-text": return setText( event.pin )
     case "reset": return reset()
     case "remove-text": return removeText(text)
   }
@@ -49,7 +55,7 @@ function startTextRotation() {
     
     textInterval = setInterval(() => {
         showText(currentTextIndex);
-        currentTextIndex = (currentTextIndex + 1) % textArray.length;
+        currentTextIndex = (currentTextIndex + 1) % pinsArray.length;
     }, labelsScrollTime * 1000);
 }
 
@@ -59,18 +65,18 @@ function stopTextRotation() {
 }
 
 function showText(index) {
-    const els = document.getElementsByClassName('text-container');
-    
-    els.forEach((el, i) => {
-        if (i === index) {
-            el.style.opacity = 1;
-            el.style.visibility = 'visible';
-            animateAppear(el);
-        } else {
-            el.style.opacity = 0;
-            el.style.visibility = 'hidden';
-        }
-    });
+  const els = document.getElementsByClassName('text-container');
+
+  Array.from(els).forEach((el, i) => {
+      if (i === index) {
+          el.style.opacity = 1;
+          el.style.visibility = 'visible';
+          animateAppear(el);
+      } else {
+          el.style.opacity = 0;
+          el.style.visibility = 'hidden';
+      }
+  });
 }
 
 function animateAppear(element) {
@@ -83,11 +89,11 @@ function animateAppear(element) {
 }
 
 function renderWidget() {
-  const widget = document.getElementById('widget');
+  const widget = document.querySelector('#widget');
 
   if (render) {
     widget.classList.add('visible');
-    if (textArray.length === 1) {
+    if (pinsArray.length === 1) {
       showText(0);
     }
   } else {
@@ -96,9 +102,9 @@ function renderWidget() {
   }
 }
 
-function setText(text){
-  textArray.push(text)
-  addTextElem(text)
+function setText(obj){
+  pinsArray.push(obj)
+  addTextElem(obj.value)
   render = true
   renderWidget();
 }
@@ -110,28 +116,28 @@ function addTextElem(text){
   el.style.height = "auto"
   el.innerText = text
 
-  if (textArray.length > 1) {
+  if (pinsArray.length > 1) {
     el.style.opacity = 0;
   }
   
   document.getElementById("main-container").appendChild(el);
 
-  if (textArray.length === 2) {
+  if (pinsArray.length === 2) {
     startTextRotation();
   }
 }
 
 function removeText(text){
-  textArray = textArray.filter(el => el != text)
+  pinsArray = pinsArray.filter(el => el != text)
   removeTextElem(text)
   currentTextIndex = 0 //костыль, мб нормально потом делать
 
-  if (textArray.length === 1) {
+  if (pinsArray.length === 1) {
     stopTextRotation();
     showText(0);
   }
   
-  if (textArray.length === 0) {
+  if (pinsArray.length === 0) {
     render = false;
     renderWidget();
   }
@@ -165,8 +171,8 @@ function connectWebSocket() {
     try {
       log(event)
       handleEvent(JSON.parse(event.data));
-    } catch (error) {
-      error('❌ Ошибка парсинга:', error);
+    } catch (err) {
+      error('❌ Ошибка парсинга:', err);
     }
   };
 
@@ -211,18 +217,13 @@ function testCheck(){
 }
 
 function testStart(){
-  setText(testTextType)
+  const testObj = {'value': testTextType}
+  setText(testObj)
 }
 
 function warn( w ){
   if( debugEnabled ){
     console.warn(w)
-  }
-}
-
-function error( err ){
-  if( debugEnabled ){
-    console.error(err)
   }
 }
 

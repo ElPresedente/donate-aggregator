@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"go-back/database"
+	"go-back/functions"
 	"go-back/services"
 	"log"
-	"go-back/functions"
-
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -90,7 +89,7 @@ func twitchLoginProcedure() {
 func newStream(a *App) {
 	database.LogDB.ClearDatabase()
 	a.logic.ReloadRoulette()
-	
+
 	functions.ToastInfoRun(a.ctx, "Сбрасываем данные прошлого стрима")
 	runtime.EventsEmit(a.ctx, "logData", map[string]any{})
 }
@@ -276,7 +275,7 @@ func updateRouletteSettings(a *App, data string) {
 				log.Printf("❌ Ошибка записи данных (%s:%s) в UpdateRouletteSettingValue: %s", setting.Name, setting.Value, err)
 				functions.ToastErrorRun(a.ctx, "Ошибка записи данных рулетки")
 			}
-			
+
 		} else {
 			err := database.WidgetDB.InsertRouletteSettingValue(setting.Name, setting.Value)
 			if err != nil {
@@ -360,7 +359,7 @@ func updateSettings(a *App, data string) {
 		exists, err := database.CredentialsDB.CheckENVExists(setting.Name)
 		if err != nil {
 			log.Printf("❌ Ошибка проверки существования настройки '%s': %v", setting.Name, err)
-				functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
+			functions.ToastErrorRun(a.ctx, "Ошибка записи настроек")
 			continue
 		}
 
