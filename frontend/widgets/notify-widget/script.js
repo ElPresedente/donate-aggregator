@@ -27,13 +27,27 @@ let pinsArray = []
 let render = false
 
 let textInterval = null;
-let currentTextIndex = 0;
+let currentActiveIndex = 0;
+let maxHeight = 0;
 
 window.addEventListener('onWidgetLoad', function (obj) {
   initWidget(obj)
   testCheck()
   connectWebSocket()
 });
+
+function initTextSizes() {
+  const containers = document.querySelectorAll('.text-container');
+  const wrapper = document.querySelector('#main-container');
+
+  containers.forEach(el => el.classList.add('measure'));
+
+  maxHeight = Math.max(...Array.from(containers).map(el => el.offsetHeight));
+  console.log(maxHeight)
+  wrapper.style.height = `${maxHeight}px`;
+
+  containers.forEach(el => el.classList.remove('measure'));
+}
 
 function error( err ){
   if( debugEnabled ){
@@ -54,8 +68,8 @@ function startTextRotation() {
     if (textInterval) return;
     
     textInterval = setInterval(() => {
-        showText(currentTextIndex);
-        currentTextIndex = (currentTextIndex + 1) % pinsArray.length;
+        showText(currentActiveIndex);
+        currentActiveIndex = (currentActiveIndex + 1) % pinsArray.length;
     }, labelsScrollTime * 1000);
 }
 
@@ -65,39 +79,39 @@ function stopTextRotation() {
 }
 
 function showText(index) {
-  const els = document.getElementsByClassName('text-container');
+  const els = document.querySelectorAll('.text-container');
 
-  Array.from(els).forEach((el, i) => {
-      if (i === index) {
-          el.style.opacity = 1;
-          el.style.visibility = 'visible';
-          animateAppear(el);
-      } else {
-          el.style.opacity = 0;
-          el.style.visibility = 'hidden';
-      }
+  els.forEach((el, i) => {
+    if (i === index) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
   });
 }
 
 function animateAppear(element) {
-    element.style.opacity = 0;
-    element.style.visibility = 'visible';
-    
-    setTimeout(() => {
-        element.style.opacity = 1;
-    }, 100);
+  element.classList.add('active');
 }
 
 function renderWidget() {
   const widget = document.querySelector('#widget');
 
   if (render) {
-    widget.classList.add('visible');
+    widget.classList.remove("hidden");
+    widget.classList.add("visible");
+    //widget.classList.add('visible');
     if (pinsArray.length === 1) {
-      showText(0);
+      currentActiveIndex = 0;
+      initTextSizes();
+      showText(currentActiveIndex);
+    } else {
+      initTextSizes();
+      startTextRotation();
     }
   } else {
     widget.classList.remove('visible');
+    widget.classList.add("hidden");
     stopTextRotation();
   }
 }
@@ -115,22 +129,14 @@ function addTextElem(text){
   //el.style.width = `${sectorWidth}px`;
   el.style.height = "auto"
   el.innerText = text
-
-  if (pinsArray.length > 1) {
-    el.style.opacity = 0;
-  }
   
   document.getElementById("main-container").appendChild(el);
-
-  if (pinsArray.length === 2) {
-    startTextRotation();
-  }
 }
 
 function removeText(text){
   pinsArray = pinsArray.filter(el => el != text)
   removeTextElem(text)
-  currentTextIndex = 0 //костыль, мб нормально потом делать
+  currentActiveIndex = 0 //костыль, мб нормально потом делать
 
   if (pinsArray.length === 1) {
     stopTextRotation();
@@ -211,7 +217,7 @@ function initWidget(widgetLoadEventObject){
 }
 
 function testCheck(){
-  if(testEnabled){
+  if(testEnabled === "true"){
     testStart()
   }
 }
@@ -222,7 +228,7 @@ function testStart(){
 }
 
 function warn( w ){
-  if( debugEnabled ){
+  if( debugEnabled === "true" ){
     console.warn(w)
   }
 }

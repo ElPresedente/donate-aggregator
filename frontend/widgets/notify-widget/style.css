@@ -4,6 +4,8 @@
     margin: 0 1%;
     padding: 15px 0;
     text-align: center;
+    display: flex;
+    align-items: center;
     font-family: {textFontName};
     font-size: {textSize}px;
     color: {textColor};
@@ -22,18 +24,39 @@
     font-size: {titleSize}px;
     color: {titleColor};
 }
+.texts-container {
+    transition: height 0.3s ease;
+    overflow: hidden;
+}
 .text-container{
     margin: auto;
-    transition: opacity 0.5s ease;
-    visibility: hidden;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.text-container.active {
+    display: block;
+    opacity: 1;
+}
+.text-container.measure {
+  display: block !important;
+  opacity: 0 !important;
+  position: absolute;
+  visibility: hidden;
 }
 #widget {
-    display: none;
-    transition: opacity 0.5s ease;
-    opacity: 0;
+    display: block;
+    transition: opacity 3s linear, transform 2s ease-in-out;
+    transform: scale(0.95);
+    pointer-events: none;
 }
 
 #widget.visible {
-    display: block;
-    opacity: 1;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+#widget.hidden {
+  display: none;
 }
