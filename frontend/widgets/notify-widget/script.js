@@ -60,7 +60,7 @@ function handleEvent(event){
   switch( event.request ){
     case "set-text": return setText( event.pin )
     case "reset": return reset()
-    case "remove-text": return removeText(text)
+    case "reset-text": return resetText( event.pin )
   }
 }
 
@@ -133,9 +133,11 @@ function addTextElem(text){
   document.getElementById("main-container").appendChild(el);
 }
 
-function removeText(text){
-  pinsArray = pinsArray.filter(el => el != text)
-  removeTextElem(text)
+function resetText(obj){
+  pinsArray = pinsArray.filter(el => el.value !== obj.value)
+  console.log(pinsArray)
+  console.log(obj)
+  resetTextElem(obj.value)
   currentActiveIndex = 0 //костыль, мб нормально потом делать
 
   if (pinsArray.length === 1) {
@@ -149,7 +151,7 @@ function removeText(text){
   }
 }
 
-function removeTextElem(text){
+function resetTextElem(text){
   const elems = document.getElementsByClassName("text-container");
   for(const el of elems)
   {

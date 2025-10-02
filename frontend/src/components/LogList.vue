@@ -38,14 +38,14 @@ export default {
       logStore.rouletteHistory[index].pinned = !logStore.rouletteHistory[index].pinned;
     }
 
-    const setPinnedItem = (textOrIndexIDK) => {
-      const JSONtextOrIndexIDK = JSON.stringify(textOrIndexIDK)
-      FrontendDispatcher("set-pinned-reward", JSONtextOrIndexIDK) //нет обработчика
+    const setPinnedItem = (pinItem) => {
+      const JSONPinItem = JSON.stringify(pinItem)
+      FrontendDispatcher("set-pinned-reward", JSONPinItem)
     }
 
-    const resetPinnedItem = (textOrIndexIDK) => {
-      const JSONtextOrIndexIDK = JSON.stringify(textOrIndexIDK)
-      FrontendDispatcher("reset-pinned-reward", JSONtextOrIndexIDK)//нет обработчика
+    const resetPinnedItem = (pinItem) => {
+      const JSONPinItem = JSON.stringify(pinItem)
+      FrontendDispatcher("reset-pinned-reward", JSONPinItem)//нет обработчика
     }
     return {
       logStore,

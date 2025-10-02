@@ -15,6 +15,13 @@ type RewardWidget struct {
 	lbridge    l2wbridge.W2LHandler
 }
 
+type LogStr struct {
+	Time   string `json:"time"`
+	User   string `json:"user"`
+	Value  string `json:"value"`
+	Pinned bool   `json:"pinned"`
+}
+
 func (wh *WidgetsHub) NewRewardWidget(connection *websocket.Conn, lbridge l2wbridge.W2LHandler) *RewardWidget {
 	lbridge.LogicEventHandler("rewardConnected", "")
 	wh.rewardWidgets += 1
@@ -24,17 +31,11 @@ func (wh *WidgetsHub) NewRewardWidget(connection *websocket.Conn, lbridge l2wbri
 func (rw *RewardWidget) A2WRequest(request string, data string) {
 	switch request {
 	case "reward-set":
-		type logStr struct {
-			Time   string `json:"time"`
-			User   string `json:"user"`
-			Value  string `json:"value"`
-			Pinned bool   `json:"pinned"`
-		}
 		var sendingData struct {
 			Request string `json:"request"`
-			Data    logStr `json:"pin"`
+			Data    LogStr `json:"pin"`
 		}
-		var logData logStr
+		var logData LogStr
 		err := json.Unmarshal([]byte(data), &logData)
 		if err != nil {
 			fmt.Println("Ошибка декодирования:", err)
@@ -53,8 +54,17 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		//Это еще не изменено
 		var sendingData struct {
 			Request string `json:"request"`
+			Data    LogStr `json:"pin"`
 		}
-		sendingData.Request = "reset"
+		var logData LogStr
+		err := json.Unmarshal([]byte(data), &logData)
+		if err != nil {
+			fmt.Println("Ошибка декодирования:", err)
+			return
+		}
+
+		sendingData.Request = "reset-text"
+		sendingData.Data = logData
 		marshalledData, err := json.Marshal(sendingData)
 		if err != nil {
 			log.Fatalf("json encoding error %v", err)
