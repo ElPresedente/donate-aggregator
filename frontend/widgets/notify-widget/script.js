@@ -40,13 +40,8 @@ function initTextSizes() {
   const containers = document.querySelectorAll('.text-container');
   const wrapper = document.querySelector('#main-container');
 
-  containers.forEach(el => el.classList.add('measure'));
-
   maxHeight = Math.max(...Array.from(containers).map(el => el.offsetHeight));
-  console.log(maxHeight)
   wrapper.style.height = `${maxHeight}px`;
-
-  containers.forEach(el => el.classList.remove('measure'));
 }
 
 function error( err ){
@@ -83,7 +78,7 @@ function showText(index) {
 
   els.forEach((el, i) => {
     if (i === index) {
-      el.classList.add('active');
+      el.classList.add('active')
     } else {
       el.classList.remove('active');
     }
@@ -99,6 +94,7 @@ function renderWidget() {
 
   if (render) {
     widget.classList.remove("hidden");
+    void widget.offsetWidth
     widget.classList.add("visible");
     //widget.classList.add('visible');
     if (pinsArray.length === 1) {
@@ -111,8 +107,10 @@ function renderWidget() {
     }
   } else {
     widget.classList.remove('visible');
-    widget.classList.add("hidden");
-    stopTextRotation();
+    setTimeout(() => {
+      widget.classList.add("hidden");
+      stopTextRotation();
+    }, 1000);
   }
 }
 
@@ -135,19 +133,25 @@ function addTextElem(text){
 
 function resetText(obj){
   pinsArray = pinsArray.filter(el => el.value !== obj.value)
-  console.log(pinsArray)
-  console.log(obj)
-  resetTextElem(obj.value)
   currentActiveIndex = 0 //костыль, мб нормально потом делать
 
-  if (pinsArray.length === 1) {
-    stopTextRotation();
-    showText(0);
-  }
-  
-  if (pinsArray.length === 0) {
-    render = false;
-    renderWidget();
+  switch (pinsArray.length)
+  {
+    case 0:
+      render = false;
+      renderWidget();
+      setTimeout(() => {
+        resetTextElem(obj.value)
+      }, 1000);
+      break;
+    case 1:
+      resetTextElem(obj.value)
+      stopTextRotation();
+      showText(0);
+      break;
+    default:
+      resetTextElem(obj.value)
+      break;
   }
 }
 

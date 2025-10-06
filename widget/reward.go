@@ -2,7 +2,6 @@ package widget
 
 import (
 	"encoding/json"
-	"fmt"
 	"go-back/l2wbridge"
 	"log"
 
@@ -38,7 +37,7 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		var logData LogStr
 		err := json.Unmarshal([]byte(data), &logData)
 		if err != nil {
-			fmt.Println("Ошибка декодирования:", err)
+			log.Fatalf("Ошибка декодирования:", err)
 			return
 		}
 
@@ -59,7 +58,7 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		var logData LogStr
 		err := json.Unmarshal([]byte(data), &logData)
 		if err != nil {
-			fmt.Println("Ошибка декодирования:", err)
+			log.Fatalf("Ошибка декодирования:", err)
 			return
 		}
 
