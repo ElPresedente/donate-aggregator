@@ -64,21 +64,26 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		newStream(a)
 	case "twitchLoginProcedure":
 		twitchLoginProcedure()
-
+	case "reloadNotifyWidget":
+		reloadNotifyWidget(a, argJSON)
 	case "reset-pinned-reward":
 		resetPinnedReward(a, argJSON)
 	case "set-pinned-reward":
-		setPinnedMessage(a, argJSON)
+		setPinnedReward(a, argJSON)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func reloadNotifyWidget(a *App, message string) {
+	a.widgetHub.WidgetEventHandler("widget-reload", message)
 }
 
 func resetPinnedReward(a *App, message string) {
 	a.widgetHub.WidgetEventHandler("reward-reset", message)
 }
 
-func setPinnedMessage(a *App, message string) {
+func setPinnedReward(a *App, message string) {
 	a.widgetHub.WidgetEventHandler("reward-set", message)
 }
 

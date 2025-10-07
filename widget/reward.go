@@ -50,7 +50,6 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		}
 		rw.connection.WriteMessage(websocket.TextMessage, marshalledData)
 	case "reward-reset":
-		//Это еще не изменено
 		var sendingData struct {
 			Request string `json:"request"`
 			Data    LogStr `json:"pin"`
@@ -70,6 +69,15 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 			return
 		}
 		rw.connection.WriteMessage(websocket.TextMessage, marshalledData)
+	case "widget-reload":
+		var formattedSectors []map[string]interface{}
+		for _, sector := range sectors {
+			formattedSectors = append(formattedSectors, map[string]interface{}{
+				"id":     sector.ID,
+				"data":   sector.Name,
+				"status": nil,
+			})
+		}
 	}
 }
 

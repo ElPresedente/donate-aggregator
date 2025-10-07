@@ -31,7 +31,7 @@
           </div>
         </div>
       </ControlPanelSection>
-      <ControlPanelSection title="Рулетка">
+      <ControlPanelSection title="Виджеты">
         <div class="status">
           <div class="status-row">
             <span v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет рулетки: Подключено</span>
@@ -40,9 +40,10 @@
             <button v-if="connectionStore.rouletteConnected === ConnectionStatus.CONNECTED || connectionStore.rouletteConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadRoulette">🔄</button>
           </div>
           <div class="status-row">
-            <span v-if="connectionStore.rewardConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет наград: Подключено</span>
-            <span v-if="connectionStore.rewardConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет наград: Не подключено</span>
-            <span v-if="connectionStore.rewardConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет наград: Попытка подключения...</span>
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.CONNECTED" class="status-connected">✅ Виджет отображения наград: Подключено</span>
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.DISCONNECTED" class="status-disconnected">❌ Виджет отображения наград: Не подключено</span>
+            <span v-if="connectionStore.rewardConnected === ConnectionStatus.RECONNECTING" class="status-reconnecting">⚠️ Виджет отображения наград: Попытка подключения...</span>
+            <button v-if="connectionStore.rewardConnected === ConnectionStatus.CONNECTED || connectionStore.rewardConnected === ConnectionStatus.RECONNECTING" class="reload-btn" @click="reloadNotifyWidget">🔄</button>
           </div>
           <br></br>
           <div class="status-row">
@@ -119,6 +120,10 @@ export default {
     const reloadRoulette = () => {
       FrontendDispatcher("reloadRoulette", "")
     };
+    const reloadNotifyWidget = () => {
+      const data = logStore.rouletteHistory.filter(item => item.pinned === true);
+      FrontendDispatcher("reloadNotifyWidget", JSON.stringify(data))
+    };
     const rouletteReconnect = () => {
       FrontendDispatcher("reconnectAllCollector");
     };
@@ -140,6 +145,7 @@ export default {
       reconnectDonatepay,
       reconnectTwitch,
       reloadRoulette,
+      reloadNotifyWidget,
       showSettings, 
       showWidgetSettings
     }

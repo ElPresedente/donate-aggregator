@@ -36,41 +36,125 @@ window.addEventListener('onWidgetLoad', function (obj) {
   connectWebSocket()
 });
 
-function initTextSizes() {
-  const containers = document.querySelectorAll('.text-container');
-  const wrapper = document.querySelector('#main-container');
+function initWidget(widgetLoadEventObject){
+  const fieldData = widgetLoadEventObject.detail.fieldData;
 
-  maxHeight = Math.max(...Array.from(containers).map(el => el.offsetHeight));
-  wrapper.style.height = `${maxHeight}px`;
+  debugEnabled            = fieldData.debugEnabled
+  testEnabled             = fieldData.testEnabled
+  testTextType            = fieldData.testTextType
+  titleText               = fieldData.titleText
+  titleSize               = fieldData.titleSize
+  titleColor              = fieldData.titleColor
+  titleFontName           = fieldData.titleFontName
+  titleMarginLeft         = fieldData.titleMarginLeft
+  textSize                = fieldData.textSize
+  textColor               = fieldData.textColor
+  textFontName            = fieldData.textFontName
+  widgetAppearanceTime    = fieldData.widgetAppearanceTime    //сори одно и то же
+  widgetDisappearanceTime = fieldData.widgetDisappearanceTime //сори одно и то же
+  labelsScrollTime        = fieldData.labelsScrollTime
+  backgroundColor         = fieldData.backgroundColor
+  borderWidth             = fieldData.borderWidth
+  borderColor             = fieldData.borderColor
+  borderRadius            = fieldData.borderRadius
 }
 
-function error( err ){
-  if( debugEnabled ){
-    console.error(err)
+function testCheck(){
+  if(testEnabled === "true"){
+    const testObj = {'value': testTextType}
+    setText(testObj)
   }
+}
+
+function connectWebSocket() {
+  const RETRY_INTERVAL = 5000;
+  ws = new WebSocket('ws://localhost:8080/ws?type=reward');
+
+  ws.onopen = () => {
+    log('✅ Подключено к серверу WebSocket');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      log(event)
+      handleEvent(JSON.parse(event.data));
+    } catch (err) {
+      error('❌ Ошибка парсинга:', err);
+    }
+  };
+
+  ws.onclose = () => {
+    warn('⚠️ Соединение закрыто. Повторная попытка через 5 секунд...');
+    setTimeout(connectWebSocket, RETRY_INTERVAL);
+  };
+
+  ws.onerror = (err) => {
+    error('❌ Ошибка WebSocket:', err);
+    ws.close(); // Принудительно закрываем, чтобы сработал onclose и началась повторная попытка
+  };
 }
 
 function handleEvent(event){
   log(event)
   switch( event.request ){
     case "set-text": return setText( event.pin )
-    case "reset": return reset()
     case "reset-text": return resetText( event.pin )
   }
 }
 
-function startTextRotation() {
-    if (textInterval) return;
-    
-    textInterval = setInterval(() => {
-        showText(currentActiveIndex);
-        currentActiveIndex = (currentActiveIndex + 1) % pinsArray.length;
-    }, labelsScrollTime * 1000);
+function setText(obj){
+  pinsArray.push(obj)
+  addTextElem(obj.value)
+  render = true
+  renderWidget();
 }
 
-function stopTextRotation() {
-    clearInterval(textInterval);
-    textInterval = null;
+function addTextElem(text){
+  const el = document.createElement("p")
+  el.className = "text-container"
+  el.innerText = text
+  
+  document.getElementById("main-container").appendChild(el);
+}
+
+function renderWidget() {
+  const widget = document.querySelector('#widget');
+
+  if (render) {
+    widgetAppear()
+    if (pinsArray.length === 1) {
+      currentActiveIndex = 0;
+      initTextSizes();
+      showText(currentActiveIndex);
+    } else {
+      initTextSizes();
+      startTextRotation();
+    }
+  } else {
+    widgetDisappear()
+  }
+}
+
+function widgetAppear(){
+  widget.classList.remove("hidden");
+  void widget.offsetWidth
+  widget.classList.add("visible");
+}
+
+function widgetDisappear(){
+    widget.classList.remove('visible');
+    setTimeout(() => {
+      widget.classList.add("hidden");
+      stopTextRotation();
+    }, 1000);
+}
+
+function initTextSizes() {
+  const containers = document.querySelectorAll('.text-container');
+  const wrapper = document.querySelector('#main-container');
+
+  maxHeight = Math.max(...Array.from(containers).map(el => el.offsetHeight));
+  wrapper.style.height = `${maxHeight}px`;
 }
 
 function showText(index) {
@@ -85,50 +169,18 @@ function showText(index) {
   });
 }
 
-function animateAppear(element) {
-  element.classList.add('active');
+function startTextRotation() {
+    if (textInterval) return;
+    
+    textInterval = setInterval(() => {
+        showText(currentActiveIndex);
+        currentActiveIndex = (currentActiveIndex + 1) % pinsArray.length;
+    }, labelsScrollTime * 1000);
 }
 
-function renderWidget() {
-  const widget = document.querySelector('#widget');
-
-  if (render) {
-    widget.classList.remove("hidden");
-    void widget.offsetWidth
-    widget.classList.add("visible");
-    //widget.classList.add('visible');
-    if (pinsArray.length === 1) {
-      currentActiveIndex = 0;
-      initTextSizes();
-      showText(currentActiveIndex);
-    } else {
-      initTextSizes();
-      startTextRotation();
-    }
-  } else {
-    widget.classList.remove('visible');
-    setTimeout(() => {
-      widget.classList.add("hidden");
-      stopTextRotation();
-    }, 1000);
-  }
-}
-
-function setText(obj){
-  pinsArray.push(obj)
-  addTextElem(obj.value)
-  render = true
-  renderWidget();
-}
-
-function addTextElem(text){
-  const el = document.createElement("p")
-  el.className = "text-container"
-  //el.style.width = `${sectorWidth}px`;
-  el.style.height = "auto"
-  el.innerText = text
-  
-  document.getElementById("main-container").appendChild(el);
+function stopTextRotation() {
+    clearInterval(textInterval);
+    textInterval = null;
 }
 
 function resetText(obj){
@@ -166,71 +218,10 @@ function resetTextElem(text){
   }
 }
 
-function reset(){
-  const elem = document.getElementById('text-container')
-  elem.innerText = ''
-}
-
-function connectWebSocket() {
-  const RETRY_INTERVAL = 5000;
-  ws = new WebSocket('ws://localhost:8080/ws?type=reward');
-
-  ws.onopen = () => {
-    log('✅ Подключено к серверу WebSocket');
-  };
-
-  ws.onmessage = (event) => {
-    try {
-      log(event)
-      handleEvent(JSON.parse(event.data));
-    } catch (err) {
-      error('❌ Ошибка парсинга:', err);
-    }
-  };
-
-  ws.onclose = () => {
-    warn('⚠️ Соединение закрыто. Повторная попытка через 5 секунд...');
-    setTimeout(connectWebSocket, RETRY_INTERVAL);
-  };
-
-  ws.onerror = (err) => {
-    error('❌ Ошибка WebSocket:', err);
-    ws.close(); // Принудительно закрываем, чтобы сработал onclose и началась повторная попытка
-  };
-}
-
-function initWidget(widgetLoadEventObject){
-  const fieldData = widgetLoadEventObject.detail.fieldData;
-
-  debugEnabled            = fieldData.debugEnabled
-  testEnabled             = fieldData.testEnabled
-  testTextType            = fieldData.testTextType
-  titleText               = fieldData.titleText
-  titleSize               = fieldData.titleSize
-  titleColor              = fieldData.titleColor
-  titleFontName           = fieldData.titleFontName
-  titleMarginLeft         = fieldData.titleMarginLeft
-  textSize                = fieldData.textSize
-  textColor               = fieldData.textColor
-  textFontName            = fieldData.textFontName
-  widgetAppearanceTime    = fieldData.widgetAppearanceTime
-  widgetDisappearanceTime = fieldData.widgetDisappearanceTime
-  labelsScrollTime        = fieldData.labelsScrollTime
-  backgroundColor         = fieldData.backgroundColor
-  borderWidth             = fieldData.borderWidth
-  borderColor             = fieldData.borderColor
-  borderRadius            = fieldData.borderRadius
-}
-
-function testCheck(){
-  if(testEnabled === "true"){
-    testStart()
+function error( err ){
+  if( debugEnabled ){
+    console.error(err)
   }
-}
-
-function testStart(){
-  const testObj = {'value': testTextType}
-  setText(testObj)
 }
 
 function warn( w ){
