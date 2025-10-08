@@ -34,10 +34,12 @@ import { useRouter } from 'vue-router';
 import SettingsCard from './SettingsCard.vue'
 import { onMounted, ref, onUnmounted } from 'vue';
 import { FrontendDispatcher } from '../../wailsjs/go/main/App'
+import { useToastStore } from '../stores/toastStore';
 export default {
   setup() {
     let unsubscribes = [];
     const router = useRouter();
+    const toastStore = useToastStore();
     const goBack = () => router.go(-1); //router.push('/');
     const donattyCfg = [
       {
@@ -101,6 +103,11 @@ export default {
         label: 'Записывать лог программы в файл',
         type: 'checkbox',
       },
+      {
+        name: 'toastsEnabled',
+        label: 'Включить отображение уведомлений',
+        type: 'checkbox',
+      },
     ]
     const donatty = ref([{donattyToken: '', donattyUrl: ''}])
     const donatpay = ref([{donatpayToken: '', donatpayUserId: ''}])
@@ -115,16 +122,16 @@ export default {
     const handleSave = () => {
       const settingsToSave = {
         settings:  [
-          {name: "donattyToken",     value: donatty.value.donattyToken},
-          {name: "donattyUrl",       value: donatty.value.donattyUrl},
-          {name: "donatpayToken",    value: donatpay.value.donatpayToken},
-          {name: "donatpayUserId",   value: donatpay.value.donatpayUserId},
-          {name: "donatpayDomain",   value: donatpay.value.donatpayDomain},
-          {name: "logEnabled",       value: String(otherSettings.value.logEnabled)}
+          {name: "donattyToken",    value: donatty.value.donattyToken},
+          {name: "donattyUrl",      value: donatty.value.donattyUrl},
+          {name: "donatpayToken",   value: donatpay.value.donatpayToken},
+          {name: "donatpayUserId",  value: donatpay.value.donatpayUserId},
+          {name: "donatpayDomain",  value: donatpay.value.donatpayDomain},
+          {name: "logEnabled",      value: String(otherSettings.value.logEnabled)},
+          {name: "toastsEnabled",   value: String(otherSettings.value.toastsEnabled)},
         ]
       }
       FrontendDispatcher("updateSettings", JSON.stringify(settingsToSave));
-      showExampleNotification() //Что это блять за функция?
       // Отправка на сервер
     }
     onMounted(() =>{
@@ -149,6 +156,9 @@ export default {
                 break;
               case 'logEnabled':
                 otherSettings.value.logEnabled = setting.value;
+                break;
+              case 'toastsEnabled':
+                otherSettings.value.toastsEnabled = setting.value
                 break;
               default:
                 console.warn(`⚠️ Неизвестная настройка: ${setting.name}`);

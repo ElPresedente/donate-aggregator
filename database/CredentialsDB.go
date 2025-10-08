@@ -80,6 +80,7 @@ func (c *CredentialsDatabase) InitDefaultVariable() {
 		"donatpayDomain":     ".eu",
 		"twitchRefreshToken": "",
 		"logEnabled":         "false",
+		"toastsEnabled":      "true",
 	}
 
 	for key, value := range values {

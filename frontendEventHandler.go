@@ -70,9 +70,20 @@ func (a *App) FrontendDispatcher(endpoint string, argJSON string) {
 		resetPinnedReward(a, argJSON)
 	case "set-pinned-reward":
 		setPinnedReward(a, argJSON)
+	case "getToastsEnabled":
+		getToastsEnabled(a)
 	default:
 		log.Printf("⚠️ Неизвестный endpoint: %s", endpoint)
 	}
+}
+
+func getToastsEnabled(a *App) {
+	toastsEnabled, err := database.CredentialsDB.GetENVValue("toastsEnabled")
+	if err != nil {
+		log.Println("❌ Ошибка при получении toastsEnabled:", err)
+		return
+	}
+	runtime.EventsEmit(a.ctx, "responseToastsEnabled", toastsEnabled)
 }
 
 func reloadNotifyWidget(a *App, message string) {
@@ -387,6 +398,7 @@ func updateSettings(a *App, data string) {
 	}
 
 	functions.ToastSuccessRun(a.ctx, "Настройки сохранены")
+	runtime.EventsEmit(a.ctx, "settingsUpdated")
 }
 
 func startCollector(data string, a *App) {

@@ -126,6 +126,7 @@ export default {
     const reloadNotifyWidget = () => {
       const data = logStore.rouletteHistory.filter(item => item.pinned === true);
       FrontendDispatcher("reloadNotifyWidget", JSON.stringify(data))
+      FrontendDispatcher("getToastsEnabled")
     };
     const rouletteReconnect = () => {
       FrontendDispatcher("reconnectAllCollector");

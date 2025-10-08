@@ -60,6 +60,19 @@ onMounted(() => {
         console.error( error )
       }
     })
+    window.runtime.EventsOn('settingsUpdated', () => {
+      FrontendDispatcher("getToastsEnabled", "")
+    })
+    window.runtime.EventsOn('responseToastsEnabled', (response) => {
+      try{
+        toastStore.setToastsEnabled(response === "true")
+        console.log("тосты", toastStore.toastsEnabled)
+      }
+      catch( error ){
+        console.error( error )
+      }
+    })
+    FrontendDispatcher("getToastsEnabled", "")
     FrontendDispatcher("getLogs", "");
     connectionStore.subscribedStatus = true
   }
