@@ -70,14 +70,29 @@ func (rw *RewardWidget) A2WRequest(request string, data string) {
 		}
 		rw.connection.WriteMessage(websocket.TextMessage, marshalledData)
 	case "widget-reload":
-		var formattedSectors []map[string]interface{}
-		for _, sector := range sectors {
-			formattedSectors = append(formattedSectors, map[string]interface{}{
-				"id":     sector.ID,
-				"data":   sector.Name,
-				"status": nil,
-			})
+		var itemsData []LogStr
+
+		if len(data) > 0 {
+			if err := json.Unmarshal([]byte(data), &itemsData); err != nil {
+				log.Printf("Ошибка парсинга JSON: %v", err)
+				return
+			}
 		}
+		log.Printf("Получено %d элементов", len(itemsData))
+
+		var sendingData struct {
+			Request string   `json:"request"`
+			Data    []LogStr `json:"pin"`
+		}
+		sendingData.Request = "widget-reload"
+		sendingData.Data = itemsData
+
+		marshalledData, err := json.Marshal(sendingData)
+		if err != nil {
+			log.Fatalf("json encoding error %v", err)
+			return
+		}
+		rw.connection.WriteMessage(websocket.TextMessage, marshalledData)
 	}
 }
 

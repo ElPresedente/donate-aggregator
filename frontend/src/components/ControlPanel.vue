@@ -74,6 +74,8 @@ import { useConnectionStore } from '../stores/connectionStore';
 import { useToastStore } from '../stores/toastStore'
 import ControlPanelSection from './ControlPanelSection.vue';
 
+import { useLogStore } from '../stores/logStore';
+
 export default {
   name: 'ControlPanel',
   components: {
@@ -81,6 +83,7 @@ export default {
   },
   setup(){
     const connectionStore = useConnectionStore();
+    const logStore = useLogStore();
     const toast = useToastStore();
     const ConnectionStatus = Object.freeze({
       CONNECTED: 'connected',

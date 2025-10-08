@@ -30,6 +30,8 @@ let textInterval = null;
 let currentActiveIndex = 0;
 let maxHeight = 0;
 
+const widget = document.querySelector('#widget');
+
 window.addEventListener('onWidgetLoad', function (obj) {
   initWidget(obj)
   testCheck()
@@ -62,7 +64,7 @@ function initWidget(widgetLoadEventObject){
 function testCheck(){
   if(testEnabled === "true"){
     const testObj = {'value': testTextType}
-    setText(testObj)
+    setPin(testObj)
   }
 }
 
@@ -97,19 +99,20 @@ function connectWebSocket() {
 function handleEvent(event){
   log(event)
   switch( event.request ){
-    case "set-text": return setText( event.pin )
-    case "reset-text": return resetText( event.pin )
+    case "set-text": return setPin( event.pin )
+    case "reset-text": return resetPin( event.pin )
+    case "widget-reload": return widgetReload( event.pin ) //Тут пин - массив пинов
   }
 }
 
-function setText(obj){
+function setPin(obj){
   pinsArray.push(obj)
-  addTextElem(obj.value)
+  setPinElem(obj.value)
   render = true
   renderWidget();
 }
 
-function addTextElem(text){
+function setPinElem(text){
   const el = document.createElement("p")
   el.className = "text-container"
   el.innerText = text
@@ -118,8 +121,6 @@ function addTextElem(text){
 }
 
 function renderWidget() {
-  const widget = document.querySelector('#widget');
-
   if (render) {
     widgetAppear()
     if (pinsArray.length === 1) {
@@ -146,7 +147,7 @@ function widgetDisappear(){
     setTimeout(() => {
       widget.classList.add("hidden");
       stopTextRotation();
-    }, 1000);
+    }, widgetAppearanceTime);
 }
 
 function initTextSizes() {
@@ -183,7 +184,7 @@ function stopTextRotation() {
     textInterval = null;
 }
 
-function resetText(obj){
+function resetPin(obj){
   pinsArray = pinsArray.filter(el => el.value !== obj.value)
   currentActiveIndex = 0 //костыль, мб нормально потом делать
 
@@ -193,21 +194,21 @@ function resetText(obj){
       render = false;
       renderWidget();
       setTimeout(() => {
-        resetTextElem(obj.value)
+        resetPinElem(obj.value)
       }, 1000);
       break;
     case 1:
-      resetTextElem(obj.value)
+      resetPinElem(obj.value)
       stopTextRotation();
       showText(0);
       break;
     default:
-      resetTextElem(obj.value)
+      resetPinElem(obj.value)
       break;
   }
 }
 
-function resetTextElem(text){
+function resetPinElem(text){
   const elems = document.getElementsByClassName("text-container");
   for(const el of elems)
   {
@@ -216,6 +217,17 @@ function resetTextElem(text){
       el.remove();
     }
   }
+}
+
+function widgetReload(objArray){
+  for(const pin of pinsArray) {
+    resetPin(pin)
+  }
+  setTimeout(() =>{
+    for(const obj of objArray){
+      setPin(obj)
+    }
+  }, widgetAppearanceTime + 1000)
 }
 
 function error( err ){
