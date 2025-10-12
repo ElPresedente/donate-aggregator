@@ -65,7 +65,7 @@ func (c *CredentialsDatabase) checkRecordsExist(names []string) (map[string]bool
 }
 
 func (c *CredentialsDatabase) InitDefaultVariable() {
-	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "donatpayDomain", "twitchRefreshToken", "logEnabled"}
+	names := []string{"donattyToken", "donattyUrl", "donatpayToken", "donatpayUserId", "donatpayDomain", "twitchRefreshToken", "logEnabled", "toastsEnabled"}
 	exists, err := c.checkRecordsExist(names)
 
 	if err != nil {
