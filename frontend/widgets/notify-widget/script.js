@@ -8,18 +8,16 @@ let testTextType = "Some text"
 let titleText = ""
 let titleSize = 20
 let titleColor = "rgb(255, 255, 255)"
-let titleFontName = "Roboto"
 let titleMarginLeft = 20
 let textSize = 20
 let textColor = "rgb(255, 255, 255)"
-let textFontName = "Roboto"
 let widgetAppearanceTime = 3
-let widgetDisappearanceTime = 3
 let labelsScrollTime = 10
 let backgroundColor = "rgb(255, 255, 255)"
 let borderWidth = 1
 let borderColor = "rgb(255, 255, 255)"
 let borderRadius = 20
+let textsPadding = 0
 
 //VARIABLES
 
@@ -47,18 +45,16 @@ function initWidget(widgetLoadEventObject){
   titleText               = fieldData.titleText
   titleSize               = fieldData.titleSize
   titleColor              = fieldData.titleColor
-  titleFontName           = fieldData.titleFontName
   titleMarginLeft         = fieldData.titleMarginLeft
   textSize                = fieldData.textSize
   textColor               = fieldData.textColor
-  textFontName            = fieldData.textFontName
-  widgetAppearanceTime    = fieldData.widgetAppearanceTime    //сори одно и то же
-  widgetDisappearanceTime = fieldData.widgetDisappearanceTime //сори одно и то же
+  widgetAppearanceTime    = fieldData.widgetAppearanceTime
   labelsScrollTime        = fieldData.labelsScrollTime
   backgroundColor         = fieldData.backgroundColor
   borderWidth             = fieldData.borderWidth
   borderColor             = fieldData.borderColor
   borderRadius            = fieldData.borderRadius
+  textsPadding             = fieldData.textsPadding
 }
 
 function testCheck(){

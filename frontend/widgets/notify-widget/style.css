@@ -7,8 +7,8 @@
     text-align: center;
     display: flex;
     align-items: center;
-    font-family: {textFontName};
     font-size: {textSize}px;
+    font-family: Montserrat;
     color: {textColor};
     background-color: {backgroundColor};
     border-width: {borderWidth}px;
@@ -21,7 +21,7 @@
     height: auto;
     margin: 10px 0;
     margin-left: {titleMarginLeft}px;
-    font-family: {titleFontName};
+    font-family: Montserrat;
     font-size: {titleSize}px;
     color: {titleColor};
 }
@@ -30,8 +30,10 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: calc({textsPadding}-20)%; //тут говна
     height: auto;
     margin: auto;
+    padding: {textsPadding}px;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;

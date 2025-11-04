@@ -1,14 +1,30 @@
-const frontImages = [
-  "https://images2.imgbox.com/01/c0/Rfkm3Nyn_o.png",
-  "https://images2.imgbox.com/4e/a0/HuetaDBI_o.png",
-  "https://images2.imgbox.com/28/b5/nJHFsdM9_o.png"
-];
+const winterImages = {
+  pointer: "https://images2.imgbox.com/8d/a5/kN8Bwkih_o.png",
+  wrapper: "https://images2.imgbox.com/b6/43/MmXPALMa_o.png",
+  frame: "https://images2.imgbox.com/53/d1/HdLLzk7Z_o.png",
+  frontImageV1: "https://images2.imgbox.com/43/54/d3ngUlqa_o.png",
+  frontImageV2: "https://images2.imgbox.com/6a/ed/1Phnhg4k_o.png",
+  frontImageV3: "https://images2.imgbox.com/e8/0a/ZdWs459M_o.png",
+  backImageV1: "https://images2.imgbox.com/a4/63/c9p2OwK6_o.png",
+  backImageV2: "https://images2.imgbox.com/12/d2/4torefjv_o.png",
+  backImageV3: "https://images2.imgbox.com/8b/fa/cWrNzGJX_o.png"
+}
 
-const backImages = [
-  "https://images2.imgbox.com/83/dd/OHH2giFg_o.png",
-  "https://images2.imgbox.com/d2/01/1tl7sMLf_o.png",
-  "https://images2.imgbox.com/46/77/GpI2Pn23_o.png"
-];
+const normalImages = {
+  pointer: "https://images2.imgbox.com/35/8d/HzBMIjaC_o.png",
+  wrapper: "https://images2.imgbox.com/1d/88/Sxmuspeh_o.png", 
+  frame: "https://images2.imgbox.com/45/87/hR8a9MKU_o.png",
+  frontImageV1: "https://images2.imgbox.com/01/c0/Rfkm3Nyn_o.png",
+  frontImageV2: "https://images2.imgbox.com/4e/a0/HuetaDBI_o.png",
+  frontImageV3: "https://images2.imgbox.com/28/b5/nJHFsdM9_o.png",
+  backImageV1: "https://images2.imgbox.com/83/dd/OHH2giFg_o.png",
+  backImageV2: "https://images2.imgbox.com/d2/01/1tl7sMLf_o.png",
+  backImageV3: "https://images2.imgbox.com/46/77/GpI2Pn23_o.png"
+}
+
+let images = {}
+
+
 
 const categoryMapping = {
   "Обычные": 0,
@@ -46,6 +62,47 @@ window.addEventListener('load', () => {
   resetTrack();
   connectWebSocket();
 });
+
+window.addEventListener('onWidgetLoad', function (obj) {
+  initWidget(obj)
+  initBGImages()
+});
+
+function initWidget(widgetLoadEventObject){
+  const fieldData = widgetLoadEventObject.detail.fieldData;
+  console.log(fieldData.rouletteType)
+  switch(fieldData.rouletteType){
+    case "normal":
+      images = normalImages
+      break
+    case "winter":
+      images = winterImages
+      break
+    default:
+      images = normalImages
+      break
+  }
+}
+
+function initBGImages(){
+  let elements = document.querySelectorAll('.roulette-frame'); 
+
+  elements.forEach(element => {
+    element.style.backgroundImage = `url(${images.frame})`;
+  });
+
+  elements = document.querySelectorAll('.roulette-wrapper');
+
+  elements.forEach(element => {
+    element.style.backgroundImage = `url(${images.wrapper})`;
+  });
+
+  elements = document.querySelectorAll('.pointer');
+
+  elements.forEach(element => {
+    element.style.backgroundImage = `url(${images.pointer})`;
+  });
+}
 
 function connectWebSocket() {
   const RETRY_INTERVAL = 5000;
@@ -241,8 +298,8 @@ function appendToTrack(text, sectorId, categoryKey = null) {
   const track = document.getElementById("track");
 
   let index = 0;
-  let frontImage = frontImages[index];
-  let backImage = backImages[index];
+  let frontImage = images.frontImageV1
+  let backImage = images.backImageV1
 
   for (let i = 0; i < repeats; i++) {
     const el = document.createElement("div");
@@ -258,8 +315,9 @@ function appendToTrack(text, sectorId, categoryKey = null) {
     else
       index = getWeightedRandomIndex();
 
-    frontImage = frontImages[index];
-    backImage = backImages[index];
+    
+    frontImage = getFrontImage(index);
+    backImage = getBackImage(index);
 
     el.innerHTML = `
       <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">
@@ -279,6 +337,32 @@ function appendToTrack(text, sectorId, categoryKey = null) {
   }
 
   track.style.width = `${track.children.length * sectorWidth}px`;
+}
+
+function getFrontImage(index){
+  switch(index){
+    case 0:
+      return images.frontImageV1;
+    case 1:
+      return images.frontImageV2;
+    case 2:
+      return images.frontImageV3;
+    default:
+      return images.frontImageV1
+  }
+}
+
+function getBackImage(index){
+  switch(index){
+    case 0:
+      return images.backImageV1;
+    case 1:
+      return images.backImageV2;
+    case 2:
+      return images.backImageV3;
+    default:
+      return images.backImageV1
+  }
 }
 
 function cubicBezier(p1x, p1y, p2x, p2y) {

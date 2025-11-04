@@ -30,52 +30,42 @@
   "titleSize": {
     "type": "number",
     "label": "Размер ЗАГОЛОВКА (в пикселях)",
-    "value": 20
+    "value": 20,
+    "step": 1
   },
   "titleColor": {
     "type": "colorpicker",
     "label": "Цвет ЗАГОЛОВКА",
     "value": "rgb(255, 255, 255)"
   },
-  "titleFontName": {
-    "type": "googleFont",
-    "label": "Шрифт ЗАГОЛОВКА",
-    "value": "Roboto"
-  },
   "titleMarginLeft": {
     "type": "number",
     "label": "Отступ заголовка от левого края",
-    "value": 20
+    "value": 20,
+    "step": 1
   },
   "textSize": {
     "type": "number",
     "label": "Размер основного текста (в пикселях)",
-    "value": 20
+    "value": 20,
+    "step": 1
   },
   "textColor": {
     "type": "colorpicker",
     "label": "Цвет основного текста",
     "value": "rgb(255, 255, 255)"
   },
-  "textFontName": {
-    "type": "googleFont",
-    "label": "Шрифт основного текста",
-    "value": "Roboto"
-  },
   "widgetAppearanceTime": {
     "type": "number",
     "label": "Время плавного появления виджета (с)",
-    "value": 3
-  },
-  "widgetDisappearanceTime": {
-    "type": "number",
-    "label": "Время плавного исчезания виджета (с)",
-    "value": 3
+    "value": 3,
+    "step": 1
   },
   "labelsScrollTime": {
     "type": "number",
-    "label": "Время между переходами хуйни (с)",
-    "value": 10
+    "label": "Время между переходами НЕ хуйни (с)",
+    "value": 10,
+    "step": 1
   },
   "backgroundColor": {
     "type": "colorpicker",
@@ -85,7 +75,8 @@
   "borderWidth": {
     "type": "number",
     "label": "Ширина обводки",
-    "value": 1
+    "value": 1,
+    "step": 1
   },
   "borderColor": {
     "type": "colorpicker",
@@ -95,6 +86,13 @@
   "borderRadius": {
     "type": "number",
     "label": "Скругление углов (число)",
-    "value": 20
+    "value": 20,
+    "step": 1
+  },
+  "textsPadding": {
+    "type": "number",
+    "label": "Отступы по вертикали от текста",
+    "value": 0,
+    "step": 1
   }
 }

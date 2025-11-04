@@ -1,0 +1,11 @@
+{
+    "rouletteType": {
+    "type": "dropdown",
+    "label": "Режим рулетки",
+    "value": "normal",
+    "options": {
+      "Обычный": "normal",
+      "Зимний": "winter"
+    }
+  }
+}
