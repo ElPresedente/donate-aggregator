@@ -178,9 +178,9 @@ div{
   border-radius: 50%;
   position: relative;
   z-index: 2;
-  color: white;
+  color: {textColor};
   font-weight: bold;
-  text-shadow: 1px 1px 2px black;
+  text-shadow: 1px 1px 2px {textShadow};
   font-size: clamp(12px, 14px, 16px);
   text-align: center;
   padding: 4px;
@@ -188,30 +188,4 @@ div{
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-#result {
-  margin-top: 20px;
-  font-size: 24px;
-  color: white;
-  text-align: center;
-  text-shadow: 1px 1px 3px black;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  opacity: 0;
-  transform: scale(0.95);
-  pointer-events: none;
-  transition: opacity 1s ease, transform 1s ease;
-}
-
-#result.visible {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-
-#result.hidden {
-  display: none;
 }
