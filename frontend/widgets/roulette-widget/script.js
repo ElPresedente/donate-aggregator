@@ -1,25 +1,25 @@
 const winterImages = {
-  pointer: "https://images2.imgbox.com/8d/a5/kN8Bwkih_o.png",
-  wrapper: "https://images2.imgbox.com/b6/43/MmXPALMa_o.png",
-  frame: "https://images2.imgbox.com/53/d1/HdLLzk7Z_o.png",
-  frontImageV1: "https://images2.imgbox.com/43/54/d3ngUlqa_o.png",
-  frontImageV2: "https://images2.imgbox.com/6a/ed/1Phnhg4k_o.png",
-  frontImageV3: "https://images2.imgbox.com/e8/0a/ZdWs459M_o.png",
-  backImageV1: "https://images2.imgbox.com/a4/63/c9p2OwK6_o.png",
-  backImageV2: "https://images2.imgbox.com/12/d2/4torefjv_o.png",
-  backImageV3: "https://images2.imgbox.com/8b/fa/cWrNzGJX_o.png"
+  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/pin.png",
+  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/bg.png",
+  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/decor.png",
+  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/com_cl.png",
+  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/rar_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/leg_cl.png",
+  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/com_op.png",
+  backImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/rar_op.png",
+  backImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/leg_op.png"
 }
 
 const normalImages = {
-  pointer: "https://images2.imgbox.com/35/8d/HzBMIjaC_o.png",
-  wrapper: "https://images2.imgbox.com/1d/88/Sxmuspeh_o.png", 
-  frame: "https://images2.imgbox.com/45/87/hR8a9MKU_o.png",
-  frontImageV1: "https://images2.imgbox.com/01/c0/Rfkm3Nyn_o.png",
-  frontImageV2: "https://images2.imgbox.com/4e/a0/HuetaDBI_o.png",
-  frontImageV3: "https://images2.imgbox.com/28/b5/nJHFsdM9_o.png",
-  backImageV1: "https://images2.imgbox.com/83/dd/OHH2giFg_o.png",
-  backImageV2: "https://images2.imgbox.com/d2/01/1tl7sMLf_o.png",
-  backImageV3: "https://images2.imgbox.com/46/77/GpI2Pn23_o.png"
+  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/pin.png",
+  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/bg.png",
+  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/dec.png",
+  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/com_cl.png",
+  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/rar_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/leg_cl.png",
+  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/com_op.png",
+  backImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/rar_op.png",
+  backImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/leg_op.png"
 }
 
 let images = {}
