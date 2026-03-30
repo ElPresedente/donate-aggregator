@@ -22,6 +22,30 @@ const normalImages = {
   backImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/leg_op.png"
 }
 
+const blueClaireImages = {
+  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/pin.png",
+  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg.png",
+  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/dec.png",
+  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/com_cl.png",
+  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/uncom_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/rar_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/epic_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/leg_cl.png",
+  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg_op.png",
+}
+
+const pinkImages = {
+  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/pin.png",
+  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg.png",
+  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/dec.png",
+  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/com_cl.png",
+  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/uncom_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/rar_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/epic_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/leg_cl.png",
+  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg_op.png",
+}
+
 let images = {}
 
 
