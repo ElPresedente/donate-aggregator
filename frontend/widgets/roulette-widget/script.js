@@ -2,6 +2,8 @@ const winterImages = {
   pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/pin.png",
   wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/bg.png",
   frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/decor.png",
+  frontImagesCount: 3,
+  backImagesCount: 3,
   frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/com_cl.png",
   frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/rar_cl.png",
   frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/winter_roulette/leg_cl.png",
@@ -14,6 +16,8 @@ const normalImages = {
   pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/pin.png",
   wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/bg.png",
   frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/dec.png",
+  frontImagesCount: 3,
+  backImagesCount: 3,
   frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/com_cl.png",
   frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/rar_cl.png",
   frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/common_roulette/leg_cl.png",
@@ -26,24 +30,28 @@ const blueClaireImages = {
   pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/pin.png",
   wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg.png",
   frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/dec.png",
+  frontImagesCount: 5,
+  backImagesCount: 1,
   frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/com_cl.png",
   frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/uncom_cl.png",
   frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/rar_cl.png",
-  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/epic_cl.png",
-  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/leg_cl.png",
+  frontImageV4: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/epic_cl.png",
+  frontImageV5: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/leg_cl.png",
   backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg_op.png",
 }
 
 const pinkImages = {
-  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/pin.png",
-  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg.png",
-  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/dec.png",
-  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/com_cl.png",
-  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/uncom_cl.png",
-  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/rar_cl.png",
-  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/epic_cl.png",
-  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/leg_cl.png",
-  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg_op.png",
+  pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/pin.png",
+  wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/bg.png",
+  frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/dec.png",
+  frontImagesCount: 5,
+  backImagesCount: 1,
+  frontImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/com_cl.png",
+  frontImageV2: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/uncom_cl.png",
+  frontImageV3: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/rar_cl.png",
+  frontImageV4: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/epic_cl.png",
+  frontImageV5: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/leg_cl.png",
+  backImageV1: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/bg_op.png",
 }
 
 let images = {}
@@ -101,6 +109,12 @@ function initWidget(widgetLoadEventObject){
       break
     case "winter":
       images = winterImages
+      break
+    case "pink":
+      images = pinkImages
+      break
+    case "blueClaire":
+      images = blueClaireImages
       break
     default:
       images = normalImages
@@ -311,11 +325,24 @@ function resetTrack(){
   previousOffset = 0;
 }
 
+//Тут начнутся костыли. Мне лень думать, как обрабатывать дизайн с 3 и 5 картинками
+//Поэтому разделим это на несколько функций
+
+//Старая функция рандома для трёх редкостей
 function getWeightedRandomIndex() {
   const rand = Math.random() * 100.0;
   if (rand < 69.0) return 0;
   if (rand < 99.0) return 1;
   return 2;
+}
+
+function getWeightedRandomIndexForFiveImgs() {
+  const rand = Math.random() * 100.0;
+  if (rand < 50.0) return 0;
+  if (rand < 75.0) return 1;
+  if (rand < 91.0) return 2;
+  if (rand < 98.0) return 3;
+  return 4;
 }
 
 function appendToTrack(text, sectorId, categoryKey = null) {
@@ -334,14 +361,26 @@ function appendToTrack(text, sectorId, categoryKey = null) {
     const id = `coin-${sectorId}-${i}`;
     const isTarget = i === (targetRepeats);
 
+    //Клянусь, мне так похуй на хуйню ниже
+    //Не я придуман комбинации сначала из 3 фронт 3 бэк картинки, а потом еще добавил 5 фронт 1 бэк
+    //Откуда я знаю, что будет в будущем. Мне похуй
+
     if (isTarget)
       index = categoryMapping[categoryKey];
-    else
+    else if(images.frontImagesCount == 3) {
       index = getWeightedRandomIndex();
+      frontImage = getFrontImage(index);
+    }
+    else if(images.frontImagesCount == 5) {
+      index = getWeightedRandomIndexForFiveImgs();
+      frontImage = getFrontImageForFiveImgs(index);
+    }
 
+    if(images.backImage == 3)
+      backImage = getBackImage(index);
+    else if(images.backImage == 1)
+      backImage = getBackImageForOneImgs();
     
-    frontImage = getFrontImage(index);
-    backImage = getBackImage(index);
 
     el.innerHTML = `
       <div class="coin" style="width: ${sectorHeight}px; height: ${sectorHeight}px;">
@@ -363,6 +402,7 @@ function appendToTrack(text, sectorId, categoryKey = null) {
   track.style.width = `${track.children.length * sectorWidth}px`;
 }
 
+//Функция для трёх картинок фронтовых
 function getFrontImage(index){
   switch(index){
     case 0:
@@ -376,6 +416,25 @@ function getFrontImage(index){
   }
 }
 
+//Функция для пяти картинок фронтовых
+function getFrontImageForFiveImgs(index){
+  switch(index){
+    case 0:
+      return images.frontImageV1;
+    case 1:
+      return images.frontImageV2;
+    case 2:
+      return images.frontImageV3;
+    case 3:
+      return images.frontImageV4;
+    case 4:
+      return images.frontImageV5;
+    default:
+      return images.frontImageV1
+  }
+}
+
+//Функция для трех картинок бэковых
 function getBackImage(index){
   switch(index){
     case 0:
@@ -387,6 +446,11 @@ function getBackImage(index){
     default:
       return images.backImageV1
   }
+}
+
+//Функция для одной картинки бэковой
+function getBackImageForOneImgs(){
+  return images.backImageV1
 }
 
 function cubicBezier(p1x, p1y, p2x, p2y) {

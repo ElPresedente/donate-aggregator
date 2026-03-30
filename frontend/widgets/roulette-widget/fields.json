@@ -1,11 +1,23 @@
 {
-    "rouletteType": {
+  "rouletteType": {
     "type": "dropdown",
     "label": "Режим рулетки",
     "value": "normal",
     "options": {
-      "Обычный": "normal",
-      "Зимний": "winter"
+      "normal": "Обычный",
+      "winter": "Зимний",
+      "pink": "Розовый",
+      "blueClaire": "Светло-синий"
     }
+  },
+  "textColor": {
+    "type": "colorpicker",
+    "label": "Цввет текста",
+    "value": "rgb(255, 255, 255)"
+  },
+  "textShadow": {
+    "type": "colorpicker",
+    "label": "Цвет тени",
+    "value": "rgb(0, 0, 0)"
   }
 }
