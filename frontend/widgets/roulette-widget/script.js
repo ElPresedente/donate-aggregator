@@ -28,6 +28,8 @@ const normalImages = {
 
 const blueClaireImages = {
   pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/pin.png",
+  pointerSize: "60px",
+  pointerTop: "30px",
   wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/bg.png",
   frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/blue_claire_roulette/dec.png",
   frontImagesCount: 5,
@@ -42,6 +44,8 @@ const blueClaireImages = {
 
 const pinkImages = {
   pointer: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/pin.png",
+  pointerSize: "60px",
+  pointerTop: "30px",
   wrapper: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/bg.png",
   frame: "https://raw.githubusercontent.com/ElPresedente/donate-aggregator/dev/widget_images/pink_roulette/dec.png",
   frontImagesCount: 5,
@@ -139,6 +143,13 @@ function initBGImages(){
 
   elements.forEach(element => {
     element.style.backgroundImage = `url(${images.pointer})`;
+    if (images.pointerSize) {
+      element.style.width = images.pointerSize;
+      element.style.height = images.pointerSize;
+    }
+    if (images.pointerTop) {
+      element.style.top = images.pointerTop;
+    }
   });
 }
 
